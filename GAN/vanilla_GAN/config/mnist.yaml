@@ -1,0 +1,14 @@
+# config for mnsit
+size: 28
+channel: 1
+
+# train
+random_seed: 0
+epochs: 10000
+learning_rate: 0.0002
+batch_size: 128
+latent_dim: 32
+
+# directory
+checkpoint_dir: ./checkpoint
+log_dir: ../log
