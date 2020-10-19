@@ -4,28 +4,21 @@ from datetime import datetime
 import tensorflow as tf
 from tensorflow.keras import layers
 
+from utils import tf_image_concat
 from .generator import Generator
 from .discriminator import Discriminator
 
 
-def tf_image_concat(images, n_row, n_col):
-    output = []
-    for i in range(n_col):
-        output.append(tf.concat([*images[n_row*i:n_row*(i+1)]], axis=0))
-    return tf.concat(output, axis=1)
-
-
-class GAN():
-    def __init__(self, conf, use_log=False):
+class DCGAN():
+    def __init__(self, conf, use_log=True):
         self.step = 0
         self.generator = Generator(conf)
-        self.discriminator = Discriminator()
-        self.gen_opt = tf.keras.optimizers.Adam(conf['learning_rate'])
-        self.dis_opt = tf.keras.optimizers.Adam(conf['learning_rate'])
+        self.discriminator = Discriminator(conf)
+        self.gen_opt = tf.keras.optimizers.Adam(conf['learning_rate'], conf['beta_1'])
+        self.dis_opt = tf.keras.optimizers.Adam(conf['learning_rate'], conf['beta_1'])
 
         self._bce_loss = tf.keras.losses.BinaryCrossentropy(from_logits=True)
         self._use_log = use_log
-        self._input_shape = (conf['size'], conf['size'], conf['channel'])
         self._batch_size = conf['batch_size']
         self._latent_dim = conf['latent_dim']
         self._random_seed = conf['random_seed']
@@ -62,7 +55,6 @@ class GAN():
 
     def test(self, x, step=None):
         generated_image = self.generator(x, training=False) / 2 + 0.5
-        generated_image = tf.reshape(generated_image, (-1, *self._input_shape))
         if self._use_log:
             self._write_test_log(step=step or self.step,
                                  data=tf.expand_dims(tf_image_concat(generated_image, 4, 4), 0))
@@ -70,7 +62,7 @@ class GAN():
 
     def _set_checkpoint(self, checkpoint_dir):
         self.checkpoint_dir = checkpoint_dir
-        self.checkpoint_prefix = os.path.join(checkpoint_dir, 'ckpt')
+        self.checkpoint_prefix = os.path.join(self.checkpoint_dir, 'ckpt')
         self.checkpoint = tf.train.Checkpoint(
             generator_optimizer=self.gen_opt,
             discriminator_optimizer=self.dis_opt,
@@ -88,7 +80,7 @@ class GAN():
     def _create_logger(self, log_dir):
         time_stamp = datetime.now().strftime("%Y-%m-%d_%H_%M_%S")
         self._logger = tf.summary.create_file_writer(
-            os.path.join(log_dir, f'GAN_{time_stamp}'))
+            os.path.join(log_dir, f'DCGAN_{time_stamp}'))
 
     def _write_train_log(self, step, loss_g, loss_d):
         with self._logger.as_default():

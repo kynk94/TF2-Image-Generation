@@ -8,11 +8,9 @@ class Discriminator(tf.keras.Model):
         hp = conf['dis']
         self.model = None
         self.build_model(n_layer=hp['n_layer'],
-                         n_filter=hp['n_filter'],
-                         size=conf['size'],
-                         channel=conf['channel'])
+                         n_filter=hp['n_filter'])
 
-    def build_model(self, n_layer, n_filter, size, channel):
+    def build_model(self, n_layer, n_filter):
         model = []
         for _ in range(n_layer):
             model.extend([layers.Conv2D(n_filter, (5, 5), strides=(2, 2),

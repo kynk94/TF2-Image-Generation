@@ -1,5 +1,5 @@
 # config for mnsit
-size: 28
+input_size: 28
 channel: 1
 
 # train
@@ -10,5 +10,6 @@ batch_size: 128
 latent_dim: 32
 
 # directory
-checkpoint_dir: ./checkpoint
-log_dir: ../log
+train_data_txt: ../dataset/mnist/train.txt
+checkpoint_dir: ./checkpoint/GAN
+log_dir: ./log

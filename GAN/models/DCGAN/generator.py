@@ -9,7 +9,7 @@ class Generator(tf.keras.Model):
         self.model = None
         self.build_model(n_layer=hp['n_layer'],
                          n_filter=hp['n_filter'],
-                         size=conf['size'],
+                         size=conf['input_size'],
                          channel=conf['channel'])
 
     def build_model(self, n_layer, n_filter, size, channel):

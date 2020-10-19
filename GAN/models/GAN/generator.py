@@ -6,7 +6,7 @@ class Generator(tf.keras.Model):
     def __init__(self, conf):
         super(Generator, self).__init__()
         self.model = None
-        self.build_model(size=conf['size'])
+        self.build_model(size=conf['input_size'])
 
     def build_model(self, size):
         model = [layers.Dense(128, activation=tf.nn.leaky_relu),

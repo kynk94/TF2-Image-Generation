@@ -1,6 +1,6 @@
-# config for mnsit
-size: 32
-channel: 1
+# config for cifar10
+input_size: 32
+channel: 3
 
 # train
 random_seed: 0
@@ -17,5 +17,6 @@ dis:
   n_filter: 32
 
 # directory
-checkpoint_dir: ./checkpoint
-log_dir: ../log
+train_data_txt: ../dataset/cifar10/train.txt
+checkpoint_dir: ./checkpoint/DCGAN
+log_dir: ./log
