@@ -2,7 +2,7 @@ import os
 from datetime import datetime
 
 import tensorflow as tf
-from tensorflow.keras import layers
+from tensorflow.keras.optimizers import Adam
 
 from utils import tf_image_concat
 from .generator import Generator
@@ -14,8 +14,8 @@ class DCGAN():
         self.step = 0
         self.generator = Generator(conf)
         self.discriminator = Discriminator(conf)
-        self.gen_opt = tf.keras.optimizers.Adam(conf['learning_rate'], conf['beta_1'])
-        self.dis_opt = tf.keras.optimizers.Adam(conf['learning_rate'], conf['beta_1'])
+        self.gen_opt = Adam(conf['learning_rate'], conf['beta_1'])
+        self.dis_opt = Adam(conf['learning_rate'], conf['beta_1'])
 
         self._bce_loss = tf.keras.losses.BinaryCrossentropy(from_logits=True)
         self._use_log = use_log
@@ -53,11 +53,17 @@ class DCGAN():
         self.step += 1
         return loss_g, loss_d
 
-    def test(self, x, step=None):
+    def test(self, x, step=None, display_shape=None):
         generated_image = self.generator(x, training=False) / 2 + 0.5
         if self._use_log:
+            if display_shape is None:
+                test_batch = x.shape[0]
+                n_row = int(test_batch**0.5)
+                display_shape = (n_row, n_row)
+            data = tf.expand_dims(tf_image_concat(generated_image, display_shape),
+                                  axis=0)
             self._write_test_log(step=step or self.step,
-                                 data=tf.expand_dims(tf_image_concat(generated_image, 4, 4), 0))
+                                 data=data)
         return generated_image
 
     def _set_checkpoint(self, checkpoint_dir):

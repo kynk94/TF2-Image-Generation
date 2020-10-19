@@ -8,7 +8,12 @@ def get_config(config):
         return yaml.load(stream, Loader=yaml.FullLoader)
 
 
-def tf_image_concat(images, n_row, n_col):
+def make_1d_latent(batch, latent_dim, seed=None):
+    return tf.random.normal(shape=(batch, latent_dim), seed=seed)
+
+
+def tf_image_concat(images, display_shape):
+    n_row, n_col = display_shape
     output = []
     for i in range(n_col):
         output.append(tf.concat([*images[n_row*i:n_row*(i+1)]], axis=0))

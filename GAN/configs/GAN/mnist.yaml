@@ -9,6 +9,9 @@ learning_rate: 0.0002
 batch_size: 128
 latent_dim: 32
 
+# test
+test_batch_size: 36
+
 # directory
 train_data_txt: ../dataset/mnist/train.txt
 checkpoint_dir: ./checkpoint/GAN

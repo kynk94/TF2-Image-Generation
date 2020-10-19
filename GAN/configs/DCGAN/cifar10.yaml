@@ -7,14 +7,17 @@ random_seed: 0
 epochs: 10000
 learning_rate: 0.0002
 beta_1: 0.5
-batch_size: 128
-latent_dim: 32
+batch_size: 256
+latent_dim: 128
 gen:
   n_layer: 3
-  n_filter: 64
+  n_filter: 512
 dis:
-  n_layer: 4
-  n_filter: 32
+  n_layer: 3
+  n_filter: 512
+
+# test
+test_batch_size: 16
 
 # directory
 train_data_txt: ../dataset/cifar10/train.txt

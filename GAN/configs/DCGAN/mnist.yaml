@@ -16,6 +16,9 @@ dis:
   n_layer: 4
   n_filter: 32
 
+# test
+test_batch_size: 36
+
 # directory
 train_data_txt: ../dataset/mnist/train.txt
 checkpoint_dir: ./checkpoint/DCGAN

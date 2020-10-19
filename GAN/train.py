@@ -1,7 +1,7 @@
 import tqdm
 import tensorflow as tf
 
-from utils import get_config, ImageLoader
+from utils import make_1d_latent, get_config, ImageLoader
 from models import GAN, DCGAN
 
 gpus = tf.config.experimental.list_physical_devices('GPU')
@@ -15,15 +15,16 @@ def train_GAN():
 
     loader = ImageLoader(data_txt_file=conf['train_data_txt'])
     train_dataset = loader.get_dataset(conf, flatten=True)
-    test_data = tf.random.normal(shape=(16, conf['latent_dim']),
-                                 seed=conf['random_seed'])
+    test_data = make_1d_latent(batch=conf['test_batch_size'],
+                               latent_dim=conf['latent_dim'],
+                               seed=conf['random_seed'])
 
     pbar = tqdm.tqdm(range(1, conf['epochs']+1), position=0, leave=True)
     for epoch in pbar:
         for iteration, image_batch in enumerate(train_dataset):
             loss_g, loss_d = model.train(image_batch)
 
-            if (iteration + 1) % 50 == 0:
+            if (iteration + 1) % 10 == 0:
                 pbar.set_postfix({'G': '{:.4f}'.format(loss_g),
                                   'D': '{:.4f}'.format(loss_d)})
         if epoch % 1 == 0:
@@ -36,20 +37,22 @@ def train_DCGAN():
 
     loader = ImageLoader(data_txt_file=conf['train_data_txt'])
     train_dataset = loader.get_dataset(conf)
-
-    test_data = tf.random.normal(shape=(16, conf['latent_dim']),
-                                 seed=conf['random_seed'])
+    test_data = make_1d_latent(batch=conf['test_batch_size'],
+                               latent_dim=conf['latent_dim'],
+                               seed=conf['random_seed'])
 
     pbar = tqdm.tqdm(range(1, conf['epochs']+1), position=0, leave=True)
     for epoch in pbar:
         for iteration, image_batch in enumerate(train_dataset):
             loss_g, loss_d = model.train(image_batch)
 
-            if (iteration + 1) % 50 == 0:
+            if (iteration + 1) % 10 == 0:
                 pbar.set_postfix({'G': '{:.4f}'.format(loss_g),
                                   'D': '{:.4f}'.format(loss_d)})
         if epoch % 1 == 0:
             model.test(test_data, epoch)
+        if epoch % 5 == 0:
+            model.save()
 
 
 def main():
