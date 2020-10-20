@@ -26,24 +26,26 @@ class DCGAN(BaseModel):
 
     def train(self, x):
         latent = tf.random.normal(shape=self._latent_shape)
-        with tf.GradientTape() as g_tape, tf.GradientTape() as d_tape:
-            generated_image = self.generator(latent, training=True)
-
-            real_score = self.discriminator(x, training=True)
-            fake_score = self.discriminator(generated_image, training=True)
-
-            loss_g = self._bce_loss(tf.ones_like(fake_score), fake_score)
+        with tf.GradientTape() as d_tape:
+            generated_image = self.generator(latent)
+            real_score = self.discriminator(x)
+            fake_score = self.discriminator(generated_image)
             loss_d = self._bce_loss(tf.ones_like(real_score), real_score)
             loss_d += self._bce_loss(tf.zeros_like(fake_score), fake_score)
-
-        gradient_g = g_tape.gradient(loss_g,
-                                     self.generator.trainable_variables)
         gradient_d = d_tape.gradient(loss_d,
                                      self.discriminator.trainable_variables)
-        self.gen_opt.apply_gradients(zip(gradient_g,
-                                         self.generator.trainable_variables))
         self.dis_opt.apply_gradients(zip(gradient_d,
                                          self.discriminator.trainable_variables))
+
+        latent = tf.random.normal(shape=self._latent_shape)
+        with tf.GradientTape() as g_tape:
+            generated_image = self.generator(latent)
+            fake_score = self.discriminator(generated_image)
+            loss_g = self._bce_loss(tf.ones_like(fake_score), fake_score)
+        gradient_g = g_tape.gradient(loss_g,
+                                     self.generator.trainable_variables)
+        self.gen_opt.apply_gradients(zip(gradient_g,
+                                         self.generator.trainable_variables))
 
         if self._use_log:
             self._write_train_log(loss_g, loss_d)

@@ -52,6 +52,8 @@ def train_DCGAN():
                                   'D': '{:.4f}'.format(loss_d)})
         if epoch % 1 == 0:
             model.test(test_data, epoch, save=True)
+        if epoch % 5 == 0:
+            model.save()
 
 
 def main():

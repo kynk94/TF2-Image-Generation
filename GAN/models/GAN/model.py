@@ -30,10 +30,10 @@ class GAN(BaseModel):
     def train(self, x):
         latent = tf.random.normal(shape=self._latent_shape)
         with tf.GradientTape() as g_tape, tf.GradientTape() as d_tape:
-            generated_image = self.generator(latent, training=True)
+            generated_image = self.generator(latent)
 
-            real_score = self.discriminator(x, training=True)
-            fake_score = self.discriminator(generated_image, training=True)
+            real_score = self.discriminator(x)
+            fake_score = self.discriminator(generated_image)
 
             loss_g = self._bce_loss(tf.ones_like(fake_score), fake_score)
             loss_d = self._bce_loss(tf.ones_like(real_score), real_score)
