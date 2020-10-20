@@ -1,25 +1,26 @@
 # config for cifar10
-input_size: 32
+input_size: 64
 channel: 3
 
 # train
 random_seed: 0
-epochs: 10000
+epochs: 1000
 learning_rate: 0.0002
 beta_1: 0.5
-batch_size: 256
+batch_size: 64
 latent_dim: 128
 gen:
-  n_layer: 3
-  n_filter: 512
+  n_layer: 4
+  n_filter: 512 # 512, 256, 128, 64, 3
 dis:
-  n_layer: 3
-  n_filter: 512
+  n_layer: 4
+  n_filter: 64 # 3, 64, 128, 256, 512
 
 # test
-test_batch_size: 16
+test_batch_size: 36
 
 # directory
 train_data_txt: ../dataset/cifar10/train.txt
-checkpoint_dir: ./checkpoint/DCGAN
+output_dir: ./output
+checkpoint_dir: ./checkpoint
 log_dir: ./log

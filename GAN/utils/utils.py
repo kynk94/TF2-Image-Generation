@@ -3,6 +3,22 @@ import yaml
 import tensorflow as tf
 
 
+def allow_memory_growth():
+    gpus = tf.config.experimental.list_physical_devices('GPU')
+    if gpus:
+        try:
+            # Currently, memory growth needs to be the same across GPUs
+            for gpu in gpus:
+                tf.config.experimental.set_memory_growth(gpu, True)
+            logical_gpus = tf.config.experimental.list_logical_devices('GPU')
+            print(len(gpus), "Physical GPUs,", len(
+                logical_gpus), "Logical GPUs")
+        except RuntimeError as e:
+            # Memory growth must be set before GPUs have been initialized
+            print(e)
+    return
+
+
 def get_config(config):
     with open(config, 'r') as stream:
         return yaml.load(stream, Loader=yaml.FullLoader)
@@ -18,6 +34,13 @@ def tf_image_concat(images, display_shape):
     for i in range(n_col):
         output.append(tf.concat([*images[n_row*i:n_row*(i+1)]], axis=0))
     return tf.concat(output, axis=1)
+
+
+def tf_image_write(filename, contents, denorm=True):
+    if denorm:
+        contents = contents * 127.5 + 127.5
+    tf.io.write_file(filename=filename,
+                     contents=tf.io.encode_png(tf.cast(contents, tf.uint8)))
 
 
 def make_dataset_txt(data_dir,

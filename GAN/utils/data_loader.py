@@ -32,7 +32,8 @@ class ImageLoader:
             return data
         return data, label
 
-    def get_dataset(self, conf,
+    def get_dataset(self,
+                    batch_size,
                     map_func=None,
                     scailing=True,
                     new_size=None,
@@ -50,7 +51,7 @@ class ImageLoader:
             map_func=self._read_file,
             num_parallel_calls=tf.data.experimental.AUTOTUNE
         ).batch(
-            batch_size=conf['batch_size'],
+            batch_size=batch_size,
             drop_remainder=drop_remainder
         )
 
@@ -67,7 +68,7 @@ class ImageLoader:
             if new_size is not None:
                 data = tf.image.resize(data, new_size)
             if flatten:
-                data = tf.reshape(data, (conf['batch_size'], -1))
+                data = tf.reshape(data, (batch_size, -1))
             if map_func is not None:
                 data = map_func(data)
             if label is None:

@@ -16,7 +16,7 @@ class Discriminator(tf.keras.Model):
             model.extend([layers.Conv2D(n_filter, (5, 5), strides=(2, 2),
                                         padding='same', activation=tf.nn.leaky_relu),
                           layers.BatchNormalization()])
-            n_filter //= 2
+            n_filter *= 2
         model.extend([layers.Flatten(),
                       layers.Dense(1)])
         self.model = tf.keras.Sequential(model, name='discriminator')

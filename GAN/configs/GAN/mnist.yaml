@@ -14,5 +14,6 @@ test_batch_size: 36
 
 # directory
 train_data_txt: ../dataset/mnist/train.txt
-checkpoint_dir: ./checkpoint/GAN
+output_dir: ./output
+checkpoint_dir: ./checkpoint
 log_dir: ./log
