@@ -1,5 +1,5 @@
 # config for cifar10
-input_size: 64
+input_size: 32
 channel: 3
 
 # train
@@ -10,11 +10,11 @@ beta_1: 0.5
 batch_size: 64
 latent_dim: 128
 gen:
-  n_layer: 4
-  n_filter: 512 # 512, 256, 128, 64, 3
+  n_layer: 3
+  n_filter: 256 # 256, 128, 64, 3
 dis:
-  n_layer: 4
-  n_filter: 64 # 3, 64, 128, 256, 512
+  n_layer: 3
+  n_filter: 64 # 3, 64, 128, 256
 
 # test
 test_batch_size: 36

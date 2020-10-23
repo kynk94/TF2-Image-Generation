@@ -14,19 +14,17 @@ class Generator(tf.keras.Model):
 
     def build_model(self, n_layer, n_filter, size, channel):
         size //= 2**n_layer
-        model = [layers.Dense(size*size*n_filter, use_bias=False),
+        model = [layers.Dense(size*size*n_filter[0]),
                  layers.BatchNormalization(),
                  layers.LeakyReLU(),
-                 layers.Reshape((size, size, n_filter))]
-        for _ in range(n_layer - 1):
-            n_filter //= 2
-            model.extend([layers.Conv2DTranspose(n_filter//2, (5, 5), strides=(2, 2),
-                                                 padding='same', use_bias=False),
+                 layers.Reshape((size, size, n_filter[0]))]
+        for i in range(1, n_layer):
+            model.extend([layers.Conv2DTranspose(n_filter[i], (5, 5), strides=(2, 2),
+                                                 padding='same'),
                           layers.BatchNormalization(),
                           layers.LeakyReLU()])
         model.append(layers.Conv2DTranspose(channel, (5, 5), strides=(2, 2),
-                                            padding='same', use_bias=False,
-                                            activation=tf.nn.tanh))
+                                            padding='same', activation=tf.nn.tanh))
         self.model = tf.keras.Sequential(model, name='generator')
 
     def call(self, x):

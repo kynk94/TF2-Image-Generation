@@ -64,7 +64,7 @@ class ImageLoader:
 
         def _total_map_func(data, label=None):
             if scailing:
-                data = data / 255 - 0.5
+                data = data / 127.5 - 1
             if new_size is not None:
                 data = tf.image.resize(data, new_size)
             if flatten:
