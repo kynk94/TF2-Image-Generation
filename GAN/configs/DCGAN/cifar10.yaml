@@ -20,7 +20,13 @@ dis:
 test_batch_size: 36
 
 # directory
-train_data_txt: ../dataset/cifar10/train.txt
 output_dir: ./output
 checkpoint_dir: ./checkpoint
 log_dir: ./log
+
+# data
+dataset:
+  data_dir: ../dataset/cifar10
+  train_data_txt:
+  train_test_split: true
+  labeled_dir: true

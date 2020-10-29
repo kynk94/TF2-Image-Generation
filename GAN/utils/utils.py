@@ -24,6 +24,26 @@ def get_config(config):
         return yaml.load(stream, Loader=yaml.FullLoader)
 
 
+def check_dataset_config(config, make_txt=False):
+    data_conf = config['dataset']
+    if not make_txt and data_conf['train_data_txt'] is not None:
+        if not os.path.exists(data_conf['train_data_txt']):
+            raise FileNotFoundError("'train_data_txt' not found")
+        return
+
+    if not os.path.exists(data_conf['data_dir']):
+        raise FileNotFoundError("'data_dir' not found")
+
+    txt_output = make_dataset_txt(data_conf['data_dir'],
+                                  train_test_split=data_conf['train_test_split'],
+                                  labeled_dir=data_conf['labeled_dir'])
+
+    if isinstance(txt_output, tuple):
+        config['train_data_txt'] = txt_output[0]
+    else:
+        config['train_data_txt'] = txt_output
+
+
 def make_1d_latent(batch, latent_dim, seed=None):
     return tf.random.normal(shape=(batch, latent_dim), seed=seed)
 

@@ -4,7 +4,7 @@ from tensorflow.keras import layers
 
 class Generator(tf.keras.Model):
     def __init__(self, conf):
-        super(Generator, self).__init__()
+        super().__init__()
         self.model = None
         self.build_model(size=conf['input_size'])
 

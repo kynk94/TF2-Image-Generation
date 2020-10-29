@@ -4,7 +4,7 @@ channel: 1
 
 # train
 random_seed: 0
-epochs: 10000
+epochs: 100
 learning_rate: 0.0002
 batch_size: 128
 latent_dim: 32

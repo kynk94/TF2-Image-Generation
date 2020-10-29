@@ -4,7 +4,7 @@ from tensorflow.keras import layers
 
 class Discriminator(tf.keras.Model):
     def __init__(self, conf):
-        super(Discriminator, self).__init__()
+        super().__init__()
         hp = conf['dis']
         self.model = None
         self.build_model(n_layer=hp['n_layer'],
