@@ -20,7 +20,7 @@ dis:
 test_batch_size: 64
 
 # directory
-checkpoint_dir: ./checkpoint
+checkpoint_dir: ./checkpoints
 
 # data
 dataset:

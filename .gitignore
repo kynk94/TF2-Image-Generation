@@ -1,6 +1,4 @@
 .ipynb_checkpoints
 __pycache__
 dataset
-log
-checkpoint
-output
+checkpoints
