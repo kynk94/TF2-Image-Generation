@@ -7,18 +7,19 @@ class Generator(tf.keras.Model):
         super().__init__()
         hp = conf['gen']
         self.model = None
-        self.build_model(n_layer=hp['n_layer'],
+        self.build_model(input_dim=conf['latent_dim'],
+                         n_layer=hp['n_layer'],
                          n_filter=hp['n_filter'],
                          size=conf['input_size'],
                          channel=conf['channel'])
 
-    def build_model(self, n_layer, n_filter, size, channel):
-        size //= 2**n_layer
-        model = [layers.Dense(size*size*n_filter),
+    def build_model(self, input_dim, n_layer, n_filter, size, channel):
+        size //= 2**(n_layer + 1)
+        model = [layers.Dense(size*size*n_filter, input_dim=input_dim),
                  layers.BatchNormalization(),
                  layers.LeakyReLU(),
                  layers.Reshape((size, size, n_filter))]
-        for _ in range(n_layer - 1):
+        for _ in range(n_layer):
             model.extend([layers.Conv2DTranspose(n_filter, (5, 5), strides=(2, 2),
                                                  padding='same'),
                           layers.BatchNormalization(),

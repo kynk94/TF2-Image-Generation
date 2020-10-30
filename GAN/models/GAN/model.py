@@ -1,5 +1,3 @@
-import os
-
 import tensorflow as tf
 from tensorflow.keras.optimizers import Adam
 
@@ -10,22 +8,19 @@ from .discriminator import Discriminator
 
 
 class GAN(BaseModel):
-    def __init__(self, conf, use_log=True):
+    def __init__(self, conf):
         super().__init__(conf)
         self.generator = Generator(conf)
         self.discriminator = Discriminator()
         self.gen_opt = Adam(conf['learning_rate'])
         self.dis_opt = Adam(conf['learning_rate'])
+        self.set_checkpoint(generator_optimizer=self.gen_opt,
+                            discriminator_optimizer=self.dis_opt,
+                            generator=self.generator,
+                            discriminator=self.discriminator)
 
         self._bce_loss = tf.keras.losses.BinaryCrossentropy(from_logits=True)
-        self._use_log = use_log
         self._latent_shape = (conf['batch_size'], conf['latent_dim'])
-        self._input_shape = (conf['input_size'],
-                             conf['input_size'],
-                             conf['channel'])
-        self._set_checkpoint()
-        if self._use_log:
-            self._logger = self._create_logger()
 
     def train(self, x):
         latent = tf.random.normal(shape=self._latent_shape)
@@ -48,42 +43,38 @@ class GAN(BaseModel):
         self.dis_opt.apply_gradients(zip(gradient_d,
                                          self.discriminator.trainable_variables))
 
-        if self._use_log:
+        if self._logger:
             self._write_train_log(loss_g, loss_d)
-        self.checkpoint.step.assign_add(1)
+        self.ckpt.step.assign_add(1)
         return loss_g, loss_d
 
     def test(self, x, step=None, save=False, display_shape=None):
-        generated_image = self.generator(x, training=False)
-        generated_image = tf.reshape(generated_image, (-1, *self._input_shape))
-        if self._use_log:
-            if display_shape is None:
-                test_batch = x.shape[0]
-                n_row = int(test_batch**0.5)
-                display_shape = (n_row, n_row)
-            concat_image = tf_image_concat(generated_image, display_shape)
-            if save:
-                tf_image_write(filename=os.path.join(self._output_dir,
-                                                     '{:05d}.png'.format(step)),
-                               contents=concat_image)
-            self._write_test_log(step=step or self.checkpoint.step,
-                                 data=tf.expand_dims(concat_image/2+0.5, axis=0))
+        if step is None:
+            step = self.ckpt.step
+        generated_image = self.generator(x, reshape=True, training=False)
+        if display_shape is None:
+            test_batch = x.shape[0]
+            n_row = int(test_batch**0.5)
+            display_shape = (n_row, n_row)
+
+        concat_image = tf_image_concat(generated_image, display_shape)
+
+        if save:
+            self.image_write(filename='{:05d}.png'.format(step),
+                             data=concat_image)
+        self._write_image_log(step=step, data=concat_image)
         return generated_image
 
-    def _set_checkpoint(self):
-        self.checkpoint = tf.train.Checkpoint(
-            step=tf.Variable(0, dtype=tf.int64),
-            generator_optimizer=self.gen_opt,
-            discriminator_optimizer=self.dis_opt,
-            generator=self.generator,
-            discriminator=self.discriminator)
-
     def _write_train_log(self, loss_g, loss_d):
-        step = self.checkpoint.step
+        step = self.ckpt.step
         with self._logger.as_default():
             tf.summary.scalar(name='loss_gen', data=loss_g, step=step)
             tf.summary.scalar(name='loss_dis', data=loss_d, step=step)
 
-    def _write_test_log(self, step, data):
+    def _write_image_log(self, step, data, denorm=True):
+        if len(data.shape) == 3:
+            data = tf.expand_dims(data, axis=0)
+        if denorm:
+            data = data / 2 + 0.5
         with self._logger.as_default():
-            tf.summary.image(name='test_output', data=data, step=step)
+            tf.summary.image(name='generation', data=data, step=step)

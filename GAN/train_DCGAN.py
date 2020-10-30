@@ -1,27 +1,41 @@
 import tqdm
+import argparse
+import tensorflow as tf
 
-from utils import allow_memory_growth, make_1d_latent, get_config, check_dataset_config
+from utils import allow_memory_growth, get_config, check_dataset_config
 from utils import ImageLoader
 from models import DCGAN
 
 
 def main():
-    conf = get_config('configs/DCGAN/cifar10.yaml')
+    arg_parser = argparse.ArgumentParser()
+    arg_parser.add_argument('-mg', '--memory_growth',
+                            default=True)
+    arg_parser.add_argument('-c', '--config',
+                            default='configs/DCGAN/cifar10.yaml')
+    args = vars(arg_parser.parse_args())
+
+    if args['memory_growth']:
+        allow_memory_growth()
+
+    conf_path = args['config']
+    conf = get_config(conf_path)
     check_dataset_config(conf)
 
-    model = DCGAN(conf, use_log=True)
+    model = DCGAN(conf)
+    model.copy_conf(conf_path)
 
     loader = ImageLoader(data_txt_file=conf['train_data_txt'])
     train_dataset = loader.get_dataset(batch_size=conf['batch_size'],
                                        new_size=(conf['input_size'],)*2)
-    test_data = make_1d_latent(batch=conf['test_batch_size'],
-                               latent_dim=conf['latent_dim'],
-                               seed=conf['random_seed'])
+
+    test_data = tf.random.normal(shape=(conf['test_batch_size'], conf['latent_dim']),
+                                 seed=conf['random_seed'])
 
     step = 0  # step = model.load(ckpt)
     start_epoch = step // len(train_dataset) + 1
-    pbar = tqdm.tqdm(range(start_epoch, conf['epochs']+1),
-                     position=0, leave=True)
+    pbar = tqdm.trange(start_epoch, conf['epochs']+1,
+                       position=0, leave=True)
     for epoch in pbar:
         for iteration, image_batch in enumerate(train_dataset):
             loss_g, loss_d = model.train(image_batch)
@@ -37,5 +51,4 @@ def main():
 
 
 if __name__ == '__main__':
-    allow_memory_growth()
     main()

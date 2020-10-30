@@ -11,18 +11,16 @@ batch_size: 64
 latent_dim: 128
 gen:
   n_layer: 3
-  n_filter: 256 # 256, 128, 64, 3
+  n_filter: 256 # 256, 128, 64
 dis:
   n_layer: 3
-  n_filter: 64 # 3, 64, 128, 256
+  n_filter: 64 # 64, 128, 256
 
 # test
-test_batch_size: 36
+test_batch_size: 64
 
 # directory
-output_dir: ./output
 checkpoint_dir: ./checkpoint
-log_dir: ./log
 
 # data
 dataset:

@@ -44,10 +44,6 @@ def check_dataset_config(config, make_txt=False):
         config['train_data_txt'] = txt_output
 
 
-def make_1d_latent(batch, latent_dim, seed=None):
-    return tf.random.normal(shape=(batch, latent_dim), seed=seed)
-
-
 def tf_image_concat(images, display_shape):
     n_row, n_col = display_shape
     output = []

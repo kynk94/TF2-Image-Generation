@@ -1,20 +1,39 @@
 import tqdm
+import argparse
+import tensorflow as tf
 
-from utils import allow_memory_growth, make_1d_latent, get_config, ImageLoader
+from utils import allow_memory_growth, get_config, check_dataset_config
+from utils import ImageLoader
 from models import GAN
 
 
 def main():
-    conf = get_config('configs/GAN/mnist.yaml')
-    model = GAN(conf, use_log=True)
+    arg_parser = argparse.ArgumentParser()
+    arg_parser.add_argument('-mg', '--memory_growth',
+                            default=True)
+    arg_parser.add_argument('-c', '--config',
+                            default='configs/GAN/mnist.yaml')
+    args = vars(arg_parser.parse_args())
+
+    if args['memory_growth']:
+        allow_memory_growth()
+
+    conf_path = args['config']
+    conf = get_config(conf_path)
+    check_dataset_config(conf)
+
+    model = GAN(conf)
+    model.copy_conf(conf_path)
 
     loader = ImageLoader(data_txt_file=conf['train_data_txt'])
     train_dataset = loader.get_dataset(conf, flatten=True)
-    test_data = make_1d_latent(batch=conf['test_batch_size'],
-                               latent_dim=conf['latent_dim'],
-                               seed=conf['random_seed'])
+    test_data = tf.random.normal(shape=(conf['test_batch_size'], conf['latent_dim']),
+                                 seed=conf['random_seed'])
 
-    pbar = tqdm.tqdm(range(1, conf['epochs']+1), position=0, leave=True)
+    step = 0  # step = model.load(ckpt)
+    start_epoch = step // len(train_dataset) + 1
+    pbar = tqdm.trange(start_epoch, conf['epochs']+1,
+                       position=0, leave=True)
     for epoch in pbar:
         for iteration, image_batch in enumerate(train_dataset):
             loss_g, loss_d = model.train(image_batch)

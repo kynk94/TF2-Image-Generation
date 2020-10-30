@@ -6,14 +6,18 @@ channel: 1
 random_seed: 0
 epochs: 100
 learning_rate: 0.0002
-batch_size: 128
+batch_size: 64
 latent_dim: 32
 
 # test
-test_batch_size: 36
+test_batch_size: 64
 
 # directory
-train_data_txt: ../dataset/mnist/train.txt
-output_dir: ./output
 checkpoint_dir: ./checkpoint
-log_dir: ./log
+
+# data
+dataset:
+  data_dir: ../dataset/mnist
+  train_data_txt:
+  train_test_split: true
+  labeled_dir: true
