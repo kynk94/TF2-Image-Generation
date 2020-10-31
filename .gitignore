@@ -1,4 +1,6 @@
 .ipynb_checkpoints
 __pycache__
-dataset
 checkpoints
+
+dataset/*
+!dataset/*.py
