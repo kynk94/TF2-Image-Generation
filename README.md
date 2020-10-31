@@ -4,18 +4,18 @@
 
 - [x] GAN
 - [x] DCGAN
-- [] CGAN
-- [] WGAN
-- [] WGAN-GP
+- [ ] CGAN
+- [ ] WGAN
+- [ ] WGAN-GP
 
 ## Style Transfer & Image to Image Translation
 
-- [] Neural Style Transfer
-- [] Fast Style Transfer
-- [] AdaIN
-- [] CycleGAN
-- [] StarGAN
-- [] UNIT
+- [ ] Neural Style Transfer
+- [ ] Fast Style Transfer
+- [ ] AdaIN
+- [ ] CycleGAN
+- [ ] StarGAN
+- [ ] UNIT
 
 # Utilities
 
@@ -23,7 +23,7 @@
 
 - [x] mnist
 - [x] cifar10
-- [] CelebA
+- [ ] CelebA
 
 # Requirements
 
