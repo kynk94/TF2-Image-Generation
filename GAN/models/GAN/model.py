@@ -8,8 +8,8 @@ from .discriminator import Discriminator
 
 
 class GAN(BaseModel):
-    def __init__(self, conf):
-        super().__init__(conf)
+    def __init__(self, conf, ckpt=None):
+        super().__init__(conf, ckpt)
         self.generator = Generator(conf)
         self.discriminator = Discriminator()
         self.gen_opt = Adam(conf['learning_rate'])
@@ -26,13 +26,11 @@ class GAN(BaseModel):
         latent = tf.random.normal(shape=self._latent_shape)
         with tf.GradientTape() as g_tape, tf.GradientTape() as d_tape:
             generated_image = self.generator(latent)
-
-            real_score = self.discriminator(x)
-            fake_score = self.discriminator(generated_image)
-
-            loss_g = self._bce_loss(tf.ones_like(fake_score), fake_score)
-            loss_d = self._bce_loss(tf.ones_like(real_score), real_score)
-            loss_d += self._bce_loss(tf.zeros_like(fake_score), fake_score)
+            score_real = self.discriminator(x)
+            score_fake = self.discriminator(generated_image)
+            loss_g = self._bce_loss(tf.ones_like(score_fake), score_fake)
+            loss_d = self._bce_loss(tf.ones_like(score_real), score_real)
+            loss_d += self._bce_loss(tf.zeros_like(score_fake), score_fake)
 
         gradient_g = g_tape.gradient(loss_g,
                                      self.generator.trainable_variables)
@@ -43,10 +41,15 @@ class GAN(BaseModel):
         self.dis_opt.apply_gradients(zip(gradient_d,
                                          self.discriminator.trainable_variables))
 
-        if self._logger:
-            self._write_train_log(loss_g, loss_d)
+        log_dict = {
+            'loss/gen': loss_g,
+            'loss/dis': loss_d,
+            'score/real': tf.reduce_mean(score_real),
+            'score/fake': tf.reduce_mean(score_fake)
+        }
+        self.write_scalar_log(**log_dict)
         self.ckpt.step.assign_add(1)
-        return loss_g, loss_d
+        return log_dict
 
     def test(self, x, step=None, save=False, display_shape=None):
         if step is None:
@@ -62,19 +65,5 @@ class GAN(BaseModel):
         if save:
             self.image_write(filename='{:05d}.png'.format(step),
                              data=concat_image)
-        self._write_image_log(step=step, data=concat_image)
+        self.write_image_log(step=step, data=concat_image)
         return generated_image
-
-    def _write_train_log(self, loss_g, loss_d):
-        step = self.ckpt.step
-        with self._logger.as_default():
-            tf.summary.scalar(name='loss_gen', data=loss_g, step=step)
-            tf.summary.scalar(name='loss_dis', data=loss_d, step=step)
-
-    def _write_image_log(self, step, data, denorm=True):
-        if len(data.shape) == 3:
-            data = tf.expand_dims(data, axis=0)
-        if denorm:
-            data = data / 2 + 0.5
-        with self._logger.as_default():
-            tf.summary.image(name='generation', data=data, step=step)

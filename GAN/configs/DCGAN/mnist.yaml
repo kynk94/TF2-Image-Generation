@@ -1,6 +1,6 @@
-# config for cifar10
+# config for mnist
 input_size: 32
-channel: 3
+channel: 1
 
 # train
 random_seed: 0
@@ -8,13 +8,13 @@ epochs: 100
 learning_rate: 0.0002
 beta_1: 0.5
 batch_size: 64
-latent_dim: 128
+latent_dim: 32
 gen:
-  n_layer: 3
-  n_filter: 256 # 256, 128, 64
+  n_layer: 2
+  n_filter: 128 # 128, 64
 dis:
-  n_layer: 3
-  n_filter: 64 # 64, 128, 256
+  n_layer: 2
+  n_filter: 32 # 32, 64
 
 # test
 test_batch_size: 64
@@ -24,7 +24,7 @@ checkpoint_dir: ./checkpoints
 
 # data
 dataset:
-  data_dir: ../dataset/cifar10
+  data_dir: ../dataset/mnist
   train_data_txt:
   train_test_split: true
   labeled_dir: true

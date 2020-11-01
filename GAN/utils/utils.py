@@ -1,6 +1,17 @@
 import os
+import glob
 import yaml
 import tensorflow as tf
+
+
+def str_to_bool(value):
+    if isinstance(value, bool):
+        return value
+    if value.lower() in {'false', 'f', '0', 'no', 'n'}:
+        return False
+    if value.lower() in {'true', 't', '1', 'yes', 'y'}:
+        return True
+    raise ValueError(f'{value} is not a valid boolean value')
 
 
 def allow_memory_growth():
@@ -24,6 +35,14 @@ def get_config(config):
         return yaml.load(stream, Loader=yaml.FullLoader)
 
 
+def find_config(checkpoint):
+    if not os.path.isdir(checkpoint):
+        checkpoint = os.path.dirname(checkpoint)
+    config = glob.glob(os.path.join(checkpoint, '*.yaml'))
+    assert config, 'Could not find config yaml file.'
+    return config[0]
+
+
 def check_dataset_config(config, make_txt=False):
     data_conf = config['dataset']
     if not make_txt and data_conf['train_data_txt'] is not None:
@@ -39,7 +58,7 @@ def check_dataset_config(config, make_txt=False):
                                   labeled_dir=data_conf['labeled_dir'])
 
     if isinstance(txt_output, tuple):
-        config['train_data_txt'] = txt_output[0]
+        config['train_data_txt'], config['test_data_txt'] = txt_output
     else:
         config['train_data_txt'] = txt_output
 
