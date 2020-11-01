@@ -8,25 +8,28 @@ Tensorflow 2 reimplementation of visual generation model.
 
 ## GAN - mnist
 
-![GAN mnist](https://drive.google.com/uc?id=1EkDaLQq-ow1jcezkLKDh7N3Zps8_JWVn)
-
-![GAN mnist graph](https://drive.google.com/uc?id=1zi-NGC2hqc4bBajLK1APW8U2TvFWmn1e)
+<p align="center">
+    <img alt="GAN mnist" src="https://drive.google.com/uc?id=1EkDaLQq-ow1jcezkLKDh7N3Zps8_JWVn">
+    <img alt="GAN mnist graph" src="https://drive.google.com/uc?id=1zi-NGC2hqc4bBajLK1APW8U2TvFWmn1e">
+</p>
 
 ---
 
 ## DCGAN - mnist
 
-![DCGAN mnist](https://drive.google.com/uc?id=1KfeaXlSIGliQv1oZTRaeBD_aw1X6L4eC)
-
-![DCGAN mnist graph](https://drive.google.com/uc?id=1HdoPSF8V7ydNKwAUkrD3lperY963_wOy)
+<p align="center">
+    <img alt="DCGAN mnist" src="https://drive.google.com/uc?id=1KfeaXlSIGliQv1oZTRaeBD_aw1X6L4eC">
+    <img alt="DCGAN mnist graph" src="https://drive.google.com/uc?id=1HdoPSF8V7ydNKwAUkrD3lperY963_wOy">
+</p>
 
 ---
 
 ## DCGAN - CIFAR-10
 
-![DCGAN CIFAR-10](https://drive.google.com/uc?id=17Ve7hThZfkJCACdviM6Euo00HNaXDTl_)
-
-![DCGAN CIFAR-10 graph](https://drive.google.com/uc?id=1Da0DNLaK0pB2i5MMwTU3rg1gJqIvDCvo)
+<p align="center">
+    <img alt="DCGAN CIFAR-10" src="https://drive.google.com/uc?id=17Ve7hThZfkJCACdviM6Euo00HNaXDTl_">
+    <img alt="DCGAN CIFAR-10 graph" src="https://drive.google.com/uc?id=1Da0DNLaK0pB2i5MMwTU3rg1gJqIvDCvo">
+</p>
 
 # Model List
 
