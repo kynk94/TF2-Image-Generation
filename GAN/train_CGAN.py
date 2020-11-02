@@ -1,10 +1,31 @@
-import tqdm
 import argparse
+import tqdm
 import tensorflow as tf
 
 from utils import str_to_bool, get_config, find_config, check_dataset_config
 from utils import allow_memory_growth, ImageLoader
 from models import CGAN
+
+
+def make_test_data(numeric_labels,
+                   test_batch_size,
+                   n_class,
+                   latent_dim,
+                   latent_each_class=False,
+                   seed=None):
+    div, mod = divmod(test_batch_size, n_class)
+    if mod:
+        raise ValueError("'testbatch_size' is not a multiple of 'n_class'.")
+
+    label = tf.repeat(tf.Variable(numeric_labels, dtype=tf.float32), div)
+    if latent_each_class:
+        latent = tf.random.normal(shape=(div, latent_dim),
+                                  seed=seed)
+        latent = tf.tile(latent, (n_class, 1))
+    else:
+        latent = tf.random.normal(shape=(test_batch_size, latent_dim))
+
+    return latent, label
 
 
 def main():
@@ -32,17 +53,15 @@ def main():
     train_dataset = loader.get_dataset(batch_size=conf['batch_size'],
                                        flatten=True)
 
-    div, mod = divmod(conf['test_batch_size'], conf['n_class'])
-    if mod:
-        raise ValueError("'test_batch_size' is not a multiple of 'n_class'.")
-
     labels = loader.get_label(str_label=map(str, range(conf['n_class'])))
-    test_label = tf.repeat(tf.Variable(labels, dtype=tf.float32),
-                           div)
-    test_latent = tf.random.normal(shape=(conf['test_batch_size'], conf['latent_dim']),
-                                   seed=conf['random_seed'])
-    test_data = (test_latent, test_label)
-    display_shape = (conf['n_class'], div)
+    test_data = make_test_data(numeric_labels=labels,
+                               test_batch_size=conf['test_batch_size'],
+                               n_class=conf['n_class'],
+                               latent_dim=conf['latent_dim'],
+                               latent_each_class=True,
+                               seed=conf['random_seed'])
+    display_shape = (conf['n_class'],
+                     conf['test_batch_size'] // conf['n_class'])
 
     """Model Initiate"""
     model = CGAN(conf, args['checkpoint'])

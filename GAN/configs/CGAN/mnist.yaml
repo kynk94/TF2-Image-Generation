@@ -13,7 +13,7 @@ latent_dim: 100
 gen:
   hidden_dim_latent: 200
   hidden_dim_label: 1000
-  hidden_dim_combined: 1200
+  hidden_dim_combined: 600  # nothing can converge using 1200
 dis:
   hidden_dim_image: 240
   hidden_dim_label: 50

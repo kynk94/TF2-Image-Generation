@@ -2,3 +2,4 @@ imageio
 tqdm
 Pillow
 PyYAML
+tensorflow-addons

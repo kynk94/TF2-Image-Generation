@@ -15,14 +15,15 @@ class Discriminator(tf.keras.Model):
 
     def build_model(self, input_shape, n_layer, n_filter):
         model = [layers.Conv2D(n_filter, (5, 5), strides=(2, 2),
-                               padding='same', activation=tf.nn.leaky_relu,
-                               input_shape=input_shape),
-                 layers.BatchNormalization()]
+                               padding='same', input_shape=input_shape),
+                 layers.BatchNormalization(),
+                 layers.LeakyReLU()]
         for _ in range(n_layer - 1):
             n_filter *= 2
             model.extend([layers.Conv2D(n_filter, (5, 5), strides=(2, 2),
-                                        padding='same', activation=tf.nn.leaky_relu),
-                          layers.BatchNormalization()])
+                                        padding='same'),
+                          layers.BatchNormalization(),
+                          layers.LeakyReLU()])
         model.extend([layers.Flatten(),
                       layers.Dense(1)])
         self.model = tf.keras.Sequential(model, name='discriminator')

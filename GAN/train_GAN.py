@@ -1,5 +1,5 @@
-import tqdm
 import argparse
+import tqdm
 import tensorflow as tf
 
 from utils import str_to_bool, get_config, find_config, check_dataset_config

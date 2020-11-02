@@ -67,8 +67,8 @@ def tf_image_concat(images, display_shape):
     n_row, n_col = display_shape
     output = []
     for i in range(n_row):
-        output.append(tf.concat([*images[n_col*i:n_col*(i+1)]], axis=0))
-    return tf.concat(output, axis=1)
+        output.append(tf.concat([*images[n_col*i:n_col*(i+1)]], axis=1))
+    return tf.concat(output, axis=0)
 
 
 def tf_image_write(filename, contents, denorm=True):
