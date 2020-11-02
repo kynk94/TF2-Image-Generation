@@ -9,8 +9,8 @@ Tensorflow 2 reimplementation of visual generation model.
 ## GAN - mnist
 
 <p align="center">
-    <img alt="GAN mnist" src="https://drive.google.com/uc?id=1EkDaLQq-ow1jcezkLKDh7N3Zps8_JWVn">
-    <img alt="GAN mnist graph" src="https://drive.google.com/uc?id=1zi-NGC2hqc4bBajLK1APW8U2TvFWmn1e">
+    <img alt="GAN mnist" src="https://user-images.githubusercontent.com/41245985/97887687-95fda180-1d6d-11eb-8049-ee4030e915f1.gif">
+    <img alt="GAN mnist graph" src="https://user-images.githubusercontent.com/41245985/97887725-a31a9080-1d6d-11eb-95bc-1cdea6933492.png">
 </p>
 
 ---
@@ -18,8 +18,8 @@ Tensorflow 2 reimplementation of visual generation model.
 ## DCGAN - mnist
 
 <p align="center">
-    <img alt="DCGAN mnist" src="https://drive.google.com/uc?id=1KfeaXlSIGliQv1oZTRaeBD_aw1X6L4eC">
-    <img alt="DCGAN mnist graph" src="https://drive.google.com/uc?id=1HdoPSF8V7ydNKwAUkrD3lperY963_wOy">
+    <img alt="DCGAN mnist" src="https://user-images.githubusercontent.com/41245985/97887768-b0377f80-1d6d-11eb-9787-03cf3c511ad9.gif">
+    <img alt="DCGAN mnist graph" src="https://user-images.githubusercontent.com/41245985/97887800-bc234180-1d6d-11eb-9288-710fe8e31d3c.png">
 </p>
 
 ---
@@ -27,8 +27,8 @@ Tensorflow 2 reimplementation of visual generation model.
 ## DCGAN - CIFAR-10
 
 <p align="center">
-    <img alt="DCGAN CIFAR-10" src="https://drive.google.com/uc?id=17Ve7hThZfkJCACdviM6Euo00HNaXDTl_">
-    <img alt="DCGAN CIFAR-10 graph" src="https://drive.google.com/uc?id=1Da0DNLaK0pB2i5MMwTU3rg1gJqIvDCvo">
+    <img alt="DCGAN CIFAR-10" src="https://user-images.githubusercontent.com/41245985/97887827-c47b7c80-1d6d-11eb-8430-409ece53f2b1.gif">
+    <img alt="DCGAN CIFAR-10 graph" src="https://user-images.githubusercontent.com/41245985/97887868-cf361180-1d6d-11eb-89d4-50aacb4c9f52.png">
 </p>
 
 ---
@@ -44,14 +44,14 @@ Tensorflow 2 reimplementation of visual generation model.
     </thead>
     <tbody>
         <tr>
-            <td align="center"><img alt="CGAN mnist random" src="https://drive.google.com/uc?id=1gxJDJ09n_5RXZRktaJX5d-k1_0yc4tcM"></td>
-            <td align="center"><img alt="CGAN mnist same" src="https://drive.google.com/uc?id=1U5PO4Me7gmE-w70kUpC8ZAhE2PZ_8oWf"></td>
+            <td align="center"><img alt="CGAN mnist random" src="https://user-images.githubusercontent.com/41245985/97887919-deb55a80-1d6d-11eb-9557-21ad8c74197b.gif"></td>
+            <td align="center"><img alt="CGAN mnist same" src="https://user-images.githubusercontent.com/41245985/97887948-e7a62c00-1d6d-11eb-81d7-9a8e178999d8.gif"></td>
         </tr>
     </tbody>
 </table>
 
 <p align="center">
-    <img alt="CGAN mnist graph" src="https://drive.google.com/uc?id=1PWYn9W-n96OsqQUDqp3MGHn-9LV3yQMa">
+    <img alt="CGAN mnist graph" src="https://user-images.githubusercontent.com/41245985/97887981-f12f9400-1d6d-11eb-86e1-e4179ba63e39.png">
 </p>
 
 # Model List
