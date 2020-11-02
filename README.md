@@ -37,7 +37,7 @@ Tensorflow 2 reimplementation of visual generation model.
 
 - [x] GAN
 - [x] DCGAN
-- [ ] CGAN
+- [x] CGAN
 - [ ] WGAN
 - [ ] WGAN-GP
 

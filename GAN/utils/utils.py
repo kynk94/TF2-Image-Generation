@@ -66,8 +66,8 @@ def check_dataset_config(config, make_txt=False):
 def tf_image_concat(images, display_shape):
     n_row, n_col = display_shape
     output = []
-    for i in range(n_col):
-        output.append(tf.concat([*images[n_row*i:n_row*(i+1)]], axis=0))
+    for i in range(n_row):
+        output.append(tf.concat([*images[n_col*i:n_col*(i+1)]], axis=0))
     return tf.concat(output, axis=1)
 
 

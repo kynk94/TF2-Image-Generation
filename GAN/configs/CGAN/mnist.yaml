@@ -1,0 +1,36 @@
+# config for mnist
+input_size: 28
+channel: 1
+
+# train
+random_seed: 0
+epochs: 100
+learning_rate: 0.0002
+beta_1: 0.5
+dropout_rate: 0.5
+batch_size: 100
+latent_dim: 100
+gen:
+  hidden_dim_latent: 200
+  hidden_dim_label: 1000
+  hidden_dim_combined: 1200
+dis:
+  hidden_dim_image: 240
+  hidden_dim_label: 50
+  hidden_dim_combined: 240
+  k_image: 5
+  k_label: 5
+  k_combined: 4
+
+# test
+test_batch_size: 100
+
+# directory
+checkpoint_dir: ./checkpoints
+
+# data
+dataset:
+  data_dir: ../dataset/mnist
+  train_data_txt:
+  train_test_split: true
+  labeled_dir: true
