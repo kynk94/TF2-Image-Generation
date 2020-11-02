@@ -31,6 +31,29 @@ Tensorflow 2 reimplementation of visual generation model.
     <img alt="DCGAN CIFAR-10 graph" src="https://drive.google.com/uc?id=1Da0DNLaK0pB2i5MMwTU3rg1gJqIvDCvo">
 </p>
 
+---
+
+## CGAN - mnist
+
+<table align="center">
+    <thead>
+        <tr>
+            <th align="center">All random latent</th>
+            <th align="center">Same latent per class</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td align="center"><img alt="CGAN mnist random" src="https://drive.google.com/uc?id=1gxJDJ09n_5RXZRktaJX5d-k1_0yc4tcM"></td>
+            <td align="center"><img alt="CGAN mnist same" src="https://drive.google.com/uc?id=1U5PO4Me7gmE-w70kUpC8ZAhE2PZ_8oWf"></td>
+        </tr>
+    </tbody>
+</table>
+
+<p align="center">
+    <img alt="CGAN mnist graph" src="https://drive.google.com/uc?id=1PWYn9W-n96OsqQUDqp3MGHn-9LV3yQMa">
+</p>
+
 # Model List
 
 ## GAN
