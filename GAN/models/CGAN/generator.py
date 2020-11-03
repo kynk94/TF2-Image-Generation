@@ -6,9 +6,9 @@ class Generator(tf.keras.Model):
     def __init__(self, conf):
         super().__init__()
         hp = conf['gen']
-        self.image_shape = (conf['input_size'],
+        self.image_shape = (conf['channel'],
                             conf['input_size'],
-                            conf['channel'])
+                            conf['input_size'])
 
         block_label = [layers.Embedding(input_dim=conf['n_class'],
                                         output_dim=hp['hidden_dim_label'],

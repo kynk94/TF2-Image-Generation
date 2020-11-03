@@ -18,15 +18,16 @@ class Generator(tf.keras.Model):
         model = [layers.Dense(size*size*n_filter, input_dim=input_dim),
                  layers.BatchNormalization(),
                  layers.LeakyReLU(),
-                 layers.Reshape((size, size, n_filter))]
+                 layers.Reshape((n_filter, size, size))]
         for _ in range(n_layer):
             model.extend([layers.Conv2DTranspose(n_filter, (5, 5), strides=(2, 2),
-                                                 padding='same'),
+                                                 padding='same', data_format='channels_first'),
                           layers.BatchNormalization(),
                           layers.LeakyReLU()])
             n_filter //= 2
         model.append(layers.Conv2DTranspose(channel, (5, 5), strides=(2, 2),
-                                            padding='same', activation=tf.nn.tanh))
+                                            padding='same', activation=tf.nn.tanh,
+                                            data_format='channels_first'))
         self.model = tf.keras.Sequential(model, name='generator')
 
     def call(self, x):

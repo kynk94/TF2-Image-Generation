@@ -6,7 +6,7 @@ class Generator(tf.keras.Model):
     def __init__(self, conf):
         super().__init__()
         self.model = None
-        self.image_shape = (conf['input_size'], conf['input_size'], conf['channel'])
+        self.image_shape = (conf['channel'], conf['input_size'], conf['input_size'])
         self.build_model(input_dim=conf['latent_dim'],
                          size=conf['input_size'])
 

@@ -7,21 +7,22 @@ class Discriminator(tf.keras.Model):
         super().__init__()
         hp = conf['dis']
         self.model = None
-        self.build_model(input_shape=(conf['input_size'],
+        self.build_model(input_shape=(conf['channel'],
                                       conf['input_size'],
-                                      conf['channel']),
+                                      conf['input_size']),
                          n_layer=hp['n_layer'],
                          n_filter=hp['n_filter'])
 
     def build_model(self, input_shape, n_layer, n_filter):
         model = [layers.Conv2D(n_filter, (5, 5), strides=(2, 2),
-                               padding='same', input_shape=input_shape),
+                               padding='same', input_shape=input_shape,
+                               data_format='channels_first'),
                  layers.BatchNormalization(),
                  layers.LeakyReLU()]
         for _ in range(n_layer - 1):
             n_filter *= 2
             model.extend([layers.Conv2D(n_filter, (5, 5), strides=(2, 2),
-                                        padding='same'),
+                                        padding='same', data_format='channels_first'),
                           layers.BatchNormalization(),
                           layers.LeakyReLU()])
         model.extend([layers.Flatten(),

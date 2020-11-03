@@ -35,9 +35,12 @@ class ImageLoader:
                                         self.class_dict.keys()))
         return dataset
 
-    def _read_file(self, data, label=None):
+    def _read_file(self, data, label=None, new_size=None):
         data = tf.io.decode_png(tf.io.read_file(data))
         data = tf.cast(data, tf.float32)
+        if new_size is not None:
+            data = tf.image.resize(data, new_size)
+        data = tf.transpose(data, perm=(2, 0, 1))
         if label is None:
             return data
         label = tf.cast(label, tf.float32)
@@ -59,7 +62,8 @@ class ImageLoader:
             dataset = dataset.shuffle(len(self.dataset))
 
         dataset = dataset.map(
-            map_func=self._read_file,
+            map_func=lambda x, y=None: self._read_file(
+                x, label=y, new_size=new_size),
             num_parallel_calls=tf.data.experimental.AUTOTUNE
         ).batch(
             batch_size=batch_size,
@@ -76,8 +80,6 @@ class ImageLoader:
         def _total_map_func(data, label=None):
             if scailing:
                 data = data / 127.5 - 1
-            if new_size is not None:
-                data = tf.image.resize(data, new_size)
             if flatten:
                 data = tf.reshape(data, (batch_size, -1))
             if map_func is not None:

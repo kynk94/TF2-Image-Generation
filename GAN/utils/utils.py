@@ -63,8 +63,10 @@ def check_dataset_config(config, make_txt=False):
         config['train_data_txt'] = txt_output
 
 
-def tf_image_concat(images, display_shape):
+def tf_image_concat(images, display_shape, mode='nchw'):
     n_row, n_col = display_shape
+    if mode.lower() == 'nchw':
+        images = tf.transpose(images, perm=(0, 2, 3, 1))
     output = []
     for i in range(n_row):
         output.append(tf.concat([*images[n_col*i:n_col*(i+1)]], axis=1))
