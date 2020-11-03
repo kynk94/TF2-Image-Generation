@@ -56,5 +56,4 @@ def main():
 
 
 if __name__ == '__main__':
-    allow_memory_growth()
     main()
