@@ -5,3 +5,7 @@ checkpoints
 
 dataset/*
 !dataset/*.py
+*.ipynb
+*.png
+*.gif
+*.csv

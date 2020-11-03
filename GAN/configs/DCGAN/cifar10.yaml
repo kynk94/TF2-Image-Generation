@@ -10,11 +10,11 @@ beta_1: 0.5
 batch_size: 64
 latent_dim: 128
 gen:
-  n_layer: 4
-  n_filter: 512 # 512, 256, 128, 64
+  n_layer: 3
+  n_filter: 128 # 128, 64, 32
 dis:
-  n_layer: 4
-  n_filter: 64 # 64, 128, 256, 512
+  n_layer: 3
+  n_filter: 32 # 32, 64, 128
 
 # test
 test_batch_size: 64

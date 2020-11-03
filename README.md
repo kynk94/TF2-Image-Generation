@@ -27,8 +27,8 @@ Tensorflow 2 reimplementation of visual generation model.
 ## DCGAN - CIFAR-10
 
 <p align="center">
-    <img alt="DCGAN CIFAR-10" src="https://user-images.githubusercontent.com/41245985/97887827-c47b7c80-1d6d-11eb-8430-409ece53f2b1.gif">
-    <img alt="DCGAN CIFAR-10 graph" src="https://user-images.githubusercontent.com/41245985/97887868-cf361180-1d6d-11eb-89d4-50aacb4c9f52.png">
+    <img alt="DCGAN CIFAR-10" src="https://user-images.githubusercontent.com/41245985/97946934-16a0ba00-1dcf-11eb-938a-a2ee236dc136.gif">
+    <img alt="DCGAN CIFAR-10 graph" src="https://user-images.githubusercontent.com/41245985/97946971-33d58880-1dcf-11eb-9777-a12b464ee53b.png">
 </p>
 
 ---
