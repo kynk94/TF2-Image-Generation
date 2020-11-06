@@ -27,21 +27,39 @@ def main():
     if not args['output'].lower().endswith('.gif'):
         args['output'] += '.gif'
 
-    writer = imageio.get_writer(args['output'],
-                                mode='I',
-                                duration=1/args['fps'])
-
     images = []
     for EXT in IMAGE_EXT:
         images.extend(glob.glob(os.path.join(args['input'],
                                              extension_pattern(EXT))))
+    assert images, 'Image file not found'
+    
     images.sort()
+    print(f'Found {len(images)} images')
 
-    for image in tqdm.tqdm(images):
-        image = imageio.imread(image)
-        writer.append_data(image)
+    images_array = []
+    pbar = tqdm.tqdm(images, position=0, leave=True)
+    for image in pbar:
+        images_array.append(imageio.imread(image))
 
-    writer.close()
+    print('GIF write start')
+
+    try:
+        imageio.mimsave(uri=args['output'],
+                        ims=images_array,
+                        format='GIF-FI',
+                        fps=args['fps'],
+                        quantizer='nq')
+    except RuntimeError as e:
+        print(e)
+        print('Download FreeImage automatically')
+        imageio.plugins.freeimage.download()
+        imageio.mimsave(uri=args['output'],
+                        ims=images_array,
+                        format='GIF-FI',
+                        fps=args['fps'],
+                        quantizer='nq')
+    finally:
+        print('GIF write successful')
 
 
 if __name__ == '__main__':

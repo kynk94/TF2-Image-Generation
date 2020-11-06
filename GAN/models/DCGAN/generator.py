@@ -14,17 +14,17 @@ class Generator(tf.keras.Model):
                          channel=conf['channel'])
 
     def build_model(self, input_dim, n_layer, n_filter, size, channel):
-        size //= 2**(n_layer + 1)
+        size //= 2**n_layer
         model = [layers.Dense(size*size*n_filter, input_dim=input_dim),
                  layers.BatchNormalization(),
-                 layers.LeakyReLU(),
+                 layers.ReLU(),
                  layers.Reshape((n_filter, size, size))]
-        for _ in range(n_layer):
+        for _ in range(n_layer-1):
+            n_filter //= 2
             model.extend([layers.Conv2DTranspose(n_filter, (5, 5), strides=(2, 2),
                                                  padding='same', data_format='channels_first'),
                           layers.BatchNormalization(),
-                          layers.LeakyReLU()])
-            n_filter //= 2
+                          layers.ReLU()])
         model.append(layers.Conv2DTranspose(channel, (5, 5), strides=(2, 2),
                                             padding='same', activation=tf.nn.tanh,
                                             data_format='channels_first'))

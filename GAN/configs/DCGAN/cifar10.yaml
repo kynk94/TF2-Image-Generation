@@ -1,23 +1,23 @@
 # config for cifar10
-input_size: 32
+input_size: 32 # 64 in the paper
 channel: 3
 
 # train
 random_seed: 0
-epochs: 100
+epochs: 500
 learning_rate: 0.0002
 beta_1: 0.5
-batch_size: 64
-latent_dim: 128
+batch_size: 128
+latent_dim: 100
 gen:
-  n_layer: 3
-  n_filter: 128 # 128, 64, 32
+  n_layer: 3 # 4 in the paper
+  n_filter: 512 # 1024 in the paper
 dis:
-  n_layer: 3
-  n_filter: 32 # 32, 64, 128
+  n_layer: 3 # 4 in the paper
+  n_filter: 32 # In the paper, 64 in the lowest, 512 in the highest layer
 
 # test
-test_batch_size: 64
+test_batch_size: 100
 
 # directory
 checkpoint_dir: ./checkpoints

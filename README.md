@@ -75,6 +75,17 @@ Tensorflow 2 reimplementation of visual generation model.
 
 # Utilities
 
+## GIF maker
+
+GIF maker uses following options.  
+If you run it for the first time, you need to run `imageio.plugins.freeimage.download()` first.  
+(or automatically download in the runtime)
+
+- library: imageio
+- plugin: FreeImage
+- format: GIF-FI
+- quantizer: nq (neuqant) - Dekker A. H., Kohonen neural networks for optimal color quantization
+
 ## Dataset Extractor
 
 - [x] mnist
