@@ -1,10 +1,11 @@
+import math
 import argparse
 import tqdm
 import tensorflow as tf
 
 from utils import str_to_bool, get_config, find_config, check_dataset_config
 from utils import allow_memory_growth, ImageLoader
-from models import DCGAN
+from models import LSGAN
 
 
 def main():
@@ -12,7 +13,7 @@ def main():
     arg_parser.add_argument('-mg', '--memory_growth', type=str_to_bool,
                             default=True)
     arg_parser.add_argument('-c', '--config', type=str,
-                            default='configs/DCGAN/cifar10.yaml')
+                            default='configs/LSGAN/lsun.yaml')
     arg_parser.add_argument('-ckpt', '--checkpoint', type=str,
                             default=None)
     args = vars(arg_parser.parse_args())
@@ -36,7 +37,7 @@ def main():
                                  seed=conf['random_seed'])
 
     """Model Initiate"""
-    model = DCGAN(conf, args['checkpoint'])
+    model = LSGAN(conf, args['checkpoint'])
     if args['checkpoint'] is None:
         model.copy_conf(args['config'])
 

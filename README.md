@@ -1,10 +1,10 @@
 [![License: CC BY-NC-SA 4.0](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
 
-# Tensorflow 2 Reimplementation (Vision / Generation)
+# Tensorflow 2 Reimplementation (Image Generation)
 
-Tensorflow 2 reimplementation of visual generation model.
+Tensorflow 2 reimplementation of image generation model.
 
-# Result
+# Results
 
 ## GAN - mnist
 
@@ -54,15 +54,24 @@ Tensorflow 2 reimplementation of visual generation model.
     <img alt="CGAN mnist graph" src="https://user-images.githubusercontent.com/41245985/97887981-f12f9400-1d6d-11eb-86e1-e4179ba63e39.png">
 </p>
 
+---
+## LSGAN - CIFAR-10
+
+<p align="center">
+    <img alt="LSGAN CIFAR-10" src="https://user-images.githubusercontent.com/41245985/98462147-4d266c80-21f5-11eb-9863-da852fd3cb9d.gif">
+    <img alt="LSGAN CIFAR-10 graph" src="https://user-images.githubusercontent.com/41245985/98462104-ddb07d00-21f4-11eb-868f-4f8b0824bdbb.png">
+</p>
+
 # Model List
 
 ## GAN
 
-- [x] GAN
-- [x] DCGAN
-- [x] CGAN
-- [ ] WGAN
-- [ ] WGAN-GP
+- [x] GAN: [Paper](https://arxiv.org/abs/1406.2661)
+- [x] CGAN: [Paper](https://arxiv.org/abs/1411.1784)
+- [x] DCGAN: [Paper](https://arxiv.org/abs/1511.06434)
+- [x] LSGAN: [Paper](https://arxiv.org/abs/1611.04076)
+- [ ] WGAN: [Paper](https://arxiv.org/abs/1701.07875)
+- [ ] WGAN-GP: [Paper](https://arxiv.org/abs/1704.00028)
 
 ## Style Transfer & Image to Image Translation
 
@@ -77,6 +86,28 @@ Tensorflow 2 reimplementation of visual generation model.
 
 ## GIF maker
 
+```
+Basic Usage
+python make_gif.py -i input
+
+usage: make_gif.py [-h] -i INPUT [-o OUTPUT] [-f FPS]
+                   [-fc FRAMES_CONSECUTIVE | -fsr FRAMES_SPACE_RATE | -fi FRAMES_INTERVAL]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -i INPUT, --input INPUT
+                        Input images directory
+  -o OUTPUT, --output OUTPUT
+                        Output file name
+  -f FPS, --fps FPS     Frames per Second
+  -fc FRAMES_CONSECUTIVE, --frames_consecutive FRAMES_CONSECUTIVE
+                        Total consecutive frames of gif counting from scratch
+  -fsr FRAMES_SPACE_RATE, --frames_space_rate FRAMES_SPACE_RATE
+                        Rate of total frames from start to end (if 0.5 use half of frames)
+  -fi FRAMES_INTERVAL, --frames_interval FRAMES_INTERVAL
+                        Interval index between adjacent frames (if 10, images=[0, 10, 20, ...])
+```
+
 GIF maker uses following options.  
 If you run it for the first time, you need to run `imageio.plugins.freeimage.download()` first.  
 (or automatically download in the runtime)
@@ -88,9 +119,10 @@ If you run it for the first time, you need to run `imageio.plugins.freeimage.dow
 
 ## Dataset Extractor
 
-- [x] mnist
-- [x] CIFAR-10
-- [ ] CelebA
+- [x] mnist: [HomePage](http://yann.lecun.com/exdb/mnist/)
+- [x] CIFAR-10: [HomePage](https://www.cs.toronto.edu/~kriz/cifar.html)
+- [ ] CelebA: [HomePage](http://mmlab.ie.cuhk.edu.hk/projects/CelebA.html)
+- LSUN: [HomePage](https://github.com/fyu/lsun)
 
 # Requirements
 

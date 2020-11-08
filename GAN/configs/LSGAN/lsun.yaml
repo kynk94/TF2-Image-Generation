@@ -1,0 +1,35 @@
+# config for LSUN
+input_size: 112
+channel: 3
+
+# train
+random_seed: 0
+epochs: 0
+steps: 500000
+save_step: 10000
+beta_1: 0.5
+batch_size: 64
+latent_dim: 256
+gen:
+  learning_rate: 0.0002
+  n_layer: 7
+  n_filter: 256
+dis:
+  learning_rate: 0.0002
+  n_layer: 4
+  n_filter: 64
+
+# test
+test_step: 100
+test_batch_size: 64
+
+# directory
+checkpoint_dir: ./checkpoints
+
+# data
+dataset:
+  data_dir: D:/lsun/bedroom #../dataset/lsun/bedroom
+  train_data_txt: D:/lsun/bedroom/train.txt
+  train_test_split: false
+  labeled_dir: false
+  cache: false

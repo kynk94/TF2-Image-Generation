@@ -22,6 +22,7 @@ class DCGAN(BaseModel):
         self._bce_loss = tf.keras.losses.BinaryCrossentropy(from_logits=True)
         self._latent_shape = (conf['batch_size'], conf['latent_dim'])
 
+    @tf.function
     def train(self, x):
         latent = tf.random.normal(shape=self._latent_shape)
         with tf.GradientTape() as d_tape:

@@ -27,7 +27,6 @@ def allow_memory_growth():
         except RuntimeError as e:
             # Memory growth must be set before GPUs have been initialized
             print(e)
-    return
 
 
 def get_config(config):
@@ -57,10 +56,11 @@ def check_dataset_config(config, make_txt=False):
                                   train_test_split=data_conf['train_test_split'],
                                   labeled_dir=data_conf['labeled_dir'])
 
+    dataset_config = config['dataset']
     if isinstance(txt_output, tuple):
-        config['train_data_txt'], config['test_data_txt'] = txt_output
+        dataset_config['train_data_txt'], dataset_config['test_data_txt'] = txt_output
     else:
-        config['train_data_txt'] = txt_output
+        dataset_config['train_data_txt'] = txt_output
 
 
 def tf_image_concat(images, display_shape, mode='nchw'):
@@ -110,17 +110,24 @@ def make_dataset_txt(data_dir,
     else:
         split_length = len(data_dir) + 1
 
+    IMAGE_EXT = {'jpg', 'jpeg', 'png'}
+
+    def extension_pattern(extension):
+        pattern = ''.join(f'[{e.lower()}{e.upper()}]' for e in extension)
+        return f'**/*.{pattern}'
+
+    images = []
+    for EXT in IMAGE_EXT:
+        images.extend(glob.glob(os.path.join(data_dir, extension_pattern(EXT)),
+                                recursive=True))
+    images.sort()
+
     with open(output_path, 'w', encoding='utf-8') as txt_file:
-        for root, _, files in os.walk(data_dir):
-            if not files:
-                continue
+        for image in images:
             if labeled_dir:
-                label = ',' + os.path.basename(root)
+                label = ',' + os.path.basename(os.path.dirname(image))
             else:
                 label = ''
-
-            split_root = os.path.join(prefix, root[split_length:])
-            for file_name in files:
-                file_path = os.path.join(split_root, file_name)
-                txt_file.write(f'{file_path}{label}\n')
+            line = f'{os.path.join(prefix, image[split_length:])}{label}\n'
+            txt_file.write(line)
     return output_path

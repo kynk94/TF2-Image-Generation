@@ -5,6 +5,8 @@ channel: 1
 # train
 random_seed: 0
 epochs: 100
+steps: 0
+save_step: 10000
 learning_rate: 0.0002
 beta_1: 0.5
 batch_size: 64
@@ -17,6 +19,7 @@ dis:
   n_filter: 32 # 32, 64
 
 # test
+test_step: 100
 test_batch_size: 64
 
 # directory
@@ -28,3 +31,4 @@ dataset:
   train_data_txt:
   train_test_split: true
   labeled_dir: true
+  cache: true

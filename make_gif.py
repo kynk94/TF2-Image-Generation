@@ -1,27 +1,55 @@
 import os
 import glob
+import re
 import argparse
 import tqdm
 import imageio
+import numpy as np
 
 IMAGE_EXT = {'jpg', 'jpeg', 'png'}
 
 
 def extension_pattern(extension):
     pattern = ''.join(f'[{e.lower()}{e.upper()}]' for e in extension)
-    return f'*.{pattern}'
+    return f'**/*.{pattern}'
+
+
+def numeric_sort_str(string):
+    def try_int(s):
+        try:
+            return int(s)
+        except:
+            return s
+    return [try_int(s) for s in re.split(r'(\d+)', string)]
+
+
+def float_0_to_1(value):
+    try:
+        value = float(value)
+    except ValueError:
+        raise argparse.ArgumentTypeError('Must be a floating point number')
+    if 0.0 < value < 1.0:
+        return value
+    raise argparse.ArgumentTypeError('Must be in range(0.0, 1.0)')
 
 
 def main():
     arg_parse = argparse.ArgumentParser()
-    arg_parse.add_argument('-i', '--input', type=str,
+    arg_parse.add_argument('-i', '--input', type=str, required=True,
                            help='Input images directory')
     arg_parse.add_argument('-o', '--output', type=str,
                            default='output.gif',
                            help='Output file name')
     arg_parse.add_argument('-f', '--fps', type=float,
                            default=20,
-                           help='Frame per Second')
+                           help='Frames per Second')
+    frame_split = arg_parse.add_mutually_exclusive_group()
+    frame_split.add_argument('-fc', '--frames_consecutive', type=int,
+                             help='Total consecutive frames of gif counting from scratch')
+    frame_split.add_argument('-fsr', '--frames_space_rate', type=float_0_to_1,
+                             help='Rate of total frames from start to end (if 0.5 use half of frames)')
+    frame_split.add_argument('-fi', '--frames_interval', type=int,
+                             help='Interval index between adjacent frames (if 10, images=[0, 10, 20, ...])')
     args = vars(arg_parse.parse_args())
 
     if not args['output'].lower().endswith('.gif'):
@@ -30,11 +58,26 @@ def main():
     images = []
     for EXT in IMAGE_EXT:
         images.extend(glob.glob(os.path.join(args['input'],
-                                             extension_pattern(EXT))))
+                                             extension_pattern(EXT)),
+                                recursive=True))
     assert images, 'Image file not found'
-    
-    images.sort()
+
+    images.sort(key=numeric_sort_str)
     print(f'Found {len(images)} images')
+
+    if args['frames_consecutive'] is not None:
+        images = images[:args['frames_consecutive']]
+        print(f'Select {len(images)} images by frames_consecutive')
+    elif args['frames_space_rate'] is not None:
+        indexes = np.linspace(0, len(images)-1,
+                              int(len(images)*args['frames_space_rate']),
+                              dtype=np.int32)
+        images = [images[i] for i in indexes]
+        print(f'Select {len(images)} images by frames_space_rate')
+    elif args['frames_interval'] is not None:
+        fi = args['frames_interval']
+        images = [images[i * fi] for i in range(len(images) // fi)]
+        print(f'Select {len(images)} images by frames_interval')
 
     images_array = []
     pbar = tqdm.tqdm(images, position=0, leave=True)

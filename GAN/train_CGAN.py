@@ -47,7 +47,8 @@ def main():
     check_dataset_config(conf)
 
     """Load Dataset"""
-    loader = ImageLoader(data_txt_file=conf['train_data_txt'], use_label=True)
+    loader = ImageLoader(data_txt_file=conf['dataset']['train_data_txt'],
+                         use_label=True)
     conf['n_class'] = loader.n_class
 
     train_dataset = loader.get_dataset(batch_size=conf['batch_size'],

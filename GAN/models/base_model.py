@@ -27,7 +27,7 @@ class BaseModel(ABC):
                                             time_stamp)
         self._output_dir = os.path.join(self._checkpoint_dir, 'output')
 
-    def set_checkpoint(self, max_to_keep=5, **kwargs):
+    def set_checkpoint(self, max_to_keep=2, **kwargs):
         self.ckpt = tf.train.Checkpoint(step=tf.Variable(0, dtype=tf.int64),
                                         **kwargs)
         self.ckpt_manager = tf.train.CheckpointManager(self.ckpt,

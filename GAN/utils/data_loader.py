@@ -53,13 +53,14 @@ class ImageLoader:
                     new_size=None,
                     flatten=False,
                     shuffle=True,
-                    drop_remainder=True):
+                    drop_remainder=True,
+                    cache=True):
         """
         new_size = (height, width)
         """
         dataset = self.dataset
         if shuffle:
-            dataset = dataset.shuffle(len(self.dataset))
+            dataset = dataset.shuffle(self.n_data)
 
         dataset = dataset.map(
             map_func=lambda x, y=None: self._read_file(
@@ -74,8 +75,9 @@ class ImageLoader:
             and map_func is None
             and new_size is None
                 and not flatten):
-            return dataset.cache(
-            ).prefetch(tf.data.experimental.AUTOTUNE)
+            if cache:
+                dataset = dataset.cache()
+            return dataset.prefetch(tf.data.experimental.AUTOTUNE)
 
         def _total_map_func(data, label=None):
             if scailing:
@@ -88,11 +90,12 @@ class ImageLoader:
                 return data
             return data, label
 
-        return dataset.map(
-            map_func=_total_map_func,
-            num_parallel_calls=tf.data.experimental.AUTOTUNE
-        ).cache(
-        ).prefetch(tf.data.experimental.AUTOTUNE)
+        dataset = dataset.map(
+                map_func=_total_map_func,
+                num_parallel_calls=tf.data.experimental.AUTOTUNE)
+        if cache:
+            dataset = dataset.cache()
+        return dataset.prefetch(tf.data.experimental.AUTOTUNE)
 
     def get_label(self, str_label=None, num_label=None):
         if str_label is not None:

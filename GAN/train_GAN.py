@@ -25,17 +25,18 @@ def main():
     conf = get_config(args['config'])
     check_dataset_config(conf)
 
-    model = GAN(conf, args['checkpoint'])
-    if args['checkpoint'] is None:
-        model.copy_conf(args['config'])
-
     """Load Dataset"""
-    loader = ImageLoader(data_txt_file=conf['train_data_txt'])
+    loader = ImageLoader(data_txt_file=conf['dataset']['train_data_txt'])
     train_dataset = loader.get_dataset(batch_size=conf['batch_size'],
                                        flatten=True)
 
     test_data = tf.random.normal(shape=(conf['test_batch_size'], conf['latent_dim']),
                                  seed=conf['random_seed'])
+
+    """Model Initiate"""
+    model = GAN(conf, args['checkpoint'])
+    if args['checkpoint'] is None:
+        model.copy_conf(args['config'])
 
     """Start Train"""
     start_epoch = model.ckpt.step // len(train_dataset) + 1
