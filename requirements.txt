@@ -1,5 +1,6 @@
 imageio
 tqdm
+pandas
 Pillow
 PyYAML
 tensorflow-addons

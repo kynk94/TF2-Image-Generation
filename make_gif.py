@@ -1,10 +1,10 @@
 import os
 import glob
-import re
 import argparse
 import tqdm
 import imageio
 import numpy as np
+from utils import digit_first_sort, float_0_to_1
 
 IMAGE_EXT = {'jpg', 'jpeg', 'png'}
 
@@ -12,25 +12,6 @@ IMAGE_EXT = {'jpg', 'jpeg', 'png'}
 def extension_pattern(extension):
     pattern = ''.join(f'[{e.lower()}{e.upper()}]' for e in extension)
     return f'**/*.{pattern}'
-
-
-def numeric_sort_str(string):
-    def try_int(s):
-        try:
-            return int(s)
-        except:
-            return s
-    return [try_int(s) for s in re.split(r'(\d+)', string)]
-
-
-def float_0_to_1(value):
-    try:
-        value = float(value)
-    except ValueError:
-        raise argparse.ArgumentTypeError('Must be a floating point number')
-    if 0.0 < value < 1.0:
-        return value
-    raise argparse.ArgumentTypeError('Must be in range(0.0, 1.0)')
 
 
 def main():
@@ -41,13 +22,13 @@ def main():
                            default='output.gif',
                            help='Output file name')
     arg_parse.add_argument('-f', '--fps', type=float,
-                           default=20,
+                           default=30,
                            help='Frames per Second')
     frame_split = arg_parse.add_mutually_exclusive_group()
     frame_split.add_argument('-fc', '--frames_consecutive', type=int,
                              help='Total consecutive frames of gif counting from scratch')
     frame_split.add_argument('-fsr', '--frames_space_rate', type=float_0_to_1,
-                             help='Rate of total frames from start to end (if 0.5 use half of frames)')
+                             help='Rate of total frames from start to end (if 0.5, use half of frames)')
     frame_split.add_argument('-fi', '--frames_interval', type=int,
                              help='Interval index between adjacent frames (if 10, images=[0, 10, 20, ...])')
     args = vars(arg_parse.parse_args())
@@ -62,7 +43,7 @@ def main():
                                 recursive=True))
     assert images, 'Image file not found'
 
-    images.sort(key=numeric_sort_str)
+    images.sort(key=digit_first_sort)
     print(f'Found {len(images)} images')
 
     if args['frames_consecutive'] is not None:

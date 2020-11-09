@@ -55,6 +55,7 @@ Tensorflow 2 reimplementation of image generation model.
 </p>
 
 ---
+
 ## LSGAN - CIFAR-10
 
 <p align="center">
@@ -86,10 +87,9 @@ Tensorflow 2 reimplementation of image generation model.
 
 ## GIF maker
 
-```
-Basic Usage
-python make_gif.py -i input
+Make gif file from image files.
 
+```
 usage: make_gif.py [-h] -i INPUT [-o OUTPUT] [-f FPS]
                    [-fc FRAMES_CONSECUTIVE | -fsr FRAMES_SPACE_RATE | -fi FRAMES_INTERVAL]
 
@@ -103,7 +103,7 @@ optional arguments:
   -fc FRAMES_CONSECUTIVE, --frames_consecutive FRAMES_CONSECUTIVE
                         Total consecutive frames of gif counting from scratch
   -fsr FRAMES_SPACE_RATE, --frames_space_rate FRAMES_SPACE_RATE
-                        Rate of total frames from start to end (if 0.5 use half of frames)
+                        Rate of total frames from start to end (if 0.5, use half of frames)
   -fi FRAMES_INTERVAL, --frames_interval FRAMES_INTERVAL
                         Interval index between adjacent frames (if 10, images=[0, 10, 20, ...])
 ```
@@ -123,6 +123,26 @@ If you run it for the first time, you need to run `imageio.plugins.freeimage.dow
 - [x] CIFAR-10: [HomePage](https://www.cs.toronto.edu/~kriz/cifar.html)
 - [ ] CelebA: [HomePage](http://mmlab.ie.cuhk.edu.hk/projects/CelebA.html)
 - LSUN: [HomePage](https://github.com/fyu/lsun)
+
+## Tensorflow Log Extractor
+
+Extract scalars(to csv) and images(to png) from tensorflow log file.  
+The extractor is 20~30 times slower than downloading from the Tensorboard GUI.  
+Don't use this extractor if saved the images at training time.  
+If need only csv file of scalars log, just download in Tensorboard GUI.
+
+```
+usage: extract_tf_log.py [-h] [-l LOG_DIR] [-o OUTPUT] [-ei EXTRACT_IMAGE]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -l LOG_DIR, --log_dir LOG_DIR
+                        Event log files directory, Select exact log in runtime (default=./**/checkpoints)
+  -o OUTPUT, --output OUTPUT
+                        Output directory (default=./log_output)
+  -ei EXTRACT_IMAGE, --extract_image EXTRACT_IMAGE
+                        Extract Image Flag (default=True)
+```
 
 # Requirements
 

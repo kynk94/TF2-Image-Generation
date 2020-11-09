@@ -27,7 +27,7 @@ checkpoint_dir: ./checkpoints
 
 # data
 dataset:
-  data_dir: ../dataset/lsun
+  data_dir: ../dataset/lsun/bedroom
   train_data_txt:
   train_test_split: false
   labeled_dir: false
