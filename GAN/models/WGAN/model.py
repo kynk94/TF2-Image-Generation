@@ -22,6 +22,7 @@ class WGAN(BaseModel):
         self.clip_const = conf['clip_const']
         self._latent_shape = (conf['batch_size'], conf['latent_dim'])
 
+    @tf.function
     def train_generator(self):
         latent = tf.random.normal(shape=self._latent_shape)
         with tf.GradientTape() as g_tape:
