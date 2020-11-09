@@ -28,8 +28,8 @@ checkpoint_dir: ./checkpoints
 
 # data
 dataset:
-  data_dir: D:/lsun/bedroom #../dataset/lsun/bedroom
-  train_data_txt: D:/lsun/bedroom/train.txt
+  data_dir: ../dataset/lsun/bedroom
+  train_data_txt:
   train_test_split: false
   labeled_dir: false
   cache: false
