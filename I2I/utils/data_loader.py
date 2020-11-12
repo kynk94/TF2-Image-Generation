@@ -31,7 +31,7 @@ def read_images(path, shape=None):
     max_w = 0
     max_h = 0
     for image in images:
-        image = tf.io.decode_png(tf.io.read_file(image))
+        image = tf.io.decode_png(tf.io.read_file(image), channels=3)
         image = tf.cast(image, tf.float32)
         w, h, _ = image.shape
         images_array.append(image / 127.5 - 1)

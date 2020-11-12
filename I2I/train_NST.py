@@ -50,6 +50,7 @@ def main():
     if style_batch_size != 1:
         if content_batch_size == 1:
             content_image = tf.repeat(content_image, style_batch_size, axis=0)
+            init_shape = tf.repeat(init_shape, style_batch_size, axis=0)
         elif content_batch_size != style_batch_size:
             raise ValueError('When using multiple content images and multiple style images,' +
                              'the number of images should be equal.')
