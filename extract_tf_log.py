@@ -6,7 +6,7 @@ import tensorflow as tf
 from collections import defaultdict
 from tqdm import tqdm
 from tensorflow.core.util import event_pb2
-from utils import digit_first_sort, str_to_bool
+from utils import DigitFirstSort, str_to_bool
 
 
 def main():
@@ -31,7 +31,7 @@ def main():
     assert logs, 'Event log file not found'
 
     log_dirs = sorted({os.path.dirname(log)
-                       for log in logs}, key=digit_first_sort)
+                       for log in logs}, key=DigitFirstSort)
     print(f'Found {len(log_dirs)} train logs')
 
     if len(log_dirs) > 1:
@@ -40,7 +40,7 @@ def main():
         log_index = int(input(f'Found logs:\n{log_string}\n' +
                               'Select log (default: -1): ') or -1)
         logs = glob.glob(os.path.join(log_dirs[log_index], 'events*'))
-    logs.sort(key=digit_first_sort)
+    logs.sort(key=DigitFirstSort)
 
     extract_image = args['extract_image']
     output_path = os.path.join(args['output'],
