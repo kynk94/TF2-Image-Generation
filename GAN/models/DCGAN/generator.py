@@ -22,12 +22,11 @@ class Generator(tf.keras.Model):
         for _ in range(n_layer-1):
             n_filter //= 2
             model.extend([layers.Conv2DTranspose(n_filter, (5, 5), strides=(2, 2),
-                                                 padding='same', data_format='channels_first'),
+                                                 padding='same'),
                           layers.BatchNormalization(),
                           layers.ReLU()])
         model.append(layers.Conv2DTranspose(channel, (5, 5), strides=(2, 2),
-                                            padding='same', activation=tf.nn.tanh,
-                                            data_format='channels_first'))
+                                            padding='same', activation=tf.nn.tanh))
         self.model = tf.keras.Sequential(model, name='generator')
 
     def call(self, x):

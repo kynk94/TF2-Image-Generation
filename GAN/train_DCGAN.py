@@ -18,6 +18,8 @@ def main():
                             default=None)
     args = vars(arg_parser.parse_args())
 
+    tf.keras.backend.set_image_data_format('channels_first')
+
     if args['memory_growth']:
         allow_memory_growth()
     if args['checkpoint'] is not None:
