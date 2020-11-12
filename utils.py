@@ -26,7 +26,7 @@ class DigitFirstSort:
     def __ne__(self, other):
         return self._compare(other, operator.ne)
 
-    def _split_digit_string(obj):
+    def _split_digit_string(self, obj):
         digits = []
         strings = []
         for i in re.split(r'(\d+)', obj):
@@ -45,15 +45,31 @@ class DigitFirstSort:
                 if i == j:
                     continue
                 elif operation(i, j):
-                    continue
+                    return -1
             else:
                 s_i, s_j = str(i), str(j)
                 if s_i == s_j:
                     continue
                 elif operation(s_i, s_j):
-                    continue
-            return False
-        return True
+                    return -1
+            return 0
+        return 1
+
+
+class NumericStringSort(DigitFirstSort):
+    def __init__(self, obj, *args):
+        self.obj = self._split_digit_string(obj)
+
+    def _split_digit_string(self, obj):
+        output = []
+        for i in re.split(r'(\d+)', obj):
+            if not i:
+                continue
+            if i.isdigit():
+                output.append(int(i))
+            else:
+                output.append(i)
+        return output
 
 
 def str_to_bool(value):

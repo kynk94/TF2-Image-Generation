@@ -40,7 +40,7 @@ def main():
         log_index = int(input(f'Found logs:\n{log_string}\n' +
                               'Select log (default: -1): ') or -1)
         logs = glob.glob(os.path.join(log_dirs[log_index], 'events*'))
-    logs.sort(key=DigitFirstSort)
+    logs.sort()
 
     extract_image = args['extract_image']
     output_path = os.path.join(args['output'],

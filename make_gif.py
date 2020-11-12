@@ -4,7 +4,7 @@ import argparse
 import tqdm
 import imageio
 import numpy as np
-from utils import DigitFirstSort, float_0_to_1
+from utils import NumericStringSort, float_0_to_1
 
 IMAGE_EXT = {'jpg', 'jpeg', 'png'}
 
@@ -43,7 +43,7 @@ def main():
                                 recursive=True))
     assert images, 'Image file not found'
 
-    images.sort(key=DigitFirstSort)
+    images.sort(key=NumericStringSort)
     print(f'Found {len(images)} images')
 
     if args['frames_consecutive'] is not None:
