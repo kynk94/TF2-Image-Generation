@@ -1,0 +1,22 @@
+# config for vgg19
+pretrained_model: vgg19
+content_layers:
+  - block4_conv2
+style_layers:
+  - block1_conv1
+  - block2_conv1
+  - block3_conv1
+  - block4_conv1
+  - block5_conv1
+
+# train
+steps: 100000
+learning_rate: 0.02
+beta_1: 0.5
+content_weight: 0.001 # content / style
+
+# test
+test_step: 100
+
+# directory
+checkpoint_dir: ./checkpoints

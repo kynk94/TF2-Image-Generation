@@ -76,7 +76,7 @@ Tensorflow 2 reimplementation of image generation model.
 
 ## Style Transfer & Image to Image Translation
 
-- [ ] Neural Style Transfer
+- [x] Neural Style Transfer: [Paper](https://www.cv-foundation.org/openaccess/content_cvpr_2016/papers/Gatys_Image_Style_Transfer_CVPR_2016_paper.pdf)
 - [ ] Fast Style Transfer
 - [ ] AdaIN
 - [ ] CycleGAN
@@ -84,6 +84,13 @@ Tensorflow 2 reimplementation of image generation model.
 - [ ] UNIT
 
 # Utilities
+
+## Dataset Extractor
+
+- [x] mnist: [HomePage](http://yann.lecun.com/exdb/mnist/)
+- [x] CIFAR-10: [HomePage](https://www.cs.toronto.edu/~kriz/cifar.html)
+- [ ] CelebA: [HomePage](http://mmlab.ie.cuhk.edu.hk/projects/CelebA.html)
+- LSUN: [HomePage](https://github.com/fyu/lsun)
 
 ## GIF maker
 
@@ -116,13 +123,6 @@ If you run it for the first time, you need to run `imageio.plugins.freeimage.dow
 - plugin: FreeImage
 - format: GIF-FI
 - quantizer: nq (neuqant) - Dekker A. H., Kohonen neural networks for optimal color quantization
-
-## Dataset Extractor
-
-- [x] mnist: [HomePage](http://yann.lecun.com/exdb/mnist/)
-- [x] CIFAR-10: [HomePage](https://www.cs.toronto.edu/~kriz/cifar.html)
-- [ ] CelebA: [HomePage](http://mmlab.ie.cuhk.edu.hk/projects/CelebA.html)
-- LSUN: [HomePage](https://github.com/fyu/lsun)
 
 ## Tensorflow Log Extractor
 
