@@ -1,5 +1,6 @@
 import argparse
 from numpy.lib.arraysetops import isin
+from tensorflow.python.types.core import Value
 import tqdm
 import tensorflow as tf
 
@@ -26,7 +27,7 @@ def main():
     arg_parser.add_argument('-c', '--config', type=str,
                             default='configs/NST/vgg19.yaml')
     arg_parser.add_argument('-m', '--mode', type=str_to_mode,
-                            default='latent')
+                            default='content')
     arg_parser.add_argument('-ic', '--input_content', type=str,
                             default='../dataset/style_transfer/content')
     arg_parser.add_argument('-is', '--input_style', type=str,
@@ -42,10 +43,17 @@ def main():
 
     """Load Dataset"""
     content_image, init_shape = read_images(args['input_content'])
-    content_image = content_image / 2 + 0.5
-    input_wh = content_image.shape[2:]
+    content_batch_size, _, *input_wh = content_image.shape
     style_image, _ = read_images(args['input_style'], shape=input_wh)
-    style_image = style_image / 2 + 0.5
+    style_batch_size = style_image.shape[0]
+
+    if style_batch_size != 1:
+        if content_batch_size == 1:
+            content_image = tf.repeat(content_image, style_batch_size, axis=0)
+        elif content_batch_size != style_batch_size:
+            raise ValueError('When using multiple content images and multiple style images,' +
+                             'the number of images should be equal.')
+
     init_image = None
     if args['mode'] == 'latent':
         init_image = tf.random.normal(content_image.shape, mean=0.5)

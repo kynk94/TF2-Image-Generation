@@ -18,6 +18,7 @@ def find_images(path):
     for EXT in IMAGE_EXT:
         images.extend(glob.glob(os.path.join(path, extension_pattern(EXT)),
                                 recursive=True))
+    images.sort()
     assert images, 'Image file not found'
     return images
 
@@ -40,12 +41,13 @@ def read_images(path, shape=None):
         if max_h < h:
             max_h = h
 
-    images_array = tf.convert_to_tensor(images_array)
-
     if shape is not None:
-        images_array = tf.image.resize(images_array, shape)
+        images_array = [tf.image.resize(image_array, shape)
+                        for image_array in images_array]
     else:
-        images_array = tf.image.resize(images_array, (max_w, max_h))
+        images_array = [tf.image.resize(image_array, (max_w, max_h))
+                        for image_array in images_array]
+    images_array = tf.convert_to_tensor(images_array)
     images_array = tf.transpose(images_array, (0, 3, 1, 2))
 
     images_shape = tf.convert_to_tensor(images_shape)

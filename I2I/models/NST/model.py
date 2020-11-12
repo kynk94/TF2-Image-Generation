@@ -13,9 +13,9 @@ class NeuralStyleTransfer(BaseModel):
         self.opt = Adam(conf['learning_rate'], conf['beta_1'])
         self.set_checkpoint(optimizer=self.opt)
 
-        self.init_image = tf.Variable(init_image, trainable=True)
-        self.content_image = tf.Variable(content_image)
-        self.style_image = tf.Variable(style_image)
+        self.init_image = tf.Variable(init_image)
+        self.content_image = content_image
+        self.style_image = style_image
         self.content_weight = conf['content_weight']
 
     @tf.function
@@ -25,13 +25,17 @@ class NeuralStyleTransfer(BaseModel):
                 self.init_image)
             content_output, _ = self.feature_extractor(self.content_image)
             _, style_output = self.feature_extractor(self.style_image)
+
             content_loss = self.content_loss(content_drawing, content_output)
             style_loss = self.style_loss(style_drawing, style_output)
             loss = self.content_weight * content_loss + style_loss
+
         gradient = tape.gradient(loss, self.init_image)
         self.opt.apply_gradients([(gradient, self.init_image)])
-        clipped_image = tf.clip_by_value(self.init_image, 0, 1)
+
+        clipped_image = tf.clip_by_value(self.init_image, -1, 1)
         self.init_image.assign(clipped_image)
+
         log_dict = {
             'loss/content': content_loss,
             'loss/style': style_loss
@@ -49,9 +53,9 @@ class NeuralStyleTransfer(BaseModel):
             resized_image = tf.image.resize(image, shape)
             if save:
                 self.image_write(filename=f'{i:03d}-{step:05d}.png',
-                                 data=resized_image * 255)
+                                 data=resized_image)
             self.write_image_log(step=step, data=resized_image,
-                                 name=f'output/{i:03d}', denorm=False)
+                                 name=f'output/{i:03d}')
 
     def content_loss(self, drawing, content):
         out = 0
