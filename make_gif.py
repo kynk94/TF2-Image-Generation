@@ -23,7 +23,7 @@ def main():
                            default='output.gif',
                            help='Output file name')
     arg_parse.add_argument('-f', '--fps', type=float,
-                           default=30,
+                           default=12,
                            help='Frames per Second')
     arg_parse.add_argument('-r', '--resolution', type=int,
                            default=None,

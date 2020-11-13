@@ -72,9 +72,46 @@ Tensorflow 2 reimplementation of image generation model.
 ## LSGAN - CIFAR-10
 
 <p align="center">
-    <img alt="LSGAN CIFAR-10" src="https://user-images.githubusercontent.com/41245985/98462147-4d266c80-21f5-11eb-9863-da852fd3cb9d.gif">
+    <img alt="LSGAN CIFAR-10" src="https://user-images.githubusercontent.com/41245985/99070360-67948780-25f3-11eb-9132-85008c8e8d7f.gif">
     <img alt="LSGAN CIFAR-10 graph" src="https://user-images.githubusercontent.com/41245985/98462104-ddb07d00-21f4-11eb-868f-4f8b0824bdbb.png">
 </p>
+
+---
+
+## Neural Style Transfer
+
+<table align="center">
+    <thead>
+        <tr>
+            <th align="center">5000 Step</th>
+            <th align="center"><img alt="Neural Style Transfer content - 구르미 그린 달빛" src="https://user-images.githubusercontent.com/41245985/99071163-f1912000-25f4-11eb-895a-0284b529a3b9.jpg"></th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td align="center"><img alt="Neural Style Transfer style - Voronoi diagram" src="https://user-images.githubusercontent.com/41245985/99071141-e807b800-25f4-11eb-80b0-5a92ef583023.png" height="344"></td>
+            <td align="center"><img alt="Neural Style Transfer result - Voronoi diagram" src="https://user-images.githubusercontent.com/41245985/99071181-fa81f180-25f4-11eb-8f56-01e2d9058ecc.png"></td>
+        </tr>
+        <tr>
+            <td align="center"><img alt="Neural Style Transfer style - Vassily Kandinsky Composition 7" src="https://user-images.githubusercontent.com/41245985/99071239-108fb200-25f5-11eb-9366-2c907b4fb56b.jpg" height="344"></td>
+            <td align="center"><img alt="Neural Style Transfer result - Vassily Kandinsky Composition 7" src="https://user-images.githubusercontent.com/41245985/99071287-29986300-25f5-11eb-8a79-1465274cd3f3.png"></td>
+        </tr>
+        <tr>
+            <td align="center"><img alt="Neural Style Transfer style - 게르니카" src="https://user-images.githubusercontent.com/41245985/99071319-40d75080-25f5-11eb-8b3f-c91c0a5e99c2.jpg" width="610"></td>
+            <td align="center"><img alt="Neural Style Transfer result - 게르니카" src="https://user-images.githubusercontent.com/41245985/99071341-4e8cd600-25f5-11eb-80b1-552984358893.png"></td>
+        </tr>
+        <tr>
+            <td align="center"><img alt="Neural Style Transfer style - 론강의 별이 빛나는 밤" src="https://user-images.githubusercontent.com/41245985/99071380-5d738880-25f5-11eb-947d-92872a9b4e89.jpg" height="344"></td>
+            <td align="center"><img alt="Neural Style Transfer result - 론강의 별이 빛나는 밤" src="https://user-images.githubusercontent.com/41245985/99071414-6cf2d180-25f5-11eb-85d1-7ed301238280.png"></td>
+        </tr>
+        <tr>
+            <td align="center"><img alt="Neural Style Transfer style - La Promenade" src="https://user-images.githubusercontent.com/41245985/99071443-7aa85700-25f5-11eb-821a-52f9d371799f.jpg" height="344"></td>
+            <td align="center"><img alt="Neural Style Transfer result - La Promenade" src="https://user-images.githubusercontent.com/41245985/99071463-85fb8280-25f5-11eb-99d6-7d5fd089d9c7.png"></td>
+        </tr>
+    </tbody>
+</table>
+
+---
 
 # Model List
 
