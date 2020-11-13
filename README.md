@@ -15,24 +15,6 @@ Tensorflow 2 reimplementation of image generation model.
 
 ---
 
-## DCGAN - mnist
-
-<p align="center">
-    <img alt="DCGAN mnist" src="https://user-images.githubusercontent.com/41245985/97887768-b0377f80-1d6d-11eb-9787-03cf3c511ad9.gif">
-    <img alt="DCGAN mnist graph" src="https://user-images.githubusercontent.com/41245985/97887800-bc234180-1d6d-11eb-9288-710fe8e31d3c.png">
-</p>
-
----
-
-## DCGAN - CIFAR-10
-
-<p align="center">
-    <img alt="DCGAN CIFAR-10" src="https://user-images.githubusercontent.com/41245985/97946934-16a0ba00-1dcf-11eb-938a-a2ee236dc136.gif">
-    <img alt="DCGAN CIFAR-10 graph" src="https://user-images.githubusercontent.com/41245985/97946971-33d58880-1dcf-11eb-9777-a12b464ee53b.png">
-</p>
-
----
-
 ## CGAN - mnist
 
 <table align="center">
@@ -53,6 +35,37 @@ Tensorflow 2 reimplementation of image generation model.
 <p align="center">
     <img alt="CGAN mnist graph" src="https://user-images.githubusercontent.com/41245985/97887981-f12f9400-1d6d-11eb-86e1-e4179ba63e39.png">
 </p>
+
+---
+
+## DCGAN - LSUN
+
+<p align="center">
+    <img alt="DCGAN LSUN" src="assets/images/DCGAN_LSUN_480.gif">
+    <img alt="DCGAN LSUN graph" src="https://user-images.githubusercontent.com/41245985/99030396-3f3b6780-25b8-11eb-8371-7feecb13cfe0.png">
+</p>
+
+---
+
+## DCGAN - CIFAR-10
+
+<details>
+    <p align="center">
+        <img alt="DCGAN CIFAR-10" src="https://user-images.githubusercontent.com/41245985/99030266-f4215480-25b7-11eb-9e25-a58750b18d3b.gif">
+        <img alt="DCGAN CIFAR-10 graph" src="https://user-images.githubusercontent.com/41245985/99030160-b4f30380-25b7-11eb-93cd-a97f6b9c07cc.png">
+    </p>
+</details>
+
+---
+
+## DCGAN - mnist
+
+<details>
+    <p align="center">
+        <img alt="DCGAN mnist" src="https://user-images.githubusercontent.com/41245985/97887768-b0377f80-1d6d-11eb-9787-03cf3c511ad9.gif">
+        <img alt="DCGAN mnist graph" src="https://user-images.githubusercontent.com/41245985/97887800-bc234180-1d6d-11eb-9288-710fe8e31d3c.png">
+    </p>
+</details>
 
 ---
 
@@ -97,7 +110,7 @@ Tensorflow 2 reimplementation of image generation model.
 Make gif file from image files.
 
 ```
-usage: make_gif.py [-h] -i INPUT [-o OUTPUT] [-f FPS]
+usage: make_gif.py [-h] -i INPUT [-o OUTPUT] [-f FPS] [-r RESOLUTION]
                    [-fc FRAMES_CONSECUTIVE | -fsr FRAMES_SPACE_RATE | -fi FRAMES_INTERVAL]
 
 optional arguments:
@@ -107,6 +120,8 @@ optional arguments:
   -o OUTPUT, --output OUTPUT
                         Output file name
   -f FPS, --fps FPS     Frames per Second
+  -r RESOLUTION, --resolution RESOLUTION
+                        Output file resolution
   -fc FRAMES_CONSECUTIVE, --frames_consecutive FRAMES_CONSECUTIVE
                         Total consecutive frames of gif counting from scratch
   -fsr FRAMES_SPACE_RATE, --frames_space_rate FRAMES_SPACE_RATE
