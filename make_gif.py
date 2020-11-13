@@ -4,6 +4,7 @@ import argparse
 import tqdm
 import imageio
 import numpy as np
+from PIL import Image
 from utils import NumericStringSort, float_0_to_1
 
 IMAGE_EXT = {'jpg', 'jpeg', 'png'}
@@ -24,6 +25,9 @@ def main():
     arg_parse.add_argument('-f', '--fps', type=float,
                            default=30,
                            help='Frames per Second')
+    arg_parse.add_argument('-r', '--resolution', type=int,
+                           default=None,
+                           help='Output file resolution')
     frame_split = arg_parse.add_mutually_exclusive_group()
     frame_split.add_argument('-fc', '--frames_consecutive', type=int,
                              help='Total consecutive frames of gif counting from scratch')
@@ -60,10 +64,14 @@ def main():
         images = [images[i * fi] for i in range(len(images) // fi)]
         print(f'Select {len(images)} images by frames_interval')
 
+    resolution = args['resolution']
     images_array = []
     pbar = tqdm.tqdm(images, position=0, leave=True)
     for image in pbar:
-        images_array.append(imageio.imread(image))
+        image = Image.open(image)
+        if resolution is not None:
+            image = image.resize((resolution, resolution))
+        images_array.append(image)
 
     print('GIF write start')
 
