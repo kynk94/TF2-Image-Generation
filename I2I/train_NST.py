@@ -57,7 +57,7 @@ def main():
 
     init_image = None
     if args['mode'] == 'latent':
-        init_image = tf.random.normal(content_image.shape, mean=0.5)
+        init_image = tf.random.normal(content_image.shape)
     elif args['mode'] == 'content':
         init_image = content_image
     elif args['mode'] == 'style':
@@ -80,7 +80,7 @@ def main():
             pbar_dict['S'] = '{:.4f}'.format(log_dict['loss/style'])
             pbar.set_postfix(pbar_dict)
         if test_step and current_step % test_step == 0:
-            model.write_init_image(init_shape, current_step, save=True)
+            model.write_drawing_image(init_shape, current_step, save=True)
 
 
 if __name__ == '__main__':

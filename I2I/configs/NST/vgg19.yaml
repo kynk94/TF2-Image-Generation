@@ -10,13 +10,13 @@ style_layers:
   - block5_conv1
 
 # train
-steps: 100000
+steps: 5000
 learning_rate: 0.02
 beta_1: 0.5
 content_weight: 0.001 # content / style
 
 # test
-test_step: 100
+test_step: 50
 
 # directory
 checkpoint_dir: ./checkpoints

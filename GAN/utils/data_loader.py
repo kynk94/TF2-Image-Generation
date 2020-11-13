@@ -36,7 +36,7 @@ class ImageLoader:
         return dataset
 
     def _read_file(self, data, label=None, new_size=None):
-        data = tf.io.decode_png(tf.io.read_file(data))
+        data = tf.io.decode_png(tf.io.read_file(data), channels=3)
         data = tf.cast(data, tf.float32)
         if new_size is not None:
             data = tf.image.resize(data, new_size)

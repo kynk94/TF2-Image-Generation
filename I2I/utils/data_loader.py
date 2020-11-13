@@ -28,24 +28,24 @@ def read_images(path, shape=None):
 
     images_array = []
     images_shape = []
-    max_w = 0
     max_h = 0
+    max_w = 0
     for image in images:
         image = tf.io.decode_png(tf.io.read_file(image), channels=3)
         image = tf.cast(image, tf.float32)
-        w, h, _ = image.shape
+        h, w, _ = image.shape
         images_array.append(image / 127.5 - 1)
-        images_shape.append((w, h))
-        if max_w < w:
-            max_w = w
+        images_shape.append((h, w))
         if max_h < h:
             max_h = h
+        if max_w < w:
+            max_w = w
 
     if shape is not None:
         images_array = [tf.image.resize(image_array, shape)
                         for image_array in images_array]
     else:
-        images_array = [tf.image.resize(image_array, (max_w, max_h))
+        images_array = [tf.image.resize(image_array, (max_h, max_w))
                         for image_array in images_array]
     images_array = tf.convert_to_tensor(images_array)
     images_array = tf.transpose(images_array, (0, 3, 1, 2))
@@ -87,7 +87,7 @@ class ImageLoader:
         return dataset
 
     def _read_file(self, data, label=None, new_size=None):
-        data = tf.io.decode_png(tf.io.read_file(data))
+        data = tf.io.decode_png(tf.io.read_file(data), channels=3)
         data = tf.cast(data, tf.float32)
         if new_size is not None:
             data = tf.image.resize(data, new_size)
