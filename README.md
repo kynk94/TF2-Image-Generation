@@ -41,7 +41,7 @@ Tensorflow 2 reimplementation of image generation model.
 ## DCGAN - LSUN
 
 <p align="center">
-    <img alt="DCGAN LSUN" src="assets/images/DCGAN_LSUN_480.gif">
+    <img alt="DCGAN LSUN" src="https://drive.google.com/uc?id=1fvrT0vAtLunWvm-2pe2lcO6cUbiZpuh0">
     <img alt="DCGAN LSUN graph" src="https://user-images.githubusercontent.com/41245985/99030396-3f3b6780-25b8-11eb-8371-7feecb13cfe0.png">
 </p>
 
