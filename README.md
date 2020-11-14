@@ -10,7 +10,7 @@ Tensorflow 2 reimplementation of image generation model.
 
 <p align="center">
     <img alt="GAN mnist" src="https://user-images.githubusercontent.com/41245985/97887687-95fda180-1d6d-11eb-8049-ee4030e915f1.gif">
-    <img alt="GAN mnist graph" src="https://user-images.githubusercontent.com/41245985/97887725-a31a9080-1d6d-11eb-95bc-1cdea6933492.png">
+    <img alt="GAN mnist plot" src="https://user-images.githubusercontent.com/41245985/97887725-a31a9080-1d6d-11eb-95bc-1cdea6933492.png">
 </p>
 
 ---
@@ -33,7 +33,7 @@ Tensorflow 2 reimplementation of image generation model.
 </table>
 
 <p align="center">
-    <img alt="CGAN mnist graph" src="https://user-images.githubusercontent.com/41245985/97887981-f12f9400-1d6d-11eb-86e1-e4179ba63e39.png">
+    <img alt="CGAN mnist plot" src="https://user-images.githubusercontent.com/41245985/97887981-f12f9400-1d6d-11eb-86e1-e4179ba63e39.png">
 </p>
 
 ---
@@ -42,7 +42,7 @@ Tensorflow 2 reimplementation of image generation model.
 
 <p align="center">
     <img alt="DCGAN LSUN" src="https://drive.google.com/uc?id=1fvrT0vAtLunWvm-2pe2lcO6cUbiZpuh0">
-    <img alt="DCGAN LSUN graph" src="https://user-images.githubusercontent.com/41245985/99030396-3f3b6780-25b8-11eb-8371-7feecb13cfe0.png">
+    <img alt="DCGAN LSUN plot" src="https://user-images.githubusercontent.com/41245985/99030396-3f3b6780-25b8-11eb-8371-7feecb13cfe0.png">
 </p>
 
 ---
@@ -52,7 +52,7 @@ Tensorflow 2 reimplementation of image generation model.
 <details>
     <p align="center">
         <img alt="DCGAN CIFAR-10" src="https://user-images.githubusercontent.com/41245985/99030266-f4215480-25b7-11eb-9e25-a58750b18d3b.gif">
-        <img alt="DCGAN CIFAR-10 graph" src="https://user-images.githubusercontent.com/41245985/99030160-b4f30380-25b7-11eb-93cd-a97f6b9c07cc.png">
+        <img alt="DCGAN CIFAR-10 plot" src="https://user-images.githubusercontent.com/41245985/99030160-b4f30380-25b7-11eb-93cd-a97f6b9c07cc.png">
     </p>
 </details>
 
@@ -63,7 +63,7 @@ Tensorflow 2 reimplementation of image generation model.
 <details>
     <p align="center">
         <img alt="DCGAN mnist" src="https://user-images.githubusercontent.com/41245985/97887768-b0377f80-1d6d-11eb-9787-03cf3c511ad9.gif">
-        <img alt="DCGAN mnist graph" src="https://user-images.githubusercontent.com/41245985/97887800-bc234180-1d6d-11eb-9288-710fe8e31d3c.png">
+        <img alt="DCGAN mnist plot" src="https://user-images.githubusercontent.com/41245985/97887800-bc234180-1d6d-11eb-9288-710fe8e31d3c.png">
     </p>
 </details>
 
@@ -73,7 +73,7 @@ Tensorflow 2 reimplementation of image generation model.
 
 <p align="center">
     <img alt="LSGAN CIFAR-10" src="https://user-images.githubusercontent.com/41245985/99070360-67948780-25f3-11eb-9132-85008c8e8d7f.gif">
-    <img alt="LSGAN CIFAR-10 graph" src="https://user-images.githubusercontent.com/41245985/98462104-ddb07d00-21f4-11eb-868f-4f8b0824bdbb.png">
+    <img alt="LSGAN CIFAR-10 plot" src="https://user-images.githubusercontent.com/41245985/98462104-ddb07d00-21f4-11eb-868f-4f8b0824bdbb.png">
 </p>
 
 ---
@@ -83,33 +83,37 @@ Tensorflow 2 reimplementation of image generation model.
 <table align="center">
     <thead>
         <tr>
-            <th align="center">5000 Step</th>
-            <th align="center"><img alt="Neural Style Transfer content - 구르미 그린 달빛" src="https://user-images.githubusercontent.com/41245985/99071163-f1912000-25f4-11eb-895a-0284b529a3b9.jpg" height="250"></th>
+            <th align="center">5000 Step From Content</th>
+            <th align="center"><img alt="Neural Style Transfer content - 구르미 그린 달빛" src="https://user-images.githubusercontent.com/41245985/99071163-f1912000-25f4-11eb-895a-0284b529a3b9.jpg"></th>
         </tr>
     </thead>
     <tbody>
         <tr>
-            <td align="center"><img alt="Neural Style Transfer style - Voronoi diagram" src="https://user-images.githubusercontent.com/41245985/99071141-e807b800-25f4-11eb-80b0-5a92ef583023.png" height="250"></td>
-            <td align="center"><img alt="Neural Style Transfer result - Voronoi diagram" src="https://user-images.githubusercontent.com/41245985/99071181-fa81f180-25f4-11eb-8f56-01e2d9058ecc.png" height="250"></td>
+            <td align="center"><img alt="Neural Style Transfer style - Voronoi diagram" src="https://user-images.githubusercontent.com/41245985/99144145-b2bba280-26a6-11eb-8864-a9f51b71899a.png"></td>
+            <td align="center"><img alt="Neural Style Transfer result - Voronoi diagram" src="https://user-images.githubusercontent.com/41245985/99071181-fa81f180-25f4-11eb-8f56-01e2d9058ecc.png"></td>
         </tr>
         <tr>
-            <td align="center"><img alt="Neural Style Transfer style - Vassily Kandinsky Composition 7" src="https://user-images.githubusercontent.com/41245985/99071239-108fb200-25f5-11eb-9366-2c907b4fb56b.jpg" height="250"></td>
-            <td align="center"><img alt="Neural Style Transfer result - Vassily Kandinsky Composition 7" src="https://user-images.githubusercontent.com/41245985/99071287-29986300-25f5-11eb-8a79-1465274cd3f3.png" height="250"></td>
+            <td align="center"><img alt="Neural Style Transfer style - Vassily Kandinsky Composition 7" src="https://user-images.githubusercontent.com/41245985/99144144-b0f1df00-26a6-11eb-95aa-8a99ea53b165.jpg"></td>
+            <td align="center"><img alt="Neural Style Transfer result - Vassily Kandinsky Composition 7" src="https://user-images.githubusercontent.com/41245985/99071287-29986300-25f5-11eb-8a79-1465274cd3f3.png"></td>
         </tr>
         <tr>
-            <td align="center"><img alt="Neural Style Transfer style - 게르니카" src="https://user-images.githubusercontent.com/41245985/99071319-40d75080-25f5-11eb-8b3f-c91c0a5e99c2.jpg" width="400"></td>
-            <td align="center"><img alt="Neural Style Transfer result - 게르니카" src="https://user-images.githubusercontent.com/41245985/99071341-4e8cd600-25f5-11eb-80b1-552984358893.png" height="250"></td>
+            <td align="center"><img alt="Neural Style Transfer style - 게르니카" src="https://user-images.githubusercontent.com/41245985/99144146-b3eccf80-26a6-11eb-8a17-3c961468d574.jpg"></td>
+            <td align="center"><img alt="Neural Style Transfer result - 게르니카" src="https://user-images.githubusercontent.com/41245985/99071341-4e8cd600-25f5-11eb-80b1-552984358893.png"></td>
         </tr>
         <tr>
-            <td align="center"><img alt="Neural Style Transfer style - 론강의 별이 빛나는 밤" src="https://user-images.githubusercontent.com/41245985/99071380-5d738880-25f5-11eb-947d-92872a9b4e89.jpg" height="250"></td>
-            <td align="center"><img alt="Neural Style Transfer result - 론강의 별이 빛나는 밤" src="https://user-images.githubusercontent.com/41245985/99071414-6cf2d180-25f5-11eb-85d1-7ed301238280.png" height="250"></td>
+            <td align="center"><img alt="Neural Style Transfer style - 론강의 별이 빛나는 밤" src="https://user-images.githubusercontent.com/41245985/99144147-b51dfc80-26a6-11eb-841d-f771ff5cc976.jpg"></td>
+            <td align="center"><img alt="Neural Style Transfer result - 론강의 별이 빛나는 밤" src="https://user-images.githubusercontent.com/41245985/99071414-6cf2d180-25f5-11eb-85d1-7ed301238280.png"></td>
         </tr>
         <tr>
-            <td align="center"><img alt="Neural Style Transfer style - La Promenade" src="https://user-images.githubusercontent.com/41245985/99071443-7aa85700-25f5-11eb-821a-52f9d371799f.jpg" height="250"></td>
-            <td align="center"><img alt="Neural Style Transfer result - La Promenade" src="https://user-images.githubusercontent.com/41245985/99071463-85fb8280-25f5-11eb-99d6-7d5fd089d9c7.png" height="250"></td>
+            <td align="center"><img alt="Neural Style Transfer style - La Promenade" src="https://user-images.githubusercontent.com/41245985/99144150-b64f2980-26a6-11eb-90bf-6d65c52c8bbb.jpg"></td>
+            <td align="center"><img alt="Neural Style Transfer result - La Promenade" src="https://user-images.githubusercontent.com/41245985/99071463-85fb8280-25f5-11eb-99d6-7d5fd089d9c7.png"></td>
         </tr>
     </tbody>
 </table>
+
+<p align="center">
+    <img alt="Neural Style Transfer plot" src="https://user-images.githubusercontent.com/41245985/99142043-9a428c80-2694-11eb-8c7b-b510a2fb16d1.png">
+</p>
 
 ---
 
