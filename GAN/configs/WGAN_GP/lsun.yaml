@@ -1,0 +1,36 @@
+# config for LSUN
+input_size: 128
+channel: 3
+
+# train
+random_seed: 0
+epochs: 0
+steps: 1000000
+save_step: 100000
+batch_size: 64
+latent_dim: 128
+learning_rate: 0.0001
+beta_1: 0.5
+penalty_lambda: 10
+n_critic: 5
+gen:
+  n_layer: 3
+  n_filter: 512
+dis:
+  n_layer: 3
+  n_filter: 64
+
+# test
+test_step: 100
+test_batch_size: 64
+
+# directory
+checkpoint_dir: ./checkpoints
+
+# data
+dataset:
+  data_dir: ../dataset/cifar10
+  train_data_txt:
+  train_test_split: true
+  labeled_dir: true
+  cache: true

@@ -126,7 +126,7 @@ Tensorflow 2 reimplementation of image generation model.
 - [x] DCGAN: [Paper](https://arxiv.org/abs/1511.06434)
 - [x] LSGAN: [Paper](https://arxiv.org/abs/1611.04076)
 - [x] WGAN: [Paper](https://arxiv.org/abs/1701.07875)
-- [ ] WGAN-GP: [Paper](https://arxiv.org/abs/1704.00028)
+- [x] WGAN-GP: [Paper](https://arxiv.org/abs/1704.00028)
 
 ## Style Transfer & Image to Image Translation
 

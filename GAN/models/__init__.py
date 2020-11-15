@@ -4,6 +4,7 @@ from .CGAN import CGAN
 from .DCGAN import DCGAN
 from .LSGAN import LSGAN
 from .WGAN import WGAN
+from .WGAN_GP import WGAN_GP
 
 __all__ = [
     'BaseModel',
@@ -11,5 +12,6 @@ __all__ = [
     'CGAN',
     'DCGAN',
     'LSGAN',
-    'WGAN'
+    'WGAN',
+    'WGAN_GP'
 ]
