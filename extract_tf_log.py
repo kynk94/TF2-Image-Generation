@@ -17,8 +17,8 @@ def main():
                            'Select exact log in runtime ' +
                            '(default=./**/checkpoints)')
     arg_parse.add_argument('-o', '--output', type=str,
-                           default='./log_output',
-                           help='Output directory (default=./log_output)')
+                           default='./output/logs',
+                           help='Output directory (default=./output/logs)')
     arg_parse.add_argument('-ei', '--extract_image', type=str_to_bool,
                            default=True,
                            help='Extract Image Flag (default=True)')

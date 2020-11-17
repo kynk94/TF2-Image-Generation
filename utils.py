@@ -72,6 +72,11 @@ class NumericStringSort(DigitFirstSort):
         return output
 
 
+def extension_pattern(extension):
+    pattern = ''.join(f'[{e.lower()}{e.upper()}]' for e in extension)
+    return f'**/*.{pattern}'
+
+
 def str_to_bool(value):
     if isinstance(value, bool):
         return value

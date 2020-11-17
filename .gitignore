@@ -3,7 +3,7 @@
 __pycache__
 checkpoints
 
-log_output
+output/*
 dataset/*
 !dataset/*.py
 *.ipynb
