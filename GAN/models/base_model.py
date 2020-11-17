@@ -37,6 +37,7 @@ class BaseModel(ABC):
             self.ckpt.restore(self.ckpt_file)
 
     def image_write(self, filename, data, denorm=True):
+        data = tf.clip_by_value(data, -1, 1)
         if denorm:
             data = data * 127.5 + 127.5
         os.makedirs(self._output_dir, exist_ok=True)
@@ -75,6 +76,7 @@ class BaseModel(ABC):
                 tf.summary.scalar(name=name, data=data, step=step)
 
     def write_image_log(self, step, data, name='output', denorm=True):
+        data = tf.clip_by_value(data, -1, 1)
         if len(data.shape) == 3:
             data = tf.expand_dims(data, axis=0)
         if denorm:

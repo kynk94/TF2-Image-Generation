@@ -67,7 +67,7 @@ def make_grid(image_grid=None, nrow=None, ncol=None):
         print(image_grid, end='\n\n')
         coordinate = input(input_string).lower()
         if coordinate in {'length', 'len', 'l'}:
-            print(f'Current Selected: {np.sum(image_grid)}\n')
+            print(f'Current Selected: {np.sum(image_grid)}')
             continue
         if coordinate in {'mode', 'make'}:
             return coordinate, image_grid
@@ -175,7 +175,7 @@ def main():
     selected = np.array(grids[grid_index])
 
     results = []
-    for i in range(out_nrow):
+    for i in tqdm.trange(out_nrow, desc='Make Output'):
         result = np.concatenate([*selected[out_ncol*i:out_ncol*(i+1)]], axis=1)
         results.append(result)
     results = np.transpose(np.concatenate(results, axis=0), (3, 0, 1, 2))
