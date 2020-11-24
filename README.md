@@ -41,7 +41,7 @@ Tensorflow 2 reimplementation of image generation model.
 ## DCGAN - LSUN
 
 <p align="center">
-    <img alt="DCGAN LSUN" src="https://drive.google.com/uc?id=1fvrT0vAtLunWvm-2pe2lcO6cUbiZpuh0">
+    <img alt="DCGAN LSUN" src="https://user-images.githubusercontent.com/41245985/100130152-b67ccf80-2ec5-11eb-9692-869aa8315483.gif">
     <img alt="DCGAN LSUN plot" src="https://user-images.githubusercontent.com/41245985/99030396-3f3b6780-25b8-11eb-8371-7feecb13cfe0.png">
 </p>
 
@@ -51,7 +51,7 @@ Tensorflow 2 reimplementation of image generation model.
 
 <details>
     <p align="center">
-        <img alt="DCGAN CIFAR-10" src="https://user-images.githubusercontent.com/41245985/99030266-f4215480-25b7-11eb-9e25-a58750b18d3b.gif">
+        <img alt="DCGAN CIFAR-10" src="https://user-images.githubusercontent.com/41245985/100130071-a06f0f00-2ec5-11eb-90db-bc57dd6ba347.gif">
         <img alt="DCGAN CIFAR-10 plot" src="https://user-images.githubusercontent.com/41245985/99030160-b4f30380-25b7-11eb-93cd-a97f6b9c07cc.png">
     </p>
 </details>
@@ -127,6 +127,10 @@ Tensorflow 2 reimplementation of image generation model.
 - [x] LSGAN: [Paper](https://arxiv.org/abs/1611.04076)
 - [x] WGAN: [Paper](https://arxiv.org/abs/1701.07875)
 - [x] WGAN-GP: [Paper](https://arxiv.org/abs/1704.00028)
+- [] SAGAN
+- [] ProGAN(PGGAN)
+- [] BigGAN
+- [] StyleGAN
 
 ## Style Transfer & Image to Image Translation
 
@@ -146,7 +150,7 @@ Tensorflow 2 reimplementation of image generation model.
 - [ ] CelebA: [HomePage](http://mmlab.ie.cuhk.edu.hk/projects/CelebA.html)
 - LSUN: [HomePage](https://github.com/fyu/lsun)
 
-## GIF maker
+## GIF Maker
 
 Make gif file from image files.
 
@@ -179,6 +183,28 @@ If you run it for the first time, you need to run `imageio.plugins.freeimage.dow
 - plugin: FreeImage
 - format: GIF-FI
 - quantizer: nq (neuqant) - Dekker A. H., Kohonen neural networks for optimal color quantization
+
+## Patch Selector
+
+Interactive patch selector.  
+Select exact patches with numpy indexing from images separated by (ROW x COL) sections.
+
+```
+usage: select_patch.py [-h] -i INPUT -r ROW -c COL [-o OUTPUT] [-n N_TARGET] [-as AUTO_SQUARE]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -i INPUT, --input INPUT
+                        Input images directory
+  -r ROW, --row ROW     Number of rows in input images
+  -c COL, --col COL     Number of columns in input images
+  -o OUTPUT, --output OUTPUT
+                        Output directory name (default=./output/patches)
+  -n N_TARGET, --n_target N_TARGET
+                        Target number of patches in output
+  -as AUTO_SQUARE, --auto_square AUTO_SQUARE
+                        Flag. Make Selected Patches to almost square
+```
 
 ## Tensorflow Log Extractor
 

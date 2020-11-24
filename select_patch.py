@@ -151,16 +151,16 @@ def main():
     arg_parse = argparse.ArgumentParser()
     arg_parse.add_argument('-i', '--input', type=str, required=True,
                            help='Input images directory')
-    arg_parse.add_argument('-o', '--output', type=str,
-                           default='./output/grids',
-                           help='Output directory name (default=./output/grids')
-    arg_parse.add_argument('-n', '--n_target', type=int,
-                           default=None,
-                           help='Target number of patches in output')
     arg_parse.add_argument('-r', '--row', type=int, required=True,
                            help='Number of rows in input images')
     arg_parse.add_argument('-c', '--col', type=int, required=True,
                            help='Number of columns in input images')
+    arg_parse.add_argument('-o', '--output', type=str,
+                           default='./output/patches',
+                           help='Output directory name (default=./output/patches)')
+    arg_parse.add_argument('-n', '--n_target', type=int,
+                           default=None,
+                           help='Target number of patches in output')
     arg_parse.add_argument('-as', '--auto_square', type=str_to_bool,
                            default=True,
                            help='Flag. Make Selected Patches to almost square')

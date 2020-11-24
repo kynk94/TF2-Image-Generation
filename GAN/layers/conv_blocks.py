@@ -19,6 +19,7 @@ class ConvBlock(tf.keras.Model):
                  padding=0,
                  pad_type='constant',
                  pad_constant_values=0,
+                 conv_padding='valid',
                  output_padding=None,
                  data_format=None,
                  dilation_rate=1,
@@ -52,7 +53,7 @@ class ConvBlock(tf.keras.Model):
         self.activation_first = activation_first
 
         # padding layer
-        self.padding, conv_padding = self._check_padding(padding)
+        self.padding = self._check_padding(padding)
         if self.padding == 0:
             self.pad = None
         else:
@@ -189,10 +190,7 @@ class ConvBlock(tf.keras.Model):
             raise ValueError(f'Unsupported `activation`: {activation}')
 
     def _check_padding(self, padding):
-        if isinstance(padding, str):
-            if padding.lower() in {'valid', 'same'}:
-                return 0, padding
-        elif hasattr(padding, '__len__'):
+        if hasattr(padding, '__len__'):
             def check_all_zero(value):
                 if hasattr(value, '__len__'):
                     if len(value) == 0:
@@ -200,10 +198,10 @@ class ConvBlock(tf.keras.Model):
                     return all(check_all_zero(v) for v in value)
                 return value == 0
             if check_all_zero(padding):
-                return 0, 'valid'
-            return padding, 'valid'
+                return 0
+            return padding
         elif padding >= 0:
-            return padding, 'valid'
+            return padding
         raise ValueError(f'Unsupported `padding`: {padding}')
 
     def call(self, inputs):
@@ -253,6 +251,7 @@ class Conv1DBlock(ConvBlock):
                  padding=0,
                  pad_type='constant',
                  pad_constant_values=0,
+                 conv_padding='valid',
                  output_padding=None,
                  data_format=None,
                  dilation_rate=1,
@@ -287,6 +286,7 @@ class Conv1DBlock(ConvBlock):
             padding=padding,
             pad_type=pad_type,
             pad_constant_values=pad_constant_values,
+            conv_padding=conv_padding,
             output_padding=output_padding,
             data_format=data_format,
             dilation_rate=dilation_rate,
@@ -323,6 +323,7 @@ class Conv2DBlock(ConvBlock):
                  padding=0,
                  pad_type='constant',
                  pad_constant_values=0,
+                 conv_padding='valid',
                  output_padding=None,
                  data_format=None,
                  dilation_rate=1,
@@ -357,6 +358,7 @@ class Conv2DBlock(ConvBlock):
             padding=padding,
             pad_type=pad_type,
             pad_constant_values=pad_constant_values,
+            conv_padding=conv_padding,
             output_padding=output_padding,
             data_format=data_format,
             dilation_rate=dilation_rate,
@@ -393,6 +395,7 @@ class Conv3DBlock(ConvBlock):
                  padding=0,
                  pad_type='constant',
                  pad_constant_values=0,
+                 conv_padding='valid',
                  output_padding=None,
                  data_format=None,
                  dilation_rate=1,
@@ -427,6 +430,7 @@ class Conv3DBlock(ConvBlock):
             padding=padding,
             pad_type=pad_type,
             pad_constant_values=pad_constant_values,
+            conv_padding=conv_padding,
             output_padding=output_padding,
             data_format=data_format,
             dilation_rate=dilation_rate,
