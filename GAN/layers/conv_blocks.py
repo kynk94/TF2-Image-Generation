@@ -7,6 +7,7 @@ from tensorflow_addons.layers import GroupNormalization, InstanceNormalization, 
 from tensorflow_addons.layers import SpectralNormalization
 from .conv import Conv, Conv1DTranspose, Conv2DTranspose, Conv3DTranspose
 from .padding import Padding
+from .utils import get_layer_config
 
 
 class ConvBlock(tf.keras.Model):
@@ -64,6 +65,7 @@ class ConvBlock(tf.keras.Model):
 
         # convolution layer
         if mode.lower() in {'downsample', 'down'}:
+            self.mode = 'downsample'
             self.conv = Conv(
                 rank=rank,
                 filters=filters,
@@ -88,6 +90,7 @@ class ConvBlock(tf.keras.Model):
                 trainable=trainable,
                 name=f'Conv{rank}D')
         elif mode.lower() in {'upsample', 'up'}:
+            self.mode = 'upsample'
             if rank == 1:
                 conv_transpose = Conv1DTranspose
             elif rank == 2:
@@ -123,7 +126,8 @@ class ConvBlock(tf.keras.Model):
         # spectral normalization
         if use_spectral_norm:
             self.conv = SpectralNormalization(self.conv,
-                                              power_iterations=spectral_iteration)
+                                              power_iterations=spectral_iteration,
+                                              name='spectral_normalization')
 
         # normalization layer
         if normalization is None:
@@ -138,20 +142,24 @@ class ConvBlock(tf.keras.Model):
             normalization = normalization.lower()
             if normalization in {'batch_normalization',
                                  'batch_norm', 'bn'}:
-                self.normalization = BatchNormalization()
+                self.normalization = BatchNormalization(
+                    name='batch_normalization')
             elif normalization in {'layer_normalization',
                                    'layer_norm', 'ln'}:
                 self.normalization = LayerNormalization(
-                    axis=self.channel_axis)
+                    axis=self.channel_axis,
+                    name='layer_normalization')
             elif normalization in {'instance_normalization',
                                    'instance_norm', 'in'}:
                 self.normalization = InstanceNormalization(
-                    axis=self.channel_axis)
+                    axis=self.channel_axis,
+                    name='instance_normalization')
             elif normalization in {'group_normalization',
                                    'group_norm', 'gn'}:
                 self.normalization = GroupNormalization(
                     groups=norm_group,
-                    axis=self.channel_axis)
+                    axis=self.channel_axis,
+                    name='group_normalization')
             else:
                 raise ValueError(
                     f'Unsupported `normalization`: {normalization}')
@@ -166,13 +174,19 @@ class ConvBlock(tf.keras.Model):
         elif isinstance(activation, str):
             activation = activation.lower()
             if activation == 'relu':
-                self.activation = tf.keras.layers.ReLU()
+                self.activation = tf.keras.layers.ReLU(name='relu')
             elif activation in {'leaky_relu', 'lrelu'}:
                 self.activation = tf.keras.layers.LeakyReLU(
-                    alpha=activation_alpha)
+                    alpha=activation_alpha,
+                    name='leaky_relu')
             elif activation in {'exp_lu', 'elu'}:
                 self.activation = tf.keras.layers.ELU(
-                    alpha=activation_alpha)
+                    alpha=activation_alpha,
+                    name='elu')
+            else:
+                raise ValueError(f'Unsupported `activation`: {activation}')
+        else:
+            raise ValueError(f'Unsupported `activation`: {activation}')
 
     def _check_padding(self, padding):
         if isinstance(padding, str):
@@ -217,6 +231,18 @@ class ConvBlock(tf.keras.Model):
         if self.data_format == 'channels_first':
             return -1 - self.rank
         return -1
+
+    def get_config(self):
+        config = {
+            'name': self.name,
+            'mode': self.mode,
+            'activation_first': self.activation_first,
+            'activation': get_layer_config(self.activation),
+            'convolution': get_layer_config(self.conv),
+            'normalization': get_layer_config(self.normalization),
+            'pad': get_layer_config(self.pad),
+        }
+        return config
 
 
 class Conv1DBlock(ConvBlock):
