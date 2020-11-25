@@ -127,10 +127,10 @@ Tensorflow 2 reimplementation of image generation model.
 - [x] LSGAN: [Paper](https://arxiv.org/abs/1611.04076)
 - [x] WGAN: [Paper](https://arxiv.org/abs/1701.07875)
 - [x] WGAN-GP: [Paper](https://arxiv.org/abs/1704.00028)
-- [] SAGAN
-- [] ProGAN(PGGAN)
-- [] BigGAN
-- [] StyleGAN
+- [ ] SAGAN
+- [ ] ProGAN(PGGAN)
+- [ ] BigGAN
+- [ ] StyleGAN
 
 ## Style Transfer & Image to Image Translation
 

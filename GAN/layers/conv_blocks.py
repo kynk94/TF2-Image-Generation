@@ -3,9 +3,10 @@ import tensorflow as tf
 import tensorflow_addons as tfa
 from tensorflow.keras.layers import BatchNormalization, LayerNormalization
 from tensorflow.python.keras.utils.conv_utils import normalize_data_format
-from tensorflow_addons.layers import GroupNormalization, InstanceNormalization, FilterResponseNormalization
+from tensorflow_addons.layers import GroupNormalization, InstanceNormalization
 from tensorflow_addons.layers import SpectralNormalization
 from .conv import Conv, Conv1DTranspose, Conv2DTranspose, Conv3DTranspose
+from .normalizations import FilterResponseNormalization
 from .padding import Padding
 from .utils import get_layer_config
 
@@ -25,7 +26,7 @@ class ConvBlock(tf.keras.Model):
                  dilation_rate=1,
                  groups=1,
                  normalization=None,
-                 norm_group=5,
+                 norm_group=32,
                  activation=None,
                  activation_alpha=0.3,
                  activation_first=False,
@@ -160,10 +161,10 @@ class ConvBlock(tf.keras.Model):
                     name='group_normalization')
             elif normalization in {'filter_response_normalization',
                                    'filter_response_norm', 'frn'}:
-                axis = list(range(1, self.rank))
-                del axis[self.channel_axis]
+                # FilterResponseNormalization is not official implementation.
+                # Official need to input axis as spatial, not channel.
                 self.normalization = FilterResponseNormalization(
-                    axis=axis,
+                    axis=self.channel_axis,
                     name='filter_response_normalization')
             else:
                 raise ValueError(
@@ -188,6 +189,8 @@ class ConvBlock(tf.keras.Model):
                 self.activation = tf.keras.layers.ELU(
                     alpha=activation_alpha,
                     name='elu')
+            elif activation in {'trelu', 'tlu'}:
+                self.activation = tfa.layers.TLU()
             else:
                 raise ValueError(f'Unsupported `activation`: {activation}')
         else:
@@ -195,12 +198,14 @@ class ConvBlock(tf.keras.Model):
 
     def _check_padding(self, padding):
         if hasattr(padding, '__len__'):
+
             def check_all_zero(value):
                 if hasattr(value, '__len__'):
                     if len(value) == 0:
                         return False
                     return all(check_all_zero(v) for v in value)
                 return value == 0
+
             if check_all_zero(padding):
                 return 0
             return padding
@@ -261,7 +266,7 @@ class Conv1DBlock(ConvBlock):
                  dilation_rate=1,
                  groups=1,
                  normalization=None,
-                 norm_group=5,
+                 norm_group=32,
                  activation=None,
                  activation_alpha=0.3,
                  activation_first=False,
@@ -333,7 +338,7 @@ class Conv2DBlock(ConvBlock):
                  dilation_rate=1,
                  groups=1,
                  normalization=None,
-                 norm_group=5,
+                 norm_group=32,
                  activation=None,
                  activation_alpha=0.3,
                  activation_first=False,
@@ -405,7 +410,7 @@ class Conv3DBlock(ConvBlock):
                  dilation_rate=1,
                  groups=1,
                  normalization=None,
-                 norm_group=5,
+                 norm_group=32,
                  activation=None,
                  activation_alpha=0.3,
                  activation_first=False,
