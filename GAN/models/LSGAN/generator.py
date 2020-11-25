@@ -17,22 +17,22 @@ class Generator(tf.keras.Model):
         size //= 2**(n_layer - 3)
         model = [layers.Dense(n_filter*size*size, input_dim=input_dim),
                  layers.Reshape((n_filter, size, size)),
-                 layers.BatchNormalization(),
+                 layers.BatchNormalization(axis=1),
                  layers.LeakyReLU()]
         for _ in range(2):
             model.extend([layers.Conv2DTranspose(n_filter, (3, 3), strides=(2, 2),
                                                  padding='same'),
-                          layers.BatchNormalization(),
+                          layers.BatchNormalization(axis=1),
                           layers.LeakyReLU(),
                           layers.Conv2DTranspose(n_filter, (3, 3), strides=(1, 1),
                                                  padding='same'),
-                          layers.BatchNormalization(),
+                          layers.BatchNormalization(axis=1),
                           layers.LeakyReLU()])
         for _ in range(n_layer - 5):
             n_filter //= 2
             model.extend([layers.Conv2DTranspose(n_filter, (3, 3), strides=(2, 2),
                                                  padding='same'),
-                          layers.BatchNormalization(),
+                          layers.BatchNormalization(axis=1),
                           layers.LeakyReLU()])
         model.append(layers.Conv2DTranspose(channel, (3, 3), strides=(1, 1),
                                             padding='same', activation=tf.nn.tanh))

@@ -17,13 +17,13 @@ class Generator(tf.keras.Model):
         size //= 2**n_layer
         model = [layers.Dense(n_filter*size*size, input_dim=input_dim),
                  layers.Reshape((n_filter, size, size)),
-                 layers.BatchNormalization(),
+                 layers.BatchNormalization(axis=1),
                  layers.ReLU()]
         for _ in range(n_layer-1):
             n_filter //= 2
             model.extend([layers.Conv2DTranspose(n_filter, (5, 5), strides=(2, 2),
                                                  padding='same'),
-                          layers.BatchNormalization(),
+                          layers.BatchNormalization(axis=1),
                           layers.ReLU()])
         model.append(layers.Conv2DTranspose(channel, (5, 5), strides=(2, 2),
                                             padding='same', activation=tf.nn.tanh))

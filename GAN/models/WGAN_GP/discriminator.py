@@ -21,7 +21,7 @@ class Discriminator(tf.keras.Model):
             n_filter *= 2
             model.extend([layers.Conv2D(n_filter, (5, 5), strides=(2, 2),
                                         padding='same'),
-                          layers.BatchNormalization(),
+                          layers.BatchNormalization(axis=1),
                           layers.LeakyReLU()])
         model.extend([layers.Flatten(),
                       layers.Dense(1)])
