@@ -62,7 +62,7 @@ class ConvBlock(tf.keras.Model):
                                pad_type=pad_type,
                                constant_values=pad_constant_values,
                                data_format=self.data_format,
-                               name=f'Padding{rank}D')
+                               name=f'padding{rank}d')
 
         # convolution layer
         if mode.lower() in {'downsample', 'down'}:
@@ -89,7 +89,7 @@ class ConvBlock(tf.keras.Model):
                 kernel_constraint=kernel_constraint,
                 bias_constraint=bias_constraint,
                 trainable=trainable,
-                name=f'Conv{rank}D')
+                name=f'conv{rank}d')
         elif mode.lower() in {'upsample', 'up'}:
             self.mode = 'upsample'
             if rank == 1:
@@ -120,7 +120,7 @@ class ConvBlock(tf.keras.Model):
                 kernel_constraint=kernel_constraint,
                 bias_constraint=bias_constraint,
                 trainable=trainable,
-                name=f'Conv{rank}DTranspose')
+                name=f'conv{rank}d_transpose')
         else:
             raise ValueError(f'Unsupported `mode`: {mode}')
 
@@ -133,17 +133,14 @@ class ConvBlock(tf.keras.Model):
         # normalization layer
         if normalization is None:
             self.normalization = None
-        elif isinstance(normalization, (BatchNormalization,
-                                        LayerNormalization,
-                                        GroupNormalization,
-                                        InstanceNormalization,
-                                        FilterResponseNormalization)):
+        elif hasattr(normalization, '__call__'):
             self.normalization = normalization
         elif isinstance(normalization, str):
             normalization = normalization.lower()
             if normalization in {'batch_normalization',
                                  'batch_norm', 'bn'}:
                 self.normalization = BatchNormalization(
+                    axis=self.channel_axis,
                     name='batch_normalization')
             elif normalization in {'layer_normalization',
                                    'layer_norm', 'ln'}:
@@ -161,6 +158,13 @@ class ConvBlock(tf.keras.Model):
                     groups=norm_group,
                     axis=self.channel_axis,
                     name='group_normalization')
+            elif normalization in {'filter_response_normalization',
+                                   'filter_response_norm', 'frn'}:
+                axis = list(range(1, self.rank))
+                del axis[self.channel_axis]
+                self.normalization = FilterResponseNormalization(
+                    axis=axis,
+                    name='filter_response_normalization')
             else:
                 raise ValueError(
                     f'Unsupported `normalization`: {normalization}')
@@ -227,8 +231,8 @@ class ConvBlock(tf.keras.Model):
 
     def _get_channel_axis(self):
         if self.data_format == 'channels_first':
-            return -1 - self.rank
-        return -1
+            return 1
+        return self.rank + 1
 
     def get_config(self):
         config = {

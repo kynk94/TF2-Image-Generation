@@ -6,11 +6,10 @@ from tensorflow.python.keras import constraints
 from tensorflow.python.keras import initializers
 from tensorflow.python.keras import regularizers
 from tensorflow.python.keras.layers import convolutional
-from tensorflow.python.ops import nn, nn_ops, array_ops
 
 
 class ConvBase:
-    def get_initializer(self, use_weight_scaling, gain, lr_multiplier):
+    def _get_initializer(self, use_weight_scaling, gain, lr_multiplier):
         self.use_weight_scaling = use_weight_scaling
         self.gain = gain
         self.lr_multiplier = lr_multiplier
@@ -29,8 +28,8 @@ class ConvBase:
 
     def _get_channel_axis(self):
         if self.data_format == 'channels_first':
-            return -1 - self.rank
-        return -1
+            return 1
+        return self.rank + 1
 
     def _get_input_channel(self, input_shape):
         channel_axis = self._get_channel_axis()
@@ -50,7 +49,7 @@ class ConvBase:
         })
 
 
-class Conv(convolutional.Conv, ConvBase):
+class Conv(ConvBase, convolutional.Conv):
     def __init__(self,
                  use_weight_scaling=False,
                  gain=np.sqrt(2),
@@ -58,7 +57,7 @@ class Conv(convolutional.Conv, ConvBase):
                  kernel_initializer='he_normal',
                  **kwargs):
         super().__init__(
-            kernel_initializer=self.get_initializer(
+            kernel_initializer=self._get_initializer(
                 use_weight_scaling,
                 gain,
                 lr_multiplier) or kernel_initializer,
@@ -212,7 +211,7 @@ class Conv3D(Conv):
             **kwargs)
 
 
-class Conv1DTranspose(convolutional.Conv1DTranspose, ConvBase):
+class Conv1DTranspose(ConvBase, convolutional.Conv1DTranspose):
     def __init__(self,
                  use_weight_scaling=False,
                  gain=np.sqrt(2),
@@ -220,7 +219,7 @@ class Conv1DTranspose(convolutional.Conv1DTranspose, ConvBase):
                  kernel_initializer='he_normal',
                  **kwargs):
         super().__init__(
-            kernel_initializer=self.get_initializer(
+            kernel_initializer=self._get_initializer(
                 use_weight_scaling,
                 gain,
                 lr_multiplier) or kernel_initializer,
@@ -236,7 +235,7 @@ class Conv1DTranspose(convolutional.Conv1DTranspose, ConvBase):
         return config
 
 
-class Conv2DTranspose(convolutional.Conv2DTranspose, ConvBase):
+class Conv2DTranspose(ConvBase, convolutional.Conv2DTranspose):
     def __init__(self,
                  use_weight_scaling=False,
                  gain=np.sqrt(2),
@@ -244,7 +243,7 @@ class Conv2DTranspose(convolutional.Conv2DTranspose, ConvBase):
                  kernel_initializer='he_normal',
                  **kwargs):
         super().__init__(
-            kernel_initializer=self.get_initializer(
+            kernel_initializer=self._get_initializer(
                 use_weight_scaling,
                 gain,
                 lr_multiplier) or kernel_initializer,
@@ -260,7 +259,7 @@ class Conv2DTranspose(convolutional.Conv2DTranspose, ConvBase):
         return config
 
 
-class Conv3DTranspose(convolutional.Conv3DTranspose, ConvBase):
+class Conv3DTranspose(ConvBase, convolutional.Conv3DTranspose):
     def __init__(self,
                  use_weight_scaling=False,
                  gain=np.sqrt(2),
@@ -268,7 +267,7 @@ class Conv3DTranspose(convolutional.Conv3DTranspose, ConvBase):
                  kernel_initializer='he_normal',
                  **kwargs):
         super().__init__(
-            kernel_initializer=self.get_initializer(
+            kernel_initializer=self._get_initializer(
                 use_weight_scaling,
                 gain,
                 lr_multiplier) or kernel_initializer,
