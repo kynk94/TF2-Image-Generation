@@ -1,5 +1,5 @@
 import tensorflow as tf
-from tensorflow.keras import layers
+import layers
 
 
 class Generator(tf.keras.Model):
@@ -14,19 +14,21 @@ class Generator(tf.keras.Model):
                          channel=conf['channel'])
 
     def build_model(self, input_dim, n_layer, n_filter, size, channel):
-        size //= 2**n_layer
-        model = [layers.Dense(n_filter*size*size, input_dim=input_dim),
-                 layers.Reshape((n_filter, size, size)),
-                 layers.BatchNormalization(axis=1),
-                 layers.ReLU()]
+        kernel_size = size // 2**n_layer
+        model = [layers.Input(input_dim),
+                 layers.Reshape((input_dim, 1, 1)),
+                 layers.UpConv2DBlock(filters=n_filter, kernel_size=kernel_size,
+                                      strides=1, normalization='bn',
+                                      activation='relu')]
         for _ in range(n_layer-1):
             n_filter //= 2
-            model.extend([layers.Conv2DTranspose(n_filter, (5, 5), strides=(2, 2),
-                                                 padding='same'),
-                          layers.BatchNormalization(axis=1),
-                          layers.ReLU()])
-        model.append(layers.Conv2DTranspose(channel, (5, 5), strides=(2, 2),
-                                            padding='same', activation=tf.nn.tanh))
+            model.append(layers.UpConv2DBlock(filters=n_filter, kernel_size=5,
+                                              strides=2, conv_padding='same',
+                                              normalization='bn',
+                                              activation='relu'))
+        model.append(layers.UpConv2DBlock(filters=channel, kernel_size=5,
+                                          strides=2, conv_padding='same',
+                                          activation='tanh'))
         self.model = tf.keras.Sequential(model, name='generator')
 
     def call(self, x):

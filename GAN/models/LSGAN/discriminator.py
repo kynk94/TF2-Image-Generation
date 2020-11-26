@@ -20,10 +20,10 @@ class Discriminator(tf.keras.Model):
                                     activation='lrelu')]
         for _ in range(n_layer - 1):
             n_filter *= 2
-            model.extend([layers.Conv2DBlock(filters=n_filter, kernel_size=5,
-                                             strides=2, conv_padding='same',
-                                             normalization='bn',
-                                             activation='lrelu')])
+            model.append(layers.Conv2DBlock(filters=n_filter, kernel_size=5,
+                                            strides=2, conv_padding='same',
+                                            normalization='bn',
+                                            activation='lrelu'))
         model.extend([layers.Flatten(),
                       layers.Dense(1)])
         self.model = tf.keras.Sequential(model, name='discriminator')
