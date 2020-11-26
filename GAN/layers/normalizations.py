@@ -1,6 +1,4 @@
-import tensorflow as tf
 import tensorflow_addons as tfa
-from tensorflow.python.keras.utils.conv_utils import normalize_data_format
 
 
 class FilterResponseNormalization(tfa.layers.FilterResponseNormalization):

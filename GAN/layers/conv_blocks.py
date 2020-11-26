@@ -1,3 +1,8 @@
+"""
+Copyright (C) https://github.com/kynk94. All rights reserved.
+Licensed under the CC BY-NC-SA 4.0 license
+(https://creativecommons.org/licenses/by-nc-sa/4.0/).
+"""
 import numpy as np
 import tensorflow as tf
 import tensorflow_addons as tfa
@@ -12,6 +17,12 @@ from .utils import get_layer_config
 
 
 class ConvBlock(tf.keras.Model):
+    """
+    Convolution Block.
+    
+    Block consists of pad, convolution, normalization, and activation layers.
+    """
+
     def __init__(self,
                  rank,
                  filters,
@@ -465,6 +476,7 @@ class Conv3DBlock(ConvBlock):
             trainable=trainable,
             name=name,
             **kwargs)
+
 
 class UpConv1DBlock(ConvBlock):
     def __init__(self,

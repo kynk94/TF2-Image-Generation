@@ -1,3 +1,8 @@
+"""
+Copyright (C) https://github.com/kynk94. All rights reserved.
+Licensed under the CC BY-NC-SA 4.0 license
+(https://creativecommons.org/licenses/by-nc-sa/4.0/).
+"""
 import numpy as np
 import tensorflow as tf
 from tensorflow.python.keras import activations

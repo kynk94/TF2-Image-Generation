@@ -1,3 +1,8 @@
+"""
+Copyright (C) https://github.com/kynk94. All rights reserved.
+Licensed under the CC BY-NC-SA 4.0 license
+(https://creativecommons.org/licenses/by-nc-sa/4.0/).
+"""
 import functools
 import tensorflow as tf
 from tensorflow.python.framework.tensor_shape import TensorShape
@@ -5,6 +10,32 @@ from tensorflow.python.keras.utils.conv_utils import normalize_data_format, norm
 
 
 class Padding(tf.keras.layers.Layer):
+    """
+    Padding layer for N rank input.
+    `rank` equivalent to `len(tensor.shape) - 2`
+
+    Arguments:
+        rank: An integer, the rank of the input `tensor`.
+        padding: Int, or tuple of int (length N).
+            - If int:
+                the same symmetric padding
+                is applied to N spatial dimension.
+            - If tuple of N ints:
+                interpreted as two different symmetric padding
+                values for N spatial dimension.
+            - If tuple of N tuples of 2 ints:
+                interpreted as
+                `((left_dim1_pad, right_dim1_pad),
+                  ...,
+                  (left_dimN_pad, right_dimN_pad))`
+        pad_type: A string,
+            one of {"constant", "zero", "reflect", "symmetric"}.
+        constant_values: In "CONSTANT" mode, the scalar pad value to use.
+            Must be same type as `tensor`.
+        data_format: A string,
+            one of {"channels_last", "channels_first"}.
+    """
+
     def __init__(self,
                  rank,
                  padding=1,
@@ -53,10 +84,10 @@ class Padding(tf.keras.layers.Layer):
         if not isinstance(constant_values, (int, float)):
             raise ValueError(f'`constant_values` should be either int or float.'
                              f'Found: {constant_values}')
-        pad_type = pad_type.upper()
-        if pad_type in {'CONSTANT', 'REFLECT', 'SYMMETRIC'}:
-            return pad_type, constant_values
-        if pad_type == 'ZERO':
+        pad_type_upper = pad_type.upper()
+        if pad_type_upper in {'CONSTANT', 'REFLECT', 'SYMMETRIC'}:
+            return pad_type_upper, constant_values
+        if pad_type_upper == 'ZERO':
             return 'CONSTANT', 0
         raise ValueError(f'Unsupported `pad_type`: {pad_type}')
 
