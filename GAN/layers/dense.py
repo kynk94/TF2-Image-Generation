@@ -111,8 +111,7 @@ class Dense(tf.keras.layers.Dense):
         super().build(input_shape)
         if self.use_weight_scaling:
             input_shape = tf.TensorShape(input_shape)
-            input_channel = self._get_input_channel(input_shape)
-            fan_in = input_channel * np.prod(self.kernel_size)
+            fan_in = np.prod(input_shape[1:])
             self.runtime_coef = self.gain / np.sqrt(fan_in)
             self.runtime_coef *= self.lr_multiplier
             self.kernel = self.kernel * self.runtime_coef

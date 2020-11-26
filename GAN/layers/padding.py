@@ -43,6 +43,12 @@ class Padding(tf.keras.layers.Layer):
                     for i in range(1, rank+1)) + '). '
                 f'Found: {padding}')
 
+        self.padding = ((0, 0),) + self.padding
+        if self.data_format == 'channels_first':
+            self.padding = ((0, 0),) + self.padding
+        else:
+            self.padding += ((0, 0),)
+
     def _check_pad_params(self, pad_type, constant_values):
         if not isinstance(constant_values, (int, float)):
             raise ValueError(f'`constant_values` should be either int or float.'
@@ -59,7 +65,7 @@ class Padding(tf.keras.layers.Layer):
 
         self._pad_op = functools.partial(
             tf.pad,
-            padding=self.padding,
+            paddings=self.padding,
             mode=self.pad_type,
             constant_values=self.constant_values,
             name=tf_op_name)
