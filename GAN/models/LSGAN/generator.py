@@ -1,5 +1,5 @@
 import tensorflow as tf
-from tensorflow.keras import layers
+import layers
 
 
 class Generator(tf.keras.Model):
@@ -14,29 +14,32 @@ class Generator(tf.keras.Model):
                          channel=conf['channel'])
 
     def build_model(self, input_dim, n_layer, n_filter, size, channel):
-        size //= 2**(n_layer - 3)
-        model = [layers.Dense(n_filter*size*size, input_dim=input_dim),
-                 layers.Reshape((n_filter, size, size)),
-                 layers.BatchNormalization(axis=1),
-                 layers.LeakyReLU()]
+        kernel_size = size // 2**(n_layer - 3)
+        model = [layers.Input(input_dim),
+                 layers.Reshape((input_dim, 1, 1)),
+                 layers.UpConv2DBlock(filters=n_filter, kernel_size=kernel_size,
+                                      strides=1, normalization='bn',
+                                      activation='lrelu')]
         for _ in range(2):
-            model.extend([layers.Conv2DTranspose(n_filter, (3, 3), strides=(2, 2),
-                                                 padding='same'),
-                          layers.BatchNormalization(axis=1),
-                          layers.LeakyReLU(),
-                          layers.Conv2DTranspose(n_filter, (3, 3), strides=(1, 1),
-                                                 padding='same'),
-                          layers.BatchNormalization(axis=1),
-                          layers.LeakyReLU()])
+            model.extend([layers.UpConv2DBlock(filters=n_filter, kernel_size=3,
+                                               strides=2, conv_padding='same',
+                                               normalization='bn',
+                                               activation='lrelu'),
+                          layers.UpConv2DBlock(filters=n_filter, kernel_size=3,
+                                               strides=1, conv_padding='same',
+                                               normalization='bn',
+                                               activation='lrelu')])
         for _ in range(n_layer - 5):
             n_filter //= 2
-            model.extend([layers.Conv2DTranspose(n_filter, (3, 3), strides=(2, 2),
-                                                 padding='same'),
-                          layers.BatchNormalization(axis=1),
-                          layers.LeakyReLU()])
-        model.append(layers.Conv2DTranspose(channel, (3, 3), strides=(1, 1),
-                                            padding='same', activation=tf.nn.tanh))
+            model.append(layers.UpConv2DBlock(filters=n_filter, kernel_size=3,
+                                              strides=2, conv_padding='same',
+                                              normalization='bn',
+                                              activation='lrelu'))
+        model.append(layers.UpConv2DBlock(filters=channel, kernel_size=3,
+                                          strides=1, conv_padding='same',
+                                          activation='tanh'))
         self.model = tf.keras.Sequential(model, name='generator')
+        self.model.summary()
 
     def call(self, x):
         return self.model(x)
