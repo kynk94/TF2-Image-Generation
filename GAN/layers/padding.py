@@ -133,6 +133,8 @@ class Padding(tf.keras.layers.Layer):
                 self.padding,
             'pad_type':
                 self.pad_type,
+            'constant_values':
+                self.constant_values,
             'data_format':
                 self.data_format
         })

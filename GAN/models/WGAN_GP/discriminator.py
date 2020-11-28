@@ -27,6 +27,7 @@ class Discriminator(tf.keras.Model):
         model.extend([layers.Flatten(),
                       layers.Dense(1)])
         self.model = tf.keras.Sequential(model, name='discriminator')
+        self.model.summary()
 
     def call(self, x):
         return self.model(x)

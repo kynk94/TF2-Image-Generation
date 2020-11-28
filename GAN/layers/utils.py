@@ -24,7 +24,8 @@ def get_padding_layer(rank, padding, pad_type, constant_values, data_format):
     def _check_padding(rank, padding):
         if hasattr(padding, '__len__'):
             if len(padding) != rank:
-                raise ValueError('`padding` should have `rank` elements.')
+                raise ValueError('`padding` should have `rank` elements. '
+                                 f'Found: {len(padding)}')
 
             def check_all_zero(value):
                 if hasattr(value, '__len__'):
@@ -54,7 +55,8 @@ def get_padding_layer(rank, padding, pad_type, constant_values, data_format):
 def get_normalization_layer(channel_axis,
                             normalization,
                             normalization_momentum=0.99,
-                            normalization_group=32):
+                            normalization_group=32,
+                            normalization_epsilon=1e-5):
     if normalization is None:
         return None
     if hasattr(normalization, '__call__'):
@@ -66,22 +68,26 @@ def get_normalization_layer(channel_axis,
             return BatchNormalization(
                 axis=channel_axis,
                 momentum=normalization_momentum,
+                epsilon=normalization_epsilon,
                 name='batch_normalization')
         if normalization in {'layer_normalization',
                              'layer_norm', 'ln'}:
             return LayerNormalization(
                 axis=channel_axis,
+                epsilon=normalization_epsilon,
                 name='layer_normalization')
         if normalization in {'instance_normalization',
                              'instance_norm', 'in'}:
             return InstanceNormalization(
                 axis=channel_axis,
+                epsilon=normalization_epsilon,
                 name='instance_normalization')
         if normalization in {'group_normalization',
                              'group_norm', 'gn'}:
             return GroupNormalization(
-                groups=normalization_group,
                 axis=channel_axis,
+                groups=normalization_group,
+                epsilon=normalization_epsilon,
                 name='group_normalization')
         if normalization in {'filter_response_normalization',
                              'filter_response_norm', 'frn'}:
@@ -89,6 +95,7 @@ def get_normalization_layer(channel_axis,
             # Official need to input axis as spatial, not channel.
             return FilterResponseNormalization(
                 axis=channel_axis,
+                epsilon=normalization_epsilon,
                 name='filter_response_normalization')
     raise ValueError(f'Unsupported `normalization`: {normalization}')
 
@@ -119,7 +126,9 @@ def get_activation_layer(activation, activation_alpha=0.3):
 
 def kwargs_as_iterable(iter_len, **kwargs):
     for key, value in kwargs.items():
-        if hasattr(value, '__len__') and len(value) != iter_len:
+        if hasattr(value, '__len__'):
+            if len(value) == iter_len:
+                continue
             raise ValueError(f'`len({key})` does not match `iter_len`.')
         kwargs[key] = (value, ) * iter_len
     return kwargs

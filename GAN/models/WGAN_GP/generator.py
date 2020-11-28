@@ -30,6 +30,7 @@ class Generator(tf.keras.Model):
                                           strides=2, conv_padding='same',
                                           activation='tanh'))
         self.model = tf.keras.Sequential(model, name='generator')
+        self.model.summary()
 
     def call(self, x):
         return self.model(x)
