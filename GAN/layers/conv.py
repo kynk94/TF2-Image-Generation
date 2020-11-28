@@ -28,11 +28,10 @@ class ConvBase:
             return tf.initializers.random_normal(0, stddev)
         return None
 
-    def _check_weight_scaling(self, input_shape):
+    def _check_weight_scaling(self):
+        # kernel.shape: (kernel_size, kernel_size, channels//groups, filters)
         if self.use_weight_scaling:
-            input_shape = tf.TensorShape(input_shape)
-            input_channel = self._get_input_channel(input_shape)
-            fan_in = input_channel * np.prod(self.kernel_size)
+            fan_in = np.prod(self.kernel.shape[:-1])
             self.runtime_coef = self.gain / np.sqrt(fan_in)
             self.runtime_coef *= self.lr_multiplier
             self.kernel = self.kernel * self.runtime_coef
@@ -41,13 +40,6 @@ class ConvBase:
         if self.data_format == 'channels_first':
             return 1
         return self.rank + 1
-
-    def _get_input_channel(self, input_shape):
-        channel_axis = self._get_channel_axis()
-        if input_shape.dims[channel_axis].value is None:
-            raise ValueError('The channel dimension of the inputs '
-                             'should be defined. Found `None`.')
-        return int(input_shape[channel_axis])
 
     def _update_config(self, config):
         config.update({
@@ -141,7 +133,7 @@ class Conv(ConvBase, convolutional.Conv):
 
     def build(self, input_shape):
         super().build(input_shape)
-        self._check_weight_scaling(input_shape)
+        self._check_weight_scaling()
 
     def get_config(self):
         config = super().get_config()
@@ -333,7 +325,7 @@ class Conv1DTranspose(ConvBase, convolutional.Conv1DTranspose):
 
     def build(self, input_shape):
         super().build(input_shape)
-        self._check_weight_scaling(input_shape)
+        self._check_weight_scaling()
 
     def get_config(self):
         config = super().get_config()
@@ -387,7 +379,7 @@ class Conv2DTranspose(ConvBase, convolutional.Conv2DTranspose):
 
     def build(self, input_shape):
         super().build(input_shape)
-        self._check_weight_scaling(input_shape)
+        self._check_weight_scaling()
 
     def get_config(self):
         config = super().get_config()
@@ -441,7 +433,7 @@ class Conv3DTranspose(ConvBase, convolutional.Conv3DTranspose):
 
     def build(self, input_shape):
         super().build(input_shape)
-        self._check_weight_scaling(input_shape)
+        self._check_weight_scaling()
 
     def get_config(self):
         config = super().get_config()

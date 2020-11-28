@@ -5,21 +5,17 @@ Licensed under the CC BY-NC-SA 4.0 license
 """
 import numpy as np
 import tensorflow as tf
-import tensorflow_addons as tfa
-from tensorflow.keras.layers import BatchNormalization, LayerNormalization
 from tensorflow.python.keras.utils.conv_utils import normalize_data_format
-from tensorflow_addons.layers import GroupNormalization, InstanceNormalization
 from tensorflow_addons.layers import SpectralNormalization
 from .conv import Conv, Conv1DTranspose, Conv2DTranspose, Conv3DTranspose
-from .normalizations import FilterResponseNormalization
-from .padding import Padding
+from .utils import get_activation_layer, get_normalization_layer, get_padding_layer
 from .utils import get_layer_config
 
 
 class ConvBlock(tf.keras.Model):
     """
     Convolution Block.
-    
+
     Block consists of pad, convolution, normalization, and activation layers.
     """
 
@@ -37,6 +33,8 @@ class ConvBlock(tf.keras.Model):
                  dilation_rate=1,
                  groups=1,
                  normalization=None,
+                 normalization_first=False,
+                 norm_momentum=0.99,
                  norm_group=32,
                  activation=None,
                  activation_alpha=0.3,
@@ -62,19 +60,27 @@ class ConvBlock(tf.keras.Model):
         self.rank = rank
         self.data_format = normalize_data_format(data_format)
         self.channel_axis = self._get_channel_axis()
+        if normalization_first and activation_first:
+            raise ValueError('Only one of `normalization_first` '
+                             'or `activation_first` can be True.')
+        self.normalization_first = normalization_first
         self.activation_first = activation_first
 
+        # normalization layer
+        self.normalization = get_normalization_layer(self.channel_axis,
+                                                     normalization,
+                                                     norm_momentum,
+                                                     norm_group)
+
+        # activation layer
+        self.activation = get_activation_layer(activation, activation_alpha)
+
         # padding layer
-        self.padding = self._check_padding(padding)
-        if self.padding == 0:
-            self.pad = None
-        else:
-            self.pad = Padding(rank=self.rank,
-                               padding=self.padding,
-                               pad_type=pad_type,
-                               constant_values=pad_constant_values,
-                               data_format=self.data_format,
-                               name=f'padding{rank}d')
+        self.pad = get_padding_layer(rank=rank,
+                                     padding=padding,
+                                     pad_type=pad_type,
+                                     constant_values=pad_constant_values,
+                                     data_format=self.data_format)
 
         # convolution layer
         if mode.lower() in {'downsample', 'down'}:
@@ -142,93 +148,19 @@ class ConvBlock(tf.keras.Model):
                                               power_iterations=spectral_iteration,
                                               name='spectral_normalization')
 
-        # normalization layer
-        if normalization is None:
-            self.normalization = None
-        elif hasattr(normalization, '__call__'):
-            self.normalization = normalization
-        elif isinstance(normalization, str):
-            normalization = normalization.lower()
-            if normalization in {'batch_normalization',
-                                 'batch_norm', 'bn'}:
-                self.normalization = BatchNormalization(
-                    axis=self.channel_axis,
-                    name='batch_normalization')
-            elif normalization in {'layer_normalization',
-                                   'layer_norm', 'ln'}:
-                self.normalization = LayerNormalization(
-                    axis=self.channel_axis,
-                    name='layer_normalization')
-            elif normalization in {'instance_normalization',
-                                   'instance_norm', 'in'}:
-                self.normalization = InstanceNormalization(
-                    axis=self.channel_axis,
-                    name='instance_normalization')
-            elif normalization in {'group_normalization',
-                                   'group_norm', 'gn'}:
-                self.normalization = GroupNormalization(
-                    groups=norm_group,
-                    axis=self.channel_axis,
-                    name='group_normalization')
-            elif normalization in {'filter_response_normalization',
-                                   'filter_response_norm', 'frn'}:
-                # FilterResponseNormalization is not official implementation.
-                # Official need to input axis as spatial, not channel.
-                self.normalization = FilterResponseNormalization(
-                    axis=self.channel_axis,
-                    name='filter_response_normalization')
-            else:
-                raise ValueError(
-                    f'Unsupported `normalization`: {normalization}')
-        else:
-            raise ValueError(f'Unsupported `normalization`: {normalization}')
-
-        # activation layer
-        if activation is None:
-            self.activation = None
-        elif hasattr(activation, '__call__'):
-            self.activation = activation
-        elif isinstance(activation, str):
-            activation = activation.lower()
-            if activation == 'relu':
-                self.activation = tf.keras.layers.ReLU(name='relu')
-            elif activation in {'leaky_relu', 'lrelu'}:
-                self.activation = tf.keras.layers.LeakyReLU(
-                    alpha=activation_alpha,
-                    name='leaky_relu')
-            elif activation in {'exp_lu', 'elu'}:
-                self.activation = tf.keras.layers.ELU(
-                    alpha=activation_alpha,
-                    name='elu')
-            elif activation in {'trelu', 'tlu'}:
-                self.activation = tfa.layers.TLU()
-            elif activation == 'tanh':
-                self.activation = tf.nn.tanh
-            else:
-                raise ValueError(f'Unsupported `activation`: {activation}')
-        else:
-            raise ValueError(f'Unsupported `activation`: {activation}')
-
-    def _check_padding(self, padding):
-        if hasattr(padding, '__len__'):
-
-            def check_all_zero(value):
-                if hasattr(value, '__len__'):
-                    if len(value) == 0:
-                        return False
-                    return all(check_all_zero(v) for v in value)
-                return value == 0
-
-            if check_all_zero(padding):
-                return 0
-            return padding
-        elif padding >= 0:
-            return padding
-        raise ValueError(f'Unsupported `padding`: {padding}')
-
     def call(self, inputs):
         outputs = inputs
-        if self.activation_first:
+        # normalization -> activation -> convolution
+        if self.normalization_first:
+            if self.normalization:
+                outputs = self.normalization(outputs)
+            if self.activation:
+                outputs = self.activation(outputs)
+            if self.pad:
+                outputs = self.pad(outputs)
+            outputs = self.conv(outputs)
+        # activation -> convolution -> normalization
+        elif self.activation_first:
             if self.activation:
                 outputs = self.activation(outputs)
             if self.pad:
@@ -236,15 +168,15 @@ class ConvBlock(tf.keras.Model):
             outputs = self.conv(outputs)
             if self.normalization:
                 outputs = self.normalization(outputs)
-            return outputs
-
-        if self.pad:
-            outputs = self.pad(outputs)
-        outputs = self.conv(outputs)
-        if self.normalization:
-            outputs = self.normalization(outputs)
-        if self.activation:
-            outputs = self.activation(outputs)
+        # convolution -> normalization -> activation
+        else:
+            if self.pad:
+                outputs = self.pad(outputs)
+            outputs = self.conv(outputs)
+            if self.normalization:
+                outputs = self.normalization(outputs)
+            if self.activation:
+                outputs = self.activation(outputs)
         return outputs
 
     def _get_channel_axis(self):
@@ -256,6 +188,7 @@ class ConvBlock(tf.keras.Model):
         config = {
             'name': self.name,
             'mode': self.mode,
+            'normalization_first': self.normalization_first,
             'activation_first': self.activation_first,
             'activation': get_layer_config(self.activation),
             'convolution': get_layer_config(self.conv),
@@ -279,6 +212,8 @@ class Conv1DBlock(ConvBlock):
                  dilation_rate=1,
                  groups=1,
                  normalization=None,
+                 normalization_first=False,
+                 norm_momentum=0.99,
                  norm_group=32,
                  activation=None,
                  activation_alpha=0.3,
@@ -313,6 +248,8 @@ class Conv1DBlock(ConvBlock):
             dilation_rate=dilation_rate,
             groups=groups,
             normalization=normalization,
+            normalization_first=normalization_first,
+            norm_momentum=norm_momentum,
             norm_group=norm_group,
             activation=activation,
             activation_alpha=activation_alpha,
@@ -347,9 +284,11 @@ class Conv2DBlock(ConvBlock):
                  conv_padding='valid',
                  output_padding=None,
                  data_format=None,
-                 dilation_rate=1,
+                 dilation_rate=(1, 1),
                  groups=1,
                  normalization=None,
+                 normalization_first=False,
+                 norm_momentum=0.99,
                  norm_group=32,
                  activation=None,
                  activation_alpha=0.3,
@@ -384,6 +323,8 @@ class Conv2DBlock(ConvBlock):
             dilation_rate=dilation_rate,
             groups=groups,
             normalization=normalization,
+            normalization_first=normalization_first,
+            norm_momentum=norm_momentum,
             norm_group=norm_group,
             activation=activation,
             activation_alpha=activation_alpha,
@@ -418,9 +359,11 @@ class Conv3DBlock(ConvBlock):
                  conv_padding='valid',
                  output_padding=None,
                  data_format=None,
-                 dilation_rate=1,
+                 dilation_rate=(1, 1, 1),
                  groups=1,
                  normalization=None,
+                 normalization_first=False,
+                 norm_momentum=0.99,
                  norm_group=32,
                  activation=None,
                  activation_alpha=0.3,
@@ -455,6 +398,8 @@ class Conv3DBlock(ConvBlock):
             dilation_rate=dilation_rate,
             groups=groups,
             normalization=normalization,
+            normalization_first=normalization_first,
+            norm_momentum=norm_momentum,
             norm_group=norm_group,
             activation=activation,
             activation_alpha=activation_alpha,
@@ -492,6 +437,8 @@ class UpConv1DBlock(ConvBlock):
                  dilation_rate=1,
                  groups=1,
                  normalization=None,
+                 normalization_first=False,
+                 norm_momentum=0.99,
                  norm_group=32,
                  activation=None,
                  activation_alpha=0.3,
@@ -526,6 +473,8 @@ class UpConv1DBlock(ConvBlock):
             dilation_rate=dilation_rate,
             groups=groups,
             normalization=normalization,
+            normalization_first=normalization_first,
+            norm_momentum=norm_momentum,
             norm_group=norm_group,
             activation=activation,
             activation_alpha=activation_alpha,
@@ -560,9 +509,11 @@ class UpConv2DBlock(ConvBlock):
                  conv_padding='valid',
                  output_padding=None,
                  data_format=None,
-                 dilation_rate=1,
+                 dilation_rate=(1, 1),
                  groups=1,
                  normalization=None,
+                 normalization_first=False,
+                 norm_momentum=0.99,
                  norm_group=32,
                  activation=None,
                  activation_alpha=0.3,
@@ -597,6 +548,8 @@ class UpConv2DBlock(ConvBlock):
             dilation_rate=dilation_rate,
             groups=groups,
             normalization=normalization,
+            normalization_first=normalization_first,
+            norm_momentum=norm_momentum,
             norm_group=norm_group,
             activation=activation,
             activation_alpha=activation_alpha,
@@ -631,9 +584,11 @@ class UpConv3DBlock(ConvBlock):
                  conv_padding='valid',
                  output_padding=None,
                  data_format=None,
-                 dilation_rate=1,
+                 dilation_rate=(1, 1, 1),
                  groups=1,
                  normalization=None,
+                 normalization_first=False,
+                 norm_momentum=0.99,
                  norm_group=32,
                  activation=None,
                  activation_alpha=0.3,
@@ -668,6 +623,8 @@ class UpConv3DBlock(ConvBlock):
             dilation_rate=dilation_rate,
             groups=groups,
             normalization=normalization,
+            normalization_first=normalization_first,
+            norm_momentum=norm_momentum,
             norm_group=norm_group,
             activation=activation,
             activation_alpha=activation_alpha,
