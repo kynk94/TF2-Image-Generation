@@ -10,6 +10,7 @@ from tensorflow.python.keras import constraints
 from tensorflow.python.keras import initializers
 from tensorflow.python.keras import regularizers
 from tensorflow.python.keras.layers import convolutional
+from .ICNR_initializer import ICNR
 
 
 class ConvBase:
@@ -209,7 +210,7 @@ class Conv2D(Conv):
                  kernel_constraint=None,
                  bias_constraint=None,
                  **kwargs):
-        super(Conv2D, self).__init__(
+        super().__init__(
             rank=2,
             filters=filters,
             kernel_size=kernel_size,
@@ -255,7 +256,7 @@ class Conv3D(Conv):
                  kernel_constraint=None,
                  bias_constraint=None,
                  **kwargs):
-        super(Conv3D, self).__init__(
+        super().__init__(
             rank=3,
             filters=filters,
             kernel_size=kernel_size,
@@ -438,4 +439,71 @@ class Conv3DTranspose(ConvBase, convolutional.Conv3DTranspose):
     def get_config(self):
         config = super().get_config()
         self._update_config(config)
+        return config
+
+
+class SubPixelConv2D(Conv2D):
+    def __init__(self,
+                 filters,
+                 kernel_size,
+                 strides=(1, 1),
+                 padding='valid',
+                 scale=2,
+                 use_icnr_initializer=False,
+                 data_format=None,
+                 dilation_rate=(1, 1),
+                 groups=1,
+                 activation=None,
+                 use_bias=False,
+                 use_weight_scaling=False,
+                 gain=np.sqrt(2),
+                 lr_multiplier=1.0,
+                 kernel_initializer='he_normal',
+                 bias_initializer='zeros',
+                 kernel_regularizer=None,
+                 bias_regularizer=None,
+                 activity_regularizer=None,
+                 kernel_constraint=None,
+                 bias_constraint=None,
+                 **kwargs):
+        self.scale = scale
+        self.use_icnr_initializer = use_icnr_initializer
+        if use_icnr_initializer:
+            kernel_initializer = ICNR(self.scale, kernel_initializer)
+        super().__init__(
+            filters=filters * (self.scale**2),
+            kernel_size=kernel_size,
+            strides=strides,
+            padding=padding,
+            data_format=data_format,
+            dilation_rate=dilation_rate,
+            groups=groups,
+            activation=activation,
+            use_bias=use_bias,
+            use_weight_scaling=use_weight_scaling,
+            gain=gain,
+            lr_multiplier=lr_multiplier,
+            kernel_initializer=kernel_initializer,
+            bias_initializer=bias_initializer,
+            kernel_regularizer=kernel_regularizer,
+            bias_regularizer=bias_regularizer,
+            activity_regularizer=activity_regularizer,
+            kernel_constraint=kernel_constraint,
+            bias_constraint=bias_constraint,
+            **kwargs)
+
+    def call(self, inputs):
+        outputs = super().call(inputs)
+        data_format = 'NCHW' if self.data_format == 'channels_first' else 'NHWC'
+        outputs = tf.nn.depth_to_space(input=outputs,
+                                       block_size=self.scale,
+                                       data_format=data_format)
+        return outputs
+
+    def get_config(self):
+        config = super().get_config()
+        config.update({
+            'scale': self.scale,
+            'use_icnr_initializer': self.use_icnr_initializer
+        })
         return config
