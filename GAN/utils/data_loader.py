@@ -85,7 +85,7 @@ class ImageLoader:
             if flatten:
                 data = tf.reshape(data, (batch_size, -1))
             if map_func is not None:
-                data = map_func(data)
+                data, label = map_func(data, label)
             if label is None:
                 return data
             return data, label

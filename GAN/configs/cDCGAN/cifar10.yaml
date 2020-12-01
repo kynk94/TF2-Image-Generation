@@ -1,0 +1,35 @@
+# config for cifar10
+input_size: 32 # 64 in the paper
+channel: 3
+
+# train
+random_seed: 0
+epochs: 500
+steps: 0
+save_step: 10000
+learning_rate: 0.0002
+beta_1: 0.5
+batch_size: 128
+latent_dim: 100
+label_dim: 1
+gen:
+  n_layer: 3 # 4 in the paper
+  n_filter: 512 # 1024 in the paper
+dis:
+  n_layer: 3 # 4 in the paper
+  n_filter: 32 # In the paper, 64 in the lowest, 512 in the highest layer
+
+# test
+test_step: 100
+test_batch_size: 100
+
+# directory
+checkpoint_dir: ./checkpoints
+
+# data
+dataset:
+  data_dir: ../dataset/cifar10
+  train_data_txt:
+  train_test_split: true
+  labeled_dir: true
+  cache: true

@@ -124,6 +124,7 @@ Tensorflow 2 reimplementation of image generation model.
 - [x] GAN: [Paper](https://arxiv.org/abs/1406.2661)
 - [x] CGAN: [Paper](https://arxiv.org/abs/1411.1784)
 - [x] DCGAN: [Paper](https://arxiv.org/abs/1511.06434)
+- [x] Conditional-DCGAN(cDCGAN)
 - [x] LSGAN: [Paper](https://arxiv.org/abs/1611.04076)
 - [x] WGAN: [Paper](https://arxiv.org/abs/1701.07875)
 - [x] WGAN-GP: [Paper](https://arxiv.org/abs/1704.00028)
