@@ -17,27 +17,27 @@ class Generator(tf.keras.Model):
         kernel_size = size // 2**(n_layer - 3)
         model = [layers.Input(input_dim),
                  layers.Reshape((input_dim, 1, 1)),
-                 layers.UpConv2DBlock(filters=n_filter, kernel_size=kernel_size,
-                                      strides=1, normalization='bn',
-                                      activation='lrelu')]
+                 layers.TransConv2DBlock(n_filter, kernel_size, 1,
+                                         normalization='bn',
+                                         activation='lrelu')]
         for _ in range(2):
-            model.extend([layers.UpConv2DBlock(filters=n_filter, kernel_size=3,
-                                               strides=2, conv_padding='same',
-                                               normalization='bn',
-                                               activation='lrelu'),
-                          layers.UpConv2DBlock(filters=n_filter, kernel_size=3,
-                                               strides=1, conv_padding='same',
-                                               normalization='bn',
-                                               activation='lrelu')])
+            model.extend([layers.TransConv2DBlock(n_filter, 3, 2,
+                                                  conv_padding='same',
+                                                  normalization='bn',
+                                                  activation='lrelu'),
+                          layers.TransConv2DBlock(n_filter, 3, 1,
+                                                  conv_padding='same',
+                                                  normalization='bn',
+                                                  activation='lrelu')])
         for _ in range(n_layer - 5):
             n_filter //= 2
-            model.append(layers.UpConv2DBlock(filters=n_filter, kernel_size=3,
-                                              strides=2, conv_padding='same',
-                                              normalization='bn',
-                                              activation='lrelu'))
-        model.append(layers.UpConv2DBlock(filters=channel, kernel_size=3,
-                                          strides=1, conv_padding='same',
-                                          activation='tanh'))
+            model.append(layers.TransConv2DBlock(n_filter, 3, 2,
+                                                 conv_padding='same',
+                                                 normalization='bn',
+                                                 activation='lrelu'))
+        model.append(layers.TransConv2DBlock(channel, 3, 1,
+                                             conv_padding='same',
+                                             activation='tanh'))
         self.model = tf.keras.Sequential(model, name='generator')
         self.model.summary()
 

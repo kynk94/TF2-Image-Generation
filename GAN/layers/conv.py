@@ -452,7 +452,7 @@ class UpsampleConv2D(Conv2D):
                  padding='valid',
                  size=None,
                  scale=None,
-                 method='nearest',
+                 method='bilinear',
                  preserve_aspect_ratio=False,
                  antialias=False,
                  data_format=None,

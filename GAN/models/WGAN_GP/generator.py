@@ -17,18 +17,18 @@ class Generator(tf.keras.Model):
         kernel_size = size // 2**n_layer
         model = [layers.Input(input_dim),
                  layers.Reshape((input_dim, 1, 1)),
-                 layers.UpConv2DBlock(filters=n_filter, kernel_size=kernel_size,
-                                      strides=1, normalization='bn',
-                                      activation='relu')]
+                 layers.TransConv2DBlock(n_filter, kernel_size, 1,
+                                         normalization='bn',
+                                         activation='relu')]
         for _ in range(n_layer-1):
             n_filter //= 2
-            model.append(layers.UpConv2DBlock(filters=n_filter, kernel_size=5,
-                                              strides=2, conv_padding='same',
-                                              normalization='bn',
-                                              activation='relu'))
-        model.append(layers.UpConv2DBlock(filters=channel, kernel_size=5,
-                                          strides=2, conv_padding='same',
-                                          activation='tanh'))
+            model.append(layers.TransConv2DBlock(n_filter, 5, 2,
+                                                 conv_padding='same',
+                                                 normalization='bn',
+                                                 activation='relu'))
+        model.append(layers.TransConv2DBlock(channel, 5, 2,
+                                             conv_padding='same',
+                                             activation='tanh'))
         self.model = tf.keras.Sequential(model, name='generator')
         self.model.summary()
 
