@@ -3,6 +3,7 @@ Copyright (C) https://github.com/kynk94. All rights reserved.
 Licensed under the CC BY-NC-SA 4.0 license
 (https://creativecommons.org/licenses/by-nc-sa/4.0/).
 """
+import functools
 import numpy as np
 import tensorflow as tf
 from tensorflow.python.keras import activations
@@ -10,6 +11,7 @@ from tensorflow.python.keras import constraints
 from tensorflow.python.keras import initializers
 from tensorflow.python.keras import regularizers
 from tensorflow.python.keras.layers import convolutional
+from tensorflow.python.keras.utils.conv_utils import normalize_tuple
 from .ICNR_initializer import ICNR
 
 
@@ -442,6 +444,99 @@ class Conv3DTranspose(ConvBase, convolutional.Conv3DTranspose):
         return config
 
 
+class UpsampleConv2D(Conv2D):
+    def __init__(self,
+                 filters,
+                 kernel_size,
+                 strides=(1, 1),
+                 padding='valid',
+                 size=None,
+                 scale=None,
+                 method='nearest',
+                 preserve_aspect_ratio=False,
+                 antialias=False,
+                 data_format=None,
+                 dilation_rate=(1, 1),
+                 groups=1,
+                 activation=None,
+                 use_bias=False,
+                 use_weight_scaling=False,
+                 gain=np.sqrt(2),
+                 lr_multiplier=1.0,
+                 kernel_initializer='he_normal',
+                 bias_initializer='zeros',
+                 kernel_regularizer=None,
+                 bias_regularizer=None,
+                 activity_regularizer=None,
+                 kernel_constraint=None,
+                 bias_constraint=None,
+                 **kwargs):
+        super().__init__(
+            filters=filters,
+            kernel_size=kernel_size,
+            strides=strides,
+            padding=padding,
+            data_format=data_format,
+            dilation_rate=dilation_rate,
+            groups=groups,
+            activation=activation,
+            use_bias=use_bias,
+            use_weight_scaling=use_weight_scaling,
+            gain=gain,
+            lr_multiplier=lr_multiplier,
+            kernel_initializer=kernel_initializer,
+            bias_initializer=bias_initializer,
+            kernel_regularizer=kernel_regularizer,
+            bias_regularizer=bias_regularizer,
+            activity_regularizer=activity_regularizer,
+            kernel_constraint=kernel_constraint,
+            bias_constraint=bias_constraint,
+            **kwargs)
+        if (size is not None) ^ (scale is None):  # XOR operation
+            raise ValueError('Either `size` or `scale` should not be None.')
+        self.size = size
+        self.scale = scale
+        self.method = method
+        self.preserve_aspect_ratio = preserve_aspect_ratio
+        self.antialias = antialias
+
+    def build(self, input_shape):
+        self._check_scaled_size(input_shape)
+        self._resize_op = functools.partial(
+            tf.image.resize,
+            size=self.size,
+            method=self.method,
+            preserve_aspect_ratio=self.preserve_aspect_ratio,
+            antialias=self.antialias,
+            name='resize')
+        super.build(input_shape)
+
+    def call(self, inputs):
+        outputs = self._resize_op(inputs)
+        outputs = super().call(outputs)
+        return outputs
+
+    def _check_scaled_size(self, input_shape):
+        if self.size is not None:
+            self.size = normalize_tuple(self.size, 2, 'size')
+            return
+        spatial_axis = range(len(input_shape))
+        del spatial_axis[self.channel_axis]
+        del spatial_axis[0]
+        self.size = tuple(input_shape[axis] * self.scale
+                          for axis in spatial_axis)
+
+    def get_config(self):
+        config = super().get_config()
+        config.update({
+            'size': self.size,
+            'method': self.method,
+            'preserve_aspect_ratio': self.preserve_aspect_ratio,
+            'antialias': self.antialias
+        })
+        return config
+
+
 class SubPixelConv2D(Conv2D):
     def __init__(self,
                  filters,
@@ -468,8 +563,12 @@ class SubPixelConv2D(Conv2D):
                  **kwargs):
         self.scale = scale
         self.use_icnr_initializer = use_icnr_initializer
+        if use_weight_scaling:
+            stddev = 1.0 / lr_multiplier
+            kernel_initializer = tf.initializers.random_normal(0, stddev)
         if use_icnr_initializer:
             kernel_initializer = ICNR(self.scale, kernel_initializer)
+
         super().__init__(
             filters=filters * (self.scale**2),
             kernel_size=kernel_size,
@@ -480,7 +579,7 @@ class SubPixelConv2D(Conv2D):
             groups=groups,
             activation=activation,
             use_bias=use_bias,
-            use_weight_scaling=use_weight_scaling,
+            use_weight_scaling=False,  # `use_weight_scaling` should be False.
             gain=gain,
             lr_multiplier=lr_multiplier,
             kernel_initializer=kernel_initializer,
@@ -491,6 +590,9 @@ class SubPixelConv2D(Conv2D):
             kernel_constraint=kernel_constraint,
             bias_constraint=bias_constraint,
             **kwargs)
+
+        # reinitialize `use_weight_scaling` after super().__init__()
+        self.use_weight_scaling = use_weight_scaling
 
     def call(self, inputs):
         outputs = super().call(inputs)
