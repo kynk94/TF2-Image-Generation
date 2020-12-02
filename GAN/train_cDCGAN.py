@@ -18,8 +18,8 @@ def make_test_data(numeric_labels,
     if mod:
         raise ValueError("'testbatch_size' is not a multiple of 'n_class'.")
 
-    label = tf.repeat(tf.Variable(numeric_labels, dtype=tf.float32), div)
-    label = 2 * label / (n_class - 1) - 1
+    label = tf.repeat(tf.Variable(numeric_labels, dtype=tf.int32), div)
+    label = tf.one_hot(label, n_class, dtype=tf.float32)
     if latent_each_class:
         latent = tf.random.normal(shape=(div, latent_dim),
                                   seed=seed)
@@ -57,7 +57,8 @@ def main():
     conf['n_class'] = loader.n_class
 
     def map_func(image, label):
-        label = 2 * label / (conf['n_class'] - 1) - 1
+        label = tf.one_hot(tf.cast(label, tf.int32), conf['n_class'],
+                           dtype=tf.float32)
         return image, label
 
     train_dataset = loader.get_dataset(batch_size=conf['batch_size'],

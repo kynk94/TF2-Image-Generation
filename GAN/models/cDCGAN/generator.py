@@ -7,7 +7,8 @@ class Generator(tf.keras.Model):
         super().__init__()
         hp = conf['gen']
         self.model = None
-        self.build_model(input_dim=conf['latent_dim'] + conf['label_dim'],
+        self.build_model(input_dim=(conf['latent_dim'] +
+                                    conf['label_dim'] * conf['n_class']),
                          n_layer=hp['n_layer'],
                          n_filter=hp['n_filter'],
                          size=conf['input_size'],
@@ -33,5 +34,5 @@ class Generator(tf.keras.Model):
         self.model.summary()
 
     def call(self, latent, label):
-        inputs = tf.concat((latent, tf.expand_dims(label, -1)), axis=-1)
+        inputs = tf.concat((latent, label), axis=-1)
         return self.model(inputs)

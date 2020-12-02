@@ -7,7 +7,8 @@ class Discriminator(tf.keras.Model):
         super().__init__()
         hp = conf['dis']
         self.model = None
-        self.build_model(input_shape=(conf['channel'] + conf['label_dim'],
+        self.build_model(input_shape=((conf['channel'] +
+                                       conf['label_dim'] * conf['n_class']),
                                       conf['input_size'],
                                       conf['input_size']),
                          n_layer=hp['n_layer'],
