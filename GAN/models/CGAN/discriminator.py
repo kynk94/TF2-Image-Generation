@@ -1,6 +1,5 @@
 import tensorflow as tf
-from tensorflow.keras import Sequential, layers
-
+import layers
 
 class Discriminator(tf.keras.Model):
     def __init__(self, conf):
@@ -8,8 +7,7 @@ class Discriminator(tf.keras.Model):
         hp = conf['dis']
 
         block_label = [layers.Embedding(input_dim=conf['n_class'],
-                                        output_dim=hp['hidden_dim_label'] * hp['k_label'],
-                                        embeddings_initializer='glorot_uniform'),
+                                        output_dim=hp['hidden_dim_label'] * hp['k_label']),
                        layers.ReLU(),
                        layers.Dropout(conf['dropout_rate']),
                        layers.Maxout(hp['hidden_dim_label'])]
@@ -24,9 +22,9 @@ class Discriminator(tf.keras.Model):
                           layers.Maxout(hp['hidden_dim_combined']),
                           layers.Dense(1)]
 
-        self.block_label = Sequential(block_label, name='block_label')
-        self.block_image = Sequential(block_image, name='block_image')
-        self.block_combined = Sequential(block_combined, name='block_combined')
+        self.block_label = tf.keras.Sequential(block_label, name='block_label')
+        self.block_image = tf.keras.Sequential(block_image, name='block_image')
+        self.block_combined = tf.keras.Sequential(block_combined, name='block_combined')
 
     def call(self, image, label):
         image = self.block_image(image)

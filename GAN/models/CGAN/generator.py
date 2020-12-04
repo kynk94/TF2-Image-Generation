@@ -1,6 +1,5 @@
 import tensorflow as tf
-from tensorflow.keras import Sequential, layers
-
+import layers
 
 class Generator(tf.keras.Model):
     def __init__(self, conf):
@@ -11,8 +10,7 @@ class Generator(tf.keras.Model):
                             conf['input_size'])
 
         block_label = [layers.Embedding(input_dim=conf['n_class'],
-                                        output_dim=hp['hidden_dim_label'],
-                                        embeddings_initializer='glorot_uniform'),
+                                        output_dim=hp['hidden_dim_label']),
                        layers.ReLU(),
                        layers.Dropout(conf['dropout_rate'])]
         block_latent = [layers.Dense(input_dim=conf['latent_dim'],
@@ -23,9 +21,9 @@ class Generator(tf.keras.Model):
                                        activation=tf.nn.relu),
                           layers.Dropout(conf['dropout_rate'])]
 
-        self.block_label = Sequential(block_label, name='block_label')
-        self.block_latent = Sequential(block_latent, name='block_latent')
-        self.block_combined = Sequential(block_combined, name='block_combined')
+        self.block_label = tf.keras.Sequential(block_label, name='block_label')
+        self.block_latent = tf.keras.Sequential(block_latent, name='block_latent')
+        self.block_combined = tf.keras.Sequential(block_combined, name='block_combined')
         self.dense_last = layers.Dense(units=conf['input_size']**2 * conf['channel'],
                                        activation=tf.nn.tanh,
                                        name='dense_last')
