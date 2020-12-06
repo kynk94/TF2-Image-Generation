@@ -1,12 +1,13 @@
 import numpy as np
 import tensorflow as tf
+from tensorflow.python.keras.layers.ops import core as core_ops
 
 
 class Dense(tf.keras.layers.Dense):
     """
     Inherited from the official tf implementation.
     (edited by https://github.com/kynk94)
-    
+
     Just your regular densely-connected NN layer.
 
     `Dense` implements the operation:
@@ -114,7 +115,18 @@ class Dense(tf.keras.layers.Dense):
             fan_in = np.prod(input_shape[1:])
             self.runtime_coef = self.gain / np.sqrt(fan_in)
             self.runtime_coef *= self.lr_multiplier
-            self.kernel = self.kernel * self.runtime_coef
+
+    def call(self, inputs):
+        if self.use_weight_scaling:
+            kernel = self.kernel * self.runtime_coef
+        else:
+            kernel = self.kernel
+        return core_ops.dense(
+            inputs,
+            kernel,
+            self.bias,
+            self.activation,
+            dtype=self._compute_dtype_object)
 
     def get_config(self):
         config = super().get_config()

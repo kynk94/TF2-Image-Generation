@@ -1,5 +1,6 @@
 import numpy as np
 import tensorflow as tf
+from tensorflow.python.distribute import sharded_variable
 
 
 class Embedding(tf.keras.layers.Embedding):
@@ -98,7 +99,21 @@ class Embedding(tf.keras.layers.Embedding):
             fan_in = self.input_dim
             self.runtime_coef = self.gain / np.sqrt(fan_in)
             self.runtime_coef *= self.lr_multiplier
-            self.embeddings = self.embeddings * self.runtime_coef
+
+    def call(self, inputs):
+        dtype = inputs.dtype.base_dtype.name
+        if dtype != 'int32' and dtype != 'int64':
+            inputs = tf.cast(inputs, 'int32')
+
+        if self.use_weight_scaling:
+            embeddings = self.embeddings * self.runtime_coef
+        else:
+            embeddings = self.embeddings
+        if isinstance(embeddings, sharded_variable.ShardedVariable):
+            out = tf.nn.embedding_lookup(embeddings.variables, inputs)
+        else:
+            out = tf.nn.embedding_lookup(embeddings, inputs)
+        return out
 
     def get_config(self):
         config = super().get_config()

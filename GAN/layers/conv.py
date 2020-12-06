@@ -6,12 +6,14 @@ Licensed under the CC BY-NC-SA 4.0 license
 import functools
 import numpy as np
 import tensorflow as tf
+from tensorflow.python.eager import context
 from tensorflow.python.keras import activations
 from tensorflow.python.keras import constraints
 from tensorflow.python.keras import initializers
 from tensorflow.python.keras import regularizers
 from tensorflow.python.keras.layers import convolutional
-from tensorflow.python.keras.utils.conv_utils import normalize_tuple
+from tensorflow.python.keras.utils import conv_utils
+from tensorflow.python.ops import nn_ops
 from .ICNR_initializer import ICNR
 
 
@@ -37,7 +39,6 @@ class ConvBase:
             fan_in = np.prod(self.kernel.shape[:-1])
             self.runtime_coef = self.gain / np.sqrt(fan_in)
             self.runtime_coef *= self.lr_multiplier
-            self.kernel = self.kernel * self.runtime_coef
 
     def _get_channel_axis(self):
         if self.data_format == 'channels_first':
@@ -137,6 +138,39 @@ class Conv(ConvBase, convolutional.Conv):
     def build(self, input_shape):
         super().build(input_shape)
         self._check_weight_scaling()
+
+    def call(self, inputs):
+        if self._is_causal:  # Apply causal padding to inputs for Conv1D.
+            inputs = tf.pad(
+                inputs, self._compute_causal_padding(inputs))
+
+        if self.use_weight_scaling:
+            kernel = self.kernel * self.runtime_coef
+        else:
+            kernel = self.kernel
+        outputs = self._convolution_op(inputs, kernel)
+
+        if self.use_bias:
+            output_rank = outputs.shape.rank
+            if self.rank == 1 and self._channels_first:
+                # nn.bias_add does not accept a 1D input tensor.
+                bias = tf.reshape(self.bias, (1, self.filters, 1))
+                outputs += bias
+            # Handle multiple batch dimensions.
+            elif output_rank is not None and output_rank > 2 + self.rank:
+                def _apply_fn(o):
+                    return tf.nn.bias_add(
+                        o, self.bias, data_format=self._tf_data_format)
+
+                outputs = nn_ops.squeeze_batch_dims(
+                    outputs, _apply_fn, inner_rank=self.rank + 1)
+            else:
+                outputs = tf.nn.bias_add(
+                    outputs, self.bias, data_format=self._tf_data_format)
+
+        if self.activation is not None:
+            return self.activation(outputs)
+        return outputs
 
     def get_config(self):
         config = super().get_config()
@@ -330,6 +364,60 @@ class Conv1DTranspose(ConvBase, convolutional.Conv1DTranspose):
         super().build(input_shape)
         self._check_weight_scaling()
 
+    def call(self, inputs):
+        inputs_shape = tf.shape(inputs)
+        batch_size = inputs_shape[0]
+        if self.data_format == 'channels_first':
+            t_axis = 2
+        else:
+            t_axis = 1
+
+        length = inputs_shape[t_axis]
+        if self.output_padding is None:
+            output_padding = None
+        else:
+            output_padding = self.output_padding[0]
+
+        # Infer the dynamic output shape:
+        out_length = conv_utils.deconv_output_length(
+            length, self.kernel_size[0], padding=self.padding,
+            output_padding=output_padding, stride=self.strides[0],
+            dilation=self.dilation_rate[0])
+        if self.data_format == 'channels_first':
+            output_shape = (batch_size, self.filters, out_length)
+        else:
+            output_shape = (batch_size, out_length, self.filters)
+        data_format = conv_utils.convert_data_format(self.data_format, ndim=3)
+
+        if self.use_weight_scaling:
+            kernel = self.kernel * self.runtime_coef
+        else:
+            kernel = self.kernel
+        output_shape_tensor = tf.stack(output_shape)
+        outputs = nn_ops.conv1d_transpose(
+            inputs,
+            kernel,
+            output_shape_tensor,
+            strides=self.strides,
+            padding=self.padding.upper(),
+            data_format=data_format,
+            dilations=self.dilation_rate)
+
+        if not context.executing_eagerly():
+            # Infer the static output shape:
+            out_shape = self.compute_output_shape(inputs.shape)
+            outputs.set_shape(out_shape)
+
+        if self.use_bias:
+            outputs = tf.nn.bias_add(
+                outputs,
+                self.bias,
+                data_format=data_format)
+
+        if self.activation is not None:
+            return self.activation(outputs)
+        return outputs
+
     def get_config(self):
         config = super().get_config()
         self._update_config(config)
@@ -384,6 +472,80 @@ class Conv2DTranspose(ConvBase, convolutional.Conv2DTranspose):
         super().build(input_shape)
         self._check_weight_scaling()
 
+    def call(self, inputs):
+        inputs_shape = tf.shape(inputs)
+        batch_size = inputs_shape[0]
+        if self.data_format == 'channels_first':
+            h_axis, w_axis = 2, 3
+        else:
+            h_axis, w_axis = 1, 2
+
+        height, width = None, None
+        if inputs.shape.rank is not None:
+            dims = inputs.shape.as_list()
+            height = dims[h_axis]
+            width = dims[w_axis]
+        height = height if height is not None else inputs_shape[h_axis]
+        width = width if width is not None else inputs_shape[w_axis]
+
+        kernel_h, kernel_w = self.kernel_size
+        stride_h, stride_w = self.strides
+
+        if self.output_padding is None:
+            out_pad_h = out_pad_w = None
+        else:
+            out_pad_h, out_pad_w = self.output_padding
+
+        # Infer the dynamic output shape:
+        out_height = conv_utils.deconv_output_length(
+            height,
+            kernel_h,
+            padding=self.padding,
+            output_padding=out_pad_h,
+            stride=stride_h,
+            dilation=self.dilation_rate[0])
+        out_width = conv_utils.deconv_output_length(
+            width,
+            kernel_w,
+            padding=self.padding,
+            output_padding=out_pad_w,
+            stride=stride_w,
+            dilation=self.dilation_rate[1])
+        if self.data_format == 'channels_first':
+            output_shape = (batch_size, self.filters, out_height, out_width)
+        else:
+            output_shape = (batch_size, out_height, out_width, self.filters)
+
+        if self.use_weight_scaling:
+            kernel = self.kernel * self.runtime_coef
+        else:
+            kernel = self.kernel
+        output_shape_tensor = tf.stack(output_shape)
+        outputs = tf.keras.backend.conv2d_transpose(
+            inputs,
+            kernel,
+            output_shape_tensor,
+            strides=self.strides,
+            padding=self.padding,
+            data_format=self.data_format,
+            dilation_rate=self.dilation_rate)
+
+        if not context.executing_eagerly():
+            # Infer the static output shape:
+            out_shape = self.compute_output_shape(inputs.shape)
+            outputs.set_shape(out_shape)
+
+        if self.use_bias:
+            outputs = tf.nn.bias_add(
+                outputs,
+                self.bias,
+                data_format=conv_utils.convert_data_format(
+                    self.data_format, ndim=4))
+
+        if self.activation is not None:
+            return self.activation(outputs)
+        return outputs
+
     def get_config(self):
         config = super().get_config()
         self._update_config(config)
@@ -437,6 +599,80 @@ class Conv3DTranspose(ConvBase, convolutional.Conv3DTranspose):
     def build(self, input_shape):
         super().build(input_shape)
         self._check_weight_scaling()
+
+    def call(self, inputs):
+        inputs_shape = tf.shape(inputs)
+        batch_size = inputs_shape[0]
+        if self.data_format == 'channels_first':
+            d_axis, h_axis, w_axis = 2, 3, 4
+        else:
+            d_axis, h_axis, w_axis = 1, 2, 3
+
+        depth = inputs_shape[d_axis]
+        height = inputs_shape[h_axis]
+        width = inputs_shape[w_axis]
+
+        kernel_d, kernel_h, kernel_w = self.kernel_size
+        stride_d, stride_h, stride_w = self.strides
+
+        if self.output_padding is None:
+            out_pad_d = out_pad_h = out_pad_w = None
+        else:
+            out_pad_d, out_pad_h, out_pad_w = self.output_padding
+
+        # Infer the dynamic output shape:
+        out_depth = conv_utils.deconv_output_length(depth,
+                                                    kernel_d,
+                                                    padding=self.padding,
+                                                    output_padding=out_pad_d,
+                                                    stride=stride_d)
+        out_height = conv_utils.deconv_output_length(height,
+                                                     kernel_h,
+                                                     padding=self.padding,
+                                                     output_padding=out_pad_h,
+                                                     stride=stride_h)
+        out_width = conv_utils.deconv_output_length(width,
+                                                    kernel_w,
+                                                    padding=self.padding,
+                                                    output_padding=out_pad_w,
+                                                    stride=stride_w)
+        if self.data_format == 'channels_first':
+            output_shape = (batch_size, self.filters, out_depth, out_height,
+                            out_width)
+            strides = (1, 1, stride_d, stride_h, stride_w)
+        else:
+            output_shape = (batch_size, out_depth, out_height, out_width,
+                            self.filters)
+            strides = (1, stride_d, stride_h, stride_w, 1)
+
+        if self.use_weight_scaling:
+            kernel = self.kernel * self.runtime_coef
+        else:
+            kernel = self.kernel
+        output_shape_tensor = tf.stack(output_shape)
+        outputs = tf.nn.conv3d_transpose(
+            inputs,
+            kernel,
+            output_shape_tensor,
+            strides,
+            data_format=conv_utils.convert_data_format(
+                self.data_format, ndim=5),
+            padding=self.padding.upper())
+
+        if not context.executing_eagerly():
+            # Infer the static output shape:
+            out_shape = self.compute_output_shape(inputs.shape)
+            outputs.set_shape(out_shape)
+
+        if self.use_bias:
+            outputs = tf.nn.bias_add(
+                outputs,
+                self.bias,
+                data_format=conv_utils.convert_data_format(self.data_format, ndim=4))
+
+        if self.activation is not None:
+            return self.activation(outputs)
+        return outputs
 
     def get_config(self):
         config = super().get_config()
@@ -518,7 +754,7 @@ class UpsampleConv2D(Conv2D):
 
     def _check_scaled_size(self, input_shape):
         if self.size is not None:
-            self.size = normalize_tuple(self.size, 2, 'size')
+            self.size = conv_utils.normalize_tuple(self.size, 2, 'size')
             return
         spatial_axis = range(len(input_shape))
         del spatial_axis[self.channel_axis]
