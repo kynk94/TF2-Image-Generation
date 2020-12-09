@@ -35,8 +35,8 @@ class GaussianNoise(tf.keras.layers.GaussianNoise):
 
     def call(self, inputs, training=None):
         def noised():
-            batch = inputs.shape[0] or 1
-            noise = tf.random.normal(shape=(batch, *self.noise_shape),
+            shape = (tf.shape(inputs)[0], *self.noise_shape)
+            noise = tf.random.normal(shape=shape,
                                      mean=0.0,
                                      stddev=self.stddev,
                                      dtype=inputs.dtype)

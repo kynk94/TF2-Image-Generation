@@ -8,10 +8,12 @@ Tensorflow 2 reimplementation of image generation model.
 
 ## GAN - mnist
 
-<p align="center">
-    <img alt="GAN mnist" src="https://user-images.githubusercontent.com/41245985/97887687-95fda180-1d6d-11eb-8049-ee4030e915f1.gif">
-    <img alt="GAN mnist plot" src="https://user-images.githubusercontent.com/41245985/97887725-a31a9080-1d6d-11eb-95bc-1cdea6933492.png">
-</p>
+<details>
+    <p align="center">
+        <img alt="GAN mnist" src="https://user-images.githubusercontent.com/41245985/97887687-95fda180-1d6d-11eb-8049-ee4030e915f1.gif">
+        <img alt="GAN mnist plot" src="https://user-images.githubusercontent.com/41245985/97887725-a31a9080-1d6d-11eb-95bc-1cdea6933492.png">
+    </p>
+</details>
 
 ---
 
@@ -77,6 +79,16 @@ Tensorflow 2 reimplementation of image generation model.
 </p>
 
 ---
+
+## WGAN-GP - LSUN
+
+<p align="center">
+    <img alt="WGAN-GP LSUN" src="https://user-images.githubusercontent.com/41245985/101673261-46ac3e80-3a9a-11eb-9221-5ff257828399.gif">
+    <img alt="WGAN-GP LSUN plot" src="https://user-images.githubusercontent.com/41245985/101676922-32b70b80-3a9f-11eb-8c6a-9ba41895cd3f.png">
+</p>
+
+---
+
 
 ## Neural Style Transfer
 
