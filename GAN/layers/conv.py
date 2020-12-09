@@ -15,6 +15,8 @@ from tensorflow.python.keras.layers import convolutional
 from tensorflow.python.keras.utils import conv_utils
 from tensorflow.python.ops import nn_ops
 from .ICNR_initializer import ICNR
+from .noise import GaussianNoise
+from .utils import get_layer_config
 
 
 class ConvBase:
@@ -40,6 +42,19 @@ class ConvBase:
             self.runtime_coef = self.gain / np.sqrt(fan_in)
             self.runtime_coef *= self.lr_multiplier
 
+    def _set_noise(self,
+                   use_noise=False,
+                   noise_strength=0.0,
+                   noise_strength_trainable=True):
+        if not use_noise:
+            self.noise = None
+        else:
+            self.noise = GaussianNoise(
+                stddev=1.0,
+                strength=noise_strength,
+                strength_trainable=noise_strength_trainable,
+                channel_same=True)
+
     def _get_channel_axis(self):
         if self.data_format == 'channels_first':
             return 1
@@ -52,7 +67,9 @@ class ConvBase:
             'gain':
                 self.gain,
             'lr_multiplier':
-                self.lr_multiplier
+                self.lr_multiplier,
+            'noise':
+                get_layer_config(self.noise)
         })
 
 
@@ -123,6 +140,9 @@ class Conv(ConvBase, convolutional.Conv):
     """
 
     def __init__(self,
+                 use_noise=False,
+                 noise_strength=0.0,
+                 noise_strength_trainable=True,
                  use_weight_scaling=False,
                  gain=np.sqrt(2),
                  lr_multiplier=1.0,
@@ -134,6 +154,9 @@ class Conv(ConvBase, convolutional.Conv):
                 gain,
                 lr_multiplier) or kernel_initializer,
             **kwargs)
+        self._set_noise(use_noise,
+                        noise_strength,
+                        noise_strength_trainable)
 
     def build(self, input_shape):
         super().build(input_shape)
@@ -150,23 +173,30 @@ class Conv(ConvBase, convolutional.Conv):
             kernel = self.kernel
         outputs = self._convolution_op(inputs, kernel)
 
+        if self.noise:
+            outputs = self.noise(outputs)
+
         if self.use_bias:
+            if self.use_weight_scaling:
+                bias = self.bias * self.lr_multiplier
+            else:
+                bias = self.bias
             output_rank = outputs.shape.rank
             if self.rank == 1 and self._channels_first:
                 # nn.bias_add does not accept a 1D input tensor.
-                bias = tf.reshape(self.bias, (1, self.filters, 1))
+                bias = tf.reshape(bias, (1, self.filters, 1))
                 outputs += bias
             # Handle multiple batch dimensions.
             elif output_rank is not None and output_rank > 2 + self.rank:
                 def _apply_fn(o):
                     return tf.nn.bias_add(
-                        o, self.bias, data_format=self._tf_data_format)
+                        o, bias, data_format=self._tf_data_format)
 
                 outputs = nn_ops.squeeze_batch_dims(
                     outputs, _apply_fn, inner_rank=self.rank + 1)
             else:
                 outputs = tf.nn.bias_add(
-                    outputs, self.bias, data_format=self._tf_data_format)
+                    outputs, bias, data_format=self._tf_data_format)
 
         if self.activation is not None:
             return self.activation(outputs)
@@ -188,6 +218,9 @@ class Conv1D(Conv):
                  dilation_rate=1,
                  groups=1,
                  activation=None,
+                 use_noise=False,
+                 noise_strength=0.0,
+                 noise_strength_trainable=True,
                  use_bias=False,
                  use_weight_scaling=False,
                  gain=np.sqrt(2),
@@ -210,6 +243,9 @@ class Conv1D(Conv):
             dilation_rate=dilation_rate,
             groups=groups,
             activation=activations.get(activation),
+            use_noise=use_noise,
+            noise_strength=noise_strength,
+            noise_strength_trainable=noise_strength_trainable,
             use_bias=use_bias,
             use_weight_scaling=use_weight_scaling,
             gain=gain,
@@ -234,6 +270,9 @@ class Conv2D(Conv):
                  dilation_rate=(1, 1),
                  groups=1,
                  activation=None,
+                 use_noise=False,
+                 noise_strength=0.0,
+                 noise_strength_trainable=True,
                  use_bias=False,
                  use_weight_scaling=False,
                  gain=np.sqrt(2),
@@ -256,6 +295,9 @@ class Conv2D(Conv):
             dilation_rate=dilation_rate,
             groups=groups,
             activation=activations.get(activation),
+            use_noise=use_noise,
+            noise_strength=noise_strength,
+            noise_strength_trainable=noise_strength_trainable,
             use_bias=use_bias,
             use_weight_scaling=use_weight_scaling,
             gain=gain,
@@ -280,6 +322,9 @@ class Conv3D(Conv):
                  dilation_rate=(1, 1, 1),
                  groups=1,
                  activation=None,
+                 use_noise=False,
+                 noise_strength=0.0,
+                 noise_strength_trainable=True,
                  use_bias=False,
                  use_weight_scaling=False,
                  gain=np.sqrt(2),
@@ -302,6 +347,9 @@ class Conv3D(Conv):
             dilation_rate=dilation_rate,
             groups=groups,
             activation=activations.get(activation),
+            use_noise=use_noise,
+            noise_strength=noise_strength,
+            noise_strength_trainable=noise_strength_trainable,
             use_bias=use_bias,
             use_weight_scaling=use_weight_scaling,
             gain=gain,
@@ -326,6 +374,9 @@ class Conv1DTranspose(ConvBase, convolutional.Conv1DTranspose):
                  data_format=None,
                  dilation_rate=1,
                  activation=None,
+                 use_noise=False,
+                 noise_strength=0.0,
+                 noise_strength_trainable=True,
                  use_bias=True,
                  use_weight_scaling=False,
                  gain=np.sqrt(2),
@@ -359,6 +410,9 @@ class Conv1DTranspose(ConvBase, convolutional.Conv1DTranspose):
             kernel_constraint=kernel_constraint,
             bias_constraint=bias_constraint,
             **kwargs)
+        self._set_noise(use_noise,
+                        noise_strength,
+                        noise_strength_trainable)
 
     def build(self, input_shape):
         super().build(input_shape)
@@ -408,6 +462,9 @@ class Conv1DTranspose(ConvBase, convolutional.Conv1DTranspose):
             out_shape = self.compute_output_shape(inputs.shape)
             outputs.set_shape(out_shape)
 
+        if self.noise:
+            outputs = self.noise(outputs)
+
         if self.use_bias:
             outputs = tf.nn.bias_add(
                 outputs,
@@ -434,6 +491,9 @@ class Conv2DTranspose(ConvBase, convolutional.Conv2DTranspose):
                  data_format=None,
                  dilation_rate=(1, 1),
                  activation=None,
+                 use_noise=False,
+                 noise_strength=0.0,
+                 noise_strength_trainable=True,
                  use_bias=True,
                  use_weight_scaling=False,
                  gain=np.sqrt(2),
@@ -467,6 +527,9 @@ class Conv2DTranspose(ConvBase, convolutional.Conv2DTranspose):
             kernel_constraint=kernel_constraint,
             bias_constraint=bias_constraint,
             **kwargs)
+        self._set_noise(use_noise,
+                        noise_strength,
+                        noise_strength_trainable)
 
     def build(self, input_shape):
         super().build(input_shape)
@@ -535,6 +598,9 @@ class Conv2DTranspose(ConvBase, convolutional.Conv2DTranspose):
             out_shape = self.compute_output_shape(inputs.shape)
             outputs.set_shape(out_shape)
 
+        if self.noise:
+            outputs = self.noise(outputs)
+
         if self.use_bias:
             outputs = tf.nn.bias_add(
                 outputs,
@@ -562,6 +628,9 @@ class Conv3DTranspose(ConvBase, convolutional.Conv3DTranspose):
                  data_format=None,
                  dilation_rate=(1, 1, 1),
                  activation=None,
+                 use_noise=False,
+                 noise_strength=0.0,
+                 noise_strength_trainable=True,
                  use_bias=True,
                  use_weight_scaling=False,
                  gain=np.sqrt(2),
@@ -595,6 +664,9 @@ class Conv3DTranspose(ConvBase, convolutional.Conv3DTranspose):
             kernel_constraint=kernel_constraint,
             bias_constraint=bias_constraint,
             **kwargs)
+        self._set_noise(use_noise,
+                        noise_strength,
+                        noise_strength_trainable)
 
     def build(self, input_shape):
         super().build(input_shape)
@@ -664,6 +736,9 @@ class Conv3DTranspose(ConvBase, convolutional.Conv3DTranspose):
             out_shape = self.compute_output_shape(inputs.shape)
             outputs.set_shape(out_shape)
 
+        if self.noise:
+            outputs = self.noise(outputs)
+
         if self.use_bias:
             outputs = tf.nn.bias_add(
                 outputs,
@@ -695,6 +770,9 @@ class UpsampleConv2D(Conv2D):
                  dilation_rate=(1, 1),
                  groups=1,
                  activation=None,
+                 use_noise=False,
+                 noise_strength=0.0,
+                 noise_strength_trainable=True,
                  use_bias=False,
                  use_weight_scaling=False,
                  gain=np.sqrt(2),
@@ -716,6 +794,9 @@ class UpsampleConv2D(Conv2D):
             dilation_rate=dilation_rate,
             groups=groups,
             activation=activation,
+            use_noise=use_noise,
+            noise_strength=noise_strength,
+            noise_strength_trainable=noise_strength_trainable,
             use_bias=use_bias,
             use_weight_scaling=use_weight_scaling,
             gain=gain,
@@ -785,6 +866,9 @@ class SubPixelConv2D(Conv2D):
                  dilation_rate=(1, 1),
                  groups=1,
                  activation=None,
+                 use_noise=False,
+                 noise_strength=0.0,
+                 noise_strength_trainable=True,
                  use_bias=False,
                  use_weight_scaling=False,
                  gain=np.sqrt(2),
@@ -814,6 +898,9 @@ class SubPixelConv2D(Conv2D):
             dilation_rate=dilation_rate,
             groups=groups,
             activation=activation,
+            use_noise=use_noise,
+            noise_strength=noise_strength,
+            noise_strength_trainable=noise_strength_trainable,
             use_bias=use_bias,
             use_weight_scaling=False,  # `use_weight_scaling` should be False.
             gain=gain,

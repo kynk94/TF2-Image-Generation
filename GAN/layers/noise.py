@@ -1,3 +1,8 @@
+"""
+Copyright (C) https://github.com/kynk94. All rights reserved.
+Licensed under the CC BY-NC-SA 4.0 license
+(https://creativecommons.org/licenses/by-nc-sa/4.0/).
+"""
 import tensorflow as tf
 
 
@@ -31,7 +36,7 @@ class GaussianNoise(tf.keras.layers.GaussianNoise):
     def call(self, inputs, training=None):
         def noised():
             batch = inputs.shape[0] or 1
-            noise = tf.random.normal(shape=[batch, *self.noise_shape],
+            noise = tf.random.normal(shape=(batch, *self.noise_shape),
                                      mean=0.0,
                                      stddev=self.stddev,
                                      dtype=inputs.dtype)
