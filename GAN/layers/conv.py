@@ -466,9 +466,13 @@ class Conv1DTranspose(ConvBase, convolutional.Conv1DTranspose):
             outputs = self.noise(outputs)
 
         if self.use_bias:
+            if self.use_weight_scaling:
+                bias = self.bias * self.lr_multiplier
+            else:
+                bias = self.bias
             outputs = tf.nn.bias_add(
                 outputs,
-                self.bias,
+                bias,
                 data_format=data_format)
 
         if self.activation is not None:
@@ -602,9 +606,13 @@ class Conv2DTranspose(ConvBase, convolutional.Conv2DTranspose):
             outputs = self.noise(outputs)
 
         if self.use_bias:
+            if self.use_weight_scaling:
+                bias = self.bias * self.lr_multiplier
+            else:
+                bias = self.bias
             outputs = tf.nn.bias_add(
                 outputs,
-                self.bias,
+                bias,
                 data_format=conv_utils.convert_data_format(
                     self.data_format, ndim=4))
 
@@ -740,9 +748,13 @@ class Conv3DTranspose(ConvBase, convolutional.Conv3DTranspose):
             outputs = self.noise(outputs)
 
         if self.use_bias:
+            if self.use_weight_scaling:
+                bias = self.bias * self.lr_multiplier
+            else:
+                bias = self.bias
             outputs = tf.nn.bias_add(
                 outputs,
-                self.bias,
+                bias,
                 data_format=conv_utils.convert_data_format(self.data_format, ndim=4))
 
         if self.activation is not None:
