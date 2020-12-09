@@ -183,8 +183,11 @@ def main():
                                           args['auto_square'],
                                           args['n_target'])
     patch_index = np.where(patch_info.reshape(-1) == 1)[0]
-
-    basename = os.path.basename(os.path.dirname(images[0]))
+    
+    if args['input'].endswith('/') or args['input'].endswith('\\'):
+        basename = os.path.basename(os.path.dirname(args['input']))
+    else:
+        basename = os.path.basename(args['input'])
     out_dir = os.path.join(args['output'], basename)
     os.makedirs(out_dir, exist_ok=True)
     for image in tqdm.tqdm(images):
