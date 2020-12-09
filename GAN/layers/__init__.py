@@ -15,6 +15,7 @@ from .conv_blocks import TransConv1DBlock, TransConv2DBlock, TransConv3DBlock
 from .conv_blocks import UpsampleConv2DBlock, SubPixelConv2DBlock
 from .dense import Dense
 from .embedding import Embedding
+from .noise import GaussianNoise
 from .normalizations import FilterResponseNormalization
 from .padding import Padding1D, Padding2D, Padding3D
 from .residual_blocks import ResIdentityBlock2D
