@@ -8,11 +8,13 @@ from tensorflow.keras.layers import ReLU, LeakyReLU
 from tensorflow.keras.layers import BatchNormalization, Dropout
 from tensorflow_addons.layers import Maxout
 from .conv import Conv1D, Conv2D, Conv3D
-from .conv import Conv1DTranspose, Conv2DTranspose, Conv3DTranspose
-from .conv import UpsampleConv2D, SubPixelConv2D
+from .conv import SubPixelConv2D
+from .conv import TransposeConv1D, TransposeConv2D, TransposeConv3D
+from .conv import UpsampleConv1D, UpsampleConv2D, UpsampleConv3D
 from .conv_blocks import Conv1DBlock, Conv2DBlock, Conv3DBlock
+from .conv_blocks import SubPixelConv2DBlock
 from .conv_blocks import TransConv1DBlock, TransConv2DBlock, TransConv3DBlock
-from .conv_blocks import UpsampleConv2DBlock, SubPixelConv2DBlock
+from .conv_blocks import UpsampleConv1DBlock, UpsampleConv2DBlock, UpsampleConv3DBlock
 from .dense import Dense
 from .embedding import Embedding
 from .noise import GaussianNoise

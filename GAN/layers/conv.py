@@ -194,13 +194,13 @@ class Conv(ConvBase, convolutional.Conv):
             # Handle multiple batch dimensions.
             elif output_rank is not None and output_rank > 2 + self.rank:
                 def _apply_fn(o):
-                    return nn_ops.bias_add(
+                    return tf.nn.bias_add(
                         o, bias, data_format=self._tf_data_format)
 
                 outputs = nn_ops.squeeze_batch_dims(
                     outputs, _apply_fn, inner_rank=self.rank + 1)
             else:
-                outputs = nn_ops.bias_add(
+                outputs = tf.nn.bias_add(
                     outputs, bias, data_format=self._tf_data_format)
 
         if self.activation is not None:
@@ -369,7 +369,7 @@ class Conv3D(Conv):
             **kwargs)
 
 
-class ConvTranspose(Conv):
+class TransposeConv(Conv):
     """
     Inherited from the official tf implementation.
     (edited by https://github.com/kynk94)
@@ -387,6 +387,7 @@ class ConvTranspose(Conv):
                  output_padding=None,
                  data_format=None,
                  dilation_rate=1,
+                 groups=1,
                  activation=None,
                  use_noise=False,
                  noise_strength=0.0,
@@ -411,6 +412,7 @@ class ConvTranspose(Conv):
             padding=padding,
             data_format=data_format,
             dilation_rate=dilation_rate,
+            groups=groups,
             activation=activation,
             use_noise=use_noise,
             noise_strength=noise_strength,
@@ -446,10 +448,17 @@ class ConvTranspose(Conv):
         if input_shape.dims[self._channel_axis].value is None:
             raise ValueError('The channel dimension of the inputs should be '
                              'defined. Found `None`.')
-        input_dim = int(input_shape[self._channel_axis])
+        input_channel = int(input_shape[self._channel_axis])
+        if input_channel % self.groups != 0:
+            raise ValueError(
+                'The number of input channels must be evenly divisible by the '
+                f'number of groups. Received groups={self.groups}, but the '
+                f'input has {input_channel} channels (full input shape is '
+                f'{input_shape}).')
         self.input_spec = tf.keras.layers.InputSpec(
-            ndim=self.rank + 2, axes={self._channel_axis: input_dim})
-        kernel_shape = self.kernel_size + (self.filters, input_dim)
+            ndim=self.rank + 2, axes={self._channel_axis: input_channel})
+        kernel_shape = self.kernel_size + (self.filters // self.groups,
+                                           input_channel)
 
         self.kernel = self.add_weight(
             'kernel',
@@ -471,9 +480,8 @@ class ConvTranspose(Conv):
         else:
             self.bias = None
 
-        spatial_input_shape = [input_shape[axis]
-                               for axis in self._spatial_axis]
-        spatial_output_shape = self._spatial_output_shape(spatial_input_shape)
+        spatial_output_shape = self._spatial_output_shape(
+            input_shape[axis] for axis in self._spatial_axis)
         if self.data_format == 'channels_first':
             self.spatial_output_shape = (self.filters, *spatial_output_shape)
         else:
@@ -485,17 +493,17 @@ class ConvTranspose(Conv):
             'dilations': self.dilation_rate,
             'data_format': self._tf_data_format}
         if self.rank == 1:
-            conv_op = nn_ops.conv1d_transpose
+            conv_op = tf.nn.conv1d_transpose
         elif self.rank == 2:
             if self.dilation_rate[0] == 1:
-                conv_op = nn_ops.conv2d_transpose
+                conv_op = tf.nn.conv2d_transpose
             else:
                 conv_op = tf.keras.backend.conv2d_transpose
                 conv_kwargs.update({
                     'dilation_rate': conv_kwargs.pop('dilations'),
                     'data_format': self.data_format})
         else:
-            conv_op = nn_ops.conv3d_transpose
+            conv_op = tf.nn.conv3d_transpose
 
         self._convolution_op = functools.partial(
             conv_op,
@@ -525,7 +533,7 @@ class ConvTranspose(Conv):
                 bias = self.bias * self.lr_multiplier
             else:
                 bias = self.bias
-            outputs = nn_ops.bias_add(
+            outputs = tf.nn.bias_add(
                 outputs, bias, data_format=self._tf_data_format)
 
         if self.activation is not None:
@@ -556,7 +564,7 @@ class ConvTranspose(Conv):
         return config
 
 
-class Conv1DTranspose(ConvTranspose):
+class TransposeConv1D(TransposeConv):
     def __init__(self,
                  filters,
                  kernel_size,
@@ -565,6 +573,7 @@ class Conv1DTranspose(ConvTranspose):
                  output_padding=None,
                  data_format=None,
                  dilation_rate=1,
+                 groups=1,
                  activation=None,
                  use_noise=False,
                  noise_strength=0.0,
@@ -590,6 +599,7 @@ class Conv1DTranspose(ConvTranspose):
             output_padding=output_padding,
             data_format=data_format,
             dilation_rate=dilation_rate,
+            groups=groups,
             activation=activation,
             use_noise=use_noise,
             noise_strength=noise_strength,
@@ -608,7 +618,7 @@ class Conv1DTranspose(ConvTranspose):
             **kwargs)
 
 
-class Conv2DTranspose(ConvTranspose):
+class TransposeConv2D(TransposeConv):
     def __init__(self,
                  filters,
                  kernel_size,
@@ -617,6 +627,7 @@ class Conv2DTranspose(ConvTranspose):
                  output_padding=None,
                  data_format=None,
                  dilation_rate=(1, 1),
+                 groups=1,
                  activation=None,
                  use_noise=False,
                  noise_strength=0.0,
@@ -642,6 +653,7 @@ class Conv2DTranspose(ConvTranspose):
             output_padding=output_padding,
             data_format=data_format,
             dilation_rate=dilation_rate,
+            groups=groups,
             activation=activation,
             use_noise=use_noise,
             noise_strength=noise_strength,
@@ -660,7 +672,7 @@ class Conv2DTranspose(ConvTranspose):
             **kwargs)
 
 
-class Conv3DTranspose(ConvTranspose):
+class TransposeConv3D(TransposeConv):
     def __init__(self,
                  filters,
                  kernel_size,
@@ -669,6 +681,7 @@ class Conv3DTranspose(ConvTranspose):
                  output_padding=None,
                  data_format=None,
                  dilation_rate=(1, 1, 1),
+                 groups=1,
                  activation=None,
                  use_noise=False,
                  noise_strength=0.0,
@@ -694,6 +707,7 @@ class Conv3DTranspose(ConvTranspose):
             output_padding=output_padding,
             data_format=data_format,
             dilation_rate=dilation_rate,
+            groups=groups,
             activation=activation,
             use_noise=use_noise,
             noise_strength=noise_strength,
@@ -712,15 +726,16 @@ class Conv3DTranspose(ConvTranspose):
             **kwargs)
 
 
-class UpsampleConv2D(Conv2D):
+class UpsampleConv(Conv):
     def __init__(self,
+                 rank,
                  filters,
                  kernel_size,
                  strides=(1, 1),
                  padding='valid',
                  size=None,
                  scale=None,
-                 method='bilinear',
+                 method='nearest',
                  preserve_aspect_ratio=False,
                  antialias=False,
                  data_format=None,
@@ -743,6 +758,7 @@ class UpsampleConv2D(Conv2D):
                  bias_constraint=None,
                  **kwargs):
         super().__init__(
+            rank=rank,
             filters=filters,
             kernel_size=kernel_size,
             strides=strides,
@@ -770,45 +786,305 @@ class UpsampleConv2D(Conv2D):
             raise ValueError('Either `size` or `scale` should not be None.')
         self.size = size
         self.scale = scale
-        self.method = method
+        self.is_integer_scale = True
+        self.method = method.lower()
         self.preserve_aspect_ratio = preserve_aspect_ratio
         self.antialias = antialias
+        if rank == 3 and self.method != 'nearest':
+            raise ValueError('UpsampleConv3D only support nearest method.')
 
     def build(self, input_shape):
+        input_shape = tf.TensorShape(input_shape)
         self._check_scaled_size(input_shape)
-        self._resize_op = functools.partial(
-            tf.image.resize,
-            size=self.size,
-            method=self.method,
-            preserve_aspect_ratio=self.preserve_aspect_ratio,
-            antialias=self.antialias,
-            name='resize')
-        super.build(input_shape)
+
+        input_channels = int(input_shape[self._channel_axis])
+        if self.method == 'nearest' and self.is_integer_scale:
+            new_shape = []
+            tile_multiples = []
+            return_shape = []
+            for axis, scale in zip(self._spatial_axis, self.scale):
+                new_shape.extend([input_shape[axis], 1])
+                tile_multiples.extend([1, scale])
+                return_shape.append(input_shape[axis] * scale)
+            if self.data_format == 'channels_first':
+                new_shape = (-1, input_channels, *new_shape)
+                tile_multiples = (1, 1, *tile_multiples)
+                return_shape = (-1, input_channels, *return_shape)
+            else:
+                new_shape = (-1, *new_shape, input_channels)
+                tile_multiples = (1, *tile_multiples, 1)
+                return_shape = (-1, *return_shape, input_channels)
+
+            def resize_op(inputs):
+                outputs = tf.reshape(inputs, new_shape)
+                outputs = tf.tile(outputs, tile_multiples)
+                return tf.reshape(outputs, return_shape)
+        else:
+            # tf.image.resize only supports data format `channels_last`
+            if self.rank == 1:
+                def _resize_op(inputs):
+                    outputs = tf.expand_dims(inputs, 2)
+                    outputs = tf.image.resize(
+                        outputs,
+                        size=self.size + (1,),
+                        method=self.method,
+                        preserve_aspect_ratio=self.preserve_aspect_ratio,
+                        antialias=self.antialias,
+                        name='resize')
+                    return tf.squeeze(outputs, axis=2)
+            elif self.rank == 2:
+                _resize_op = functools.partial(
+                    tf.image.resize,
+                    size=self.size,
+                    method=self.method,
+                    preserve_aspect_ratio=self.preserve_aspect_ratio,
+                    antialias=self.antialias,
+                    name='resize')
+            else:
+                raise NotImplementedError(
+                    'UpsampleConv3D only support nearest method.')
+
+            if self.data_format == 'channels_first':
+                transpose_axis = (0, *self._spatial_axis, self._channel_axis)
+                return_axis = (0, self.rank+1, *range(1, self.rank+1))
+
+                def resize_op(inputs):
+                    outputs = tf.transpose(inputs, transpose_axis)
+                    outputs = _resize_op(outputs)
+                    return tf.transpose(outputs, return_axis)
+            else:
+                resize_op = _resize_op
+        self._resize_op = resize_op
+        super().build(input_shape)
 
     def call(self, inputs):
         outputs = self._resize_op(inputs)
-        outputs = super().call(outputs)
-        return outputs
+        return super().call(outputs)
 
     def _check_scaled_size(self, input_shape):
-        if self.size is not None:
-            self.size = conv_utils.normalize_tuple(self.size, 2, 'size')
-            return
-        spatial_axis = range(len(input_shape))
-        del spatial_axis[self.channel_axis]
-        del spatial_axis[0]
-        self.size = tuple(input_shape[axis] * self.scale
-                          for axis in spatial_axis)
+        def _check_scale(scale):
+            if hasattr(scale, '__len__'):
+                if len(scale) != self.rank:
+                    raise ValueError('`scale` should have length of `rank`.')
+                if self.preserve_aspect_ratio:
+                    scale = (min(scale),) * self.rank
+            else:
+                scale = (scale,) * self.rank
+            for s in scale:
+                if hasattr(s, 'is_integer') and not s.is_integer():
+                    self.is_integer_scale = False
+                    return scale
+            return tuple(map(int, scale))
+
+        if self.size is None:
+            self.scale = _check_scale(self.scale)
+            self.size = tuple(
+                int(input_shape[axis] * scale)
+                for axis, scale in zip(self._spatial_axis, self.scale))
+        else:
+            self.size = conv_utils.normalize_tuple(
+                self.size, self.rank, 'size')
+            self.scale = _check_scale(
+                input_shape[axis] / size
+                for axis, size in zip(self._spatial_axis, self.size))
+
+        if self.rank == 3 and not self.is_integer_scale:
+            raise ValueError(f'`scale` is not integer. Received: {self.scale}')
 
     def get_config(self):
         config = super().get_config()
         config.update({
-            'size': self.size,
+            'scale': self.scale,
             'method': self.method,
             'preserve_aspect_ratio': self.preserve_aspect_ratio,
             'antialias': self.antialias
         })
-        return config
+
+
+class UpsampleConv1D(UpsampleConv):
+    def __init__(self,
+                 filters,
+                 kernel_size,
+                 strides=1,
+                 padding='valid',
+                 size=None,
+                 scale=None,
+                 method='nearest',
+                 preserve_aspect_ratio=False,
+                 antialias=False,
+                 data_format=None,
+                 dilation_rate=1,
+                 groups=1,
+                 activation=None,
+                 use_noise=False,
+                 noise_strength=0.0,
+                 noise_strength_trainable=True,
+                 use_bias=False,
+                 use_weight_scaling=False,
+                 gain=np.sqrt(2),
+                 lr_multiplier=1.0,
+                 kernel_initializer='he_normal',
+                 bias_initializer='zeros',
+                 kernel_regularizer=None,
+                 bias_regularizer=None,
+                 activity_regularizer=None,
+                 kernel_constraint=None,
+                 bias_constraint=None,
+                 **kwargs):
+        super().__init__(
+            rank=1,
+            filters=filters,
+            kernel_size=kernel_size,
+            strides=strides,
+            padding=padding,
+            size=size,
+            scale=scale,
+            method=method,
+            preserve_aspect_ratio=preserve_aspect_ratio,
+            antialias=antialias,
+            data_format=data_format,
+            dilation_rate=dilation_rate,
+            groups=groups,
+            activation=activation,
+            use_noise=use_noise,
+            noise_strength=noise_strength,
+            noise_strength_trainable=noise_strength_trainable,
+            use_bias=use_bias,
+            use_weight_scaling=use_weight_scaling,
+            gain=gain,
+            lr_multiplier=lr_multiplier,
+            kernel_initializer=kernel_initializer,
+            bias_initializer=bias_initializer,
+            kernel_regularizer=kernel_regularizer,
+            bias_regularizer=bias_regularizer,
+            activity_regularizer=activity_regularizer,
+            kernel_constraint=kernel_constraint,
+            bias_constraint=bias_constraint,
+            **kwargs)
+
+
+class UpsampleConv2D(UpsampleConv):
+    def __init__(self,
+                 filters,
+                 kernel_size,
+                 strides=(1, 1),
+                 padding='valid',
+                 size=None,
+                 scale=None,
+                 method='nearest',
+                 preserve_aspect_ratio=False,
+                 antialias=False,
+                 data_format=None,
+                 dilation_rate=(1, 1),
+                 groups=1,
+                 activation=None,
+                 use_noise=False,
+                 noise_strength=0.0,
+                 noise_strength_trainable=True,
+                 use_bias=False,
+                 use_weight_scaling=False,
+                 gain=np.sqrt(2),
+                 lr_multiplier=1.0,
+                 kernel_initializer='he_normal',
+                 bias_initializer='zeros',
+                 kernel_regularizer=None,
+                 bias_regularizer=None,
+                 activity_regularizer=None,
+                 kernel_constraint=None,
+                 bias_constraint=None,
+                 **kwargs):
+        super().__init__(
+            rank=2,
+            filters=filters,
+            kernel_size=kernel_size,
+            strides=strides,
+            padding=padding,
+            size=size,
+            scale=scale,
+            method=method,
+            preserve_aspect_ratio=preserve_aspect_ratio,
+            antialias=antialias,
+            data_format=data_format,
+            dilation_rate=dilation_rate,
+            groups=groups,
+            activation=activation,
+            use_noise=use_noise,
+            noise_strength=noise_strength,
+            noise_strength_trainable=noise_strength_trainable,
+            use_bias=use_bias,
+            use_weight_scaling=use_weight_scaling,
+            gain=gain,
+            lr_multiplier=lr_multiplier,
+            kernel_initializer=kernel_initializer,
+            bias_initializer=bias_initializer,
+            kernel_regularizer=kernel_regularizer,
+            bias_regularizer=bias_regularizer,
+            activity_regularizer=activity_regularizer,
+            kernel_constraint=kernel_constraint,
+            bias_constraint=bias_constraint,
+            **kwargs)
+
+
+class UpsampleConv3D(UpsampleConv):
+    def __init__(self,
+                 filters,
+                 kernel_size,
+                 strides=(1, 1, 1),
+                 padding='valid',
+                 size=None,
+                 scale=None,
+                 method='nearest',
+                 preserve_aspect_ratio=False,
+                 antialias=False,
+                 data_format=None,
+                 dilation_rate=(1, 1, 1),
+                 groups=1,
+                 activation=None,
+                 use_noise=False,
+                 noise_strength=0.0,
+                 noise_strength_trainable=True,
+                 use_bias=False,
+                 use_weight_scaling=False,
+                 gain=np.sqrt(2),
+                 lr_multiplier=1.0,
+                 kernel_initializer='he_normal',
+                 bias_initializer='zeros',
+                 kernel_regularizer=None,
+                 bias_regularizer=None,
+                 activity_regularizer=None,
+                 kernel_constraint=None,
+                 bias_constraint=None,
+                 **kwargs):
+        super().__init__(
+            rank=3,
+            filters=filters,
+            kernel_size=kernel_size,
+            strides=strides,
+            padding=padding,
+            size=size,
+            scale=scale,
+            method=method,
+            preserve_aspect_ratio=preserve_aspect_ratio,
+            antialias=antialias,
+            data_format=data_format,
+            dilation_rate=dilation_rate,
+            groups=groups,
+            activation=activation,
+            use_noise=use_noise,
+            noise_strength=noise_strength,
+            noise_strength_trainable=noise_strength_trainable,
+            use_bias=use_bias,
+            use_weight_scaling=use_weight_scaling,
+            gain=gain,
+            lr_multiplier=lr_multiplier,
+            kernel_initializer=kernel_initializer,
+            bias_initializer=bias_initializer,
+            kernel_regularizer=kernel_regularizer,
+            bias_regularizer=bias_regularizer,
+            activity_regularizer=activity_regularizer,
+            kernel_constraint=kernel_constraint,
+            bias_constraint=bias_constraint,
+            **kwargs)
 
 
 class SubPixelConv2D(Conv2D):

@@ -7,8 +7,8 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.python.keras.utils.conv_utils import normalize_data_format
 from tensorflow_addons.layers import SpectralNormalization
-from .conv import Conv, Conv1DTranspose, Conv2DTranspose, Conv3DTranspose
-from .conv import UpsampleConv2D, SubPixelConv2D
+from .conv import Conv, TransposeConv
+from .conv import UpsampleConv, SubPixelConv2D
 from .utils import get_activation_layer, get_normalization_layer, get_padding_layer
 from .utils import get_layer_config
 
@@ -62,7 +62,7 @@ class BaseBlock(tf.keras.Model):
                                      constant_values=pad_constant_values,
                                      data_format=self.data_format)
 
-        # convolutioni layer
+        # convolution layer
         self.conv = getattr(self, 'conv', None)
 
     def call(self, inputs):
@@ -513,13 +513,8 @@ class TransConvBlock(BaseBlock):
             **kwargs)
 
         # convolution layer
-        if rank == 1:
-            conv = Conv1DTranspose
-        elif rank == 2:
-            conv = Conv2DTranspose
-        else:
-            conv = Conv3DTranspose
-        self.conv = conv(
+        self.conv = TransposeConv(
+            rank=rank,
             filters=filters,
             kernel_size=kernel_size,
             strides=strides,
@@ -794,7 +789,7 @@ class TransConv3DBlock(TransConvBlock):
             **kwargs)
 
 
-class UpsampleConv2DBlock(BaseBlock):
+class UpsampleConvBlock(BaseBlock):
     """
     Upsample Convolution Block.
 
@@ -803,6 +798,196 @@ class UpsampleConv2DBlock(BaseBlock):
     """
 
     def __init__(self,
+                 rank,
+                 filters,
+                 kernel_size,
+                 strides=1,
+                 padding=0,
+                 conv_padding='valid',
+                 size=None,
+                 scale=None,
+                 method='nearest',
+                 preserve_aspect_ratio=False,
+                 antialias=False,
+                 dilation_rate=1,
+                 groups=1,
+                 use_noise=False,
+                 noise_strength=0.0,
+                 noise_strength_trainable=True,
+                 use_bias=False,
+                 use_spectral_norm=False,
+                 spectral_iteration=1,
+                 use_weight_scaling=False,
+                 gain=np.sqrt(2),
+                 lr_multiplier=1.0,
+                 kernel_initializer='he_normal',
+                 bias_initializer='zeros',
+                 kernel_regularizer=None,
+                 bias_regularizer=None,
+                 activity_regularizer=None,
+                 kernel_constraint=None,
+                 bias_constraint=None,
+                 data_format=None,
+                 pad_type='constant',
+                 pad_constant_values=0,
+                 normalization=None,
+                 normalization_first=False,
+                 norm_momentum=0.99,
+                 norm_group=32,
+                 activation=None,
+                 activation_alpha=0.3,
+                 activation_first=False,
+                 trainable=True,
+                 name=None,
+                 **kwargs):
+        super().__init__(
+            rank=rank,
+            data_format=data_format,
+            padding=padding,
+            pad_type=pad_type,
+            pad_constant_values=pad_constant_values,
+            normalization=normalization,
+            normalization_first=normalization_first,
+            norm_momentum=norm_momentum,
+            norm_group=norm_group,
+            activation=activation,
+            activation_first=activation_first,
+            activation_alpha=activation_alpha,
+            trainable=trainable,
+            name=name,
+            **kwargs)
+
+        # convolution layer
+        self.conv = UpsampleConv(
+            rank=rank,
+            filters=filters,
+            kernel_size=kernel_size,
+            strides=strides,
+            padding=conv_padding,
+            size=size,
+            scale=scale,
+            method=method,
+            preserve_aspect_ratio=preserve_aspect_ratio,
+            antialias=antialias,
+            data_format=self.data_format,
+            dilation_rate=dilation_rate,
+            groups=groups,
+            activation=None,
+            use_noise=use_noise,
+            noise_strength=noise_strength,
+            noise_strength_trainable=noise_strength_trainable,
+            use_bias=use_bias,
+            use_weight_scaling=use_weight_scaling,
+            gain=gain,
+            lr_multiplier=lr_multiplier,
+            kernel_initializer=kernel_initializer,
+            bias_initializer=bias_initializer,
+            kernel_regularizer=kernel_regularizer,
+            bias_regularizer=bias_regularizer,
+            activity_regularizer=activity_regularizer,
+            kernel_constraint=kernel_constraint,
+            bias_constraint=bias_constraint,
+            trainable=trainable,
+            name=f'upsample_conv{self.rank}d')
+
+        # spectral normalization
+        if use_spectral_norm:
+            self.conv = SpectralNormalization(
+                self.conv,
+                power_iterations=spectral_iteration,
+                name='spectral_normalization')
+
+
+class UpsampleConv1DBlock(BaseBlock):
+    def __init__(self,
+                 filters,
+                 kernel_size,
+                 strides=1,
+                 padding=0,
+                 conv_padding='valid',
+                 size=None,
+                 scale=None,
+                 method='nearest',
+                 preserve_aspect_ratio=False,
+                 antialias=False,
+                 dilation_rate=1,
+                 groups=1,
+                 use_noise=False,
+                 noise_strength=0.0,
+                 noise_strength_trainable=True,
+                 use_bias=False,
+                 use_spectral_norm=False,
+                 spectral_iteration=1,
+                 use_weight_scaling=False,
+                 gain=np.sqrt(2),
+                 lr_multiplier=1.0,
+                 kernel_initializer='he_normal',
+                 bias_initializer='zeros',
+                 kernel_regularizer=None,
+                 bias_regularizer=None,
+                 activity_regularizer=None,
+                 kernel_constraint=None,
+                 bias_constraint=None,
+                 data_format=None,
+                 pad_type='constant',
+                 pad_constant_values=0,
+                 normalization=None,
+                 normalization_first=False,
+                 norm_momentum=0.99,
+                 norm_group=32,
+                 activation=None,
+                 activation_alpha=0.3,
+                 activation_first=False,
+                 trainable=True,
+                 name=None,
+                 **kwargs):
+        super().__init__(
+            rank=1,
+            filters=filters,
+            kernel_size=kernel_size,
+            strides=strides,
+            padding=padding,
+            conv_padding=conv_padding,
+            size=size,
+            scale=scale,
+            method=method,
+            preserve_aspect_ratio=preserve_aspect_ratio,
+            antialias=antialias,
+            data_format=data_format,
+            dilation_rate=dilation_rate,
+            groups=groups,
+            use_noise=use_noise,
+            noise_strength=noise_strength,
+            noise_strength_trainable=noise_strength_trainable,
+            use_bias=use_bias,
+            use_spectral_norm=use_spectral_norm,
+            spectral_iteration=spectral_iteration,
+            use_weight_scaling=use_weight_scaling,
+            gain=gain,
+            lr_multiplier=lr_multiplier,
+            kernel_initializer=kernel_initializer,
+            bias_initializer=bias_initializer,
+            kernel_regularizer=kernel_regularizer,
+            bias_regularizer=bias_regularizer,
+            activity_regularizer=activity_regularizer,
+            kernel_constraint=kernel_constraint,
+            bias_constraint=bias_constraint,
+            pad_type=pad_type,
+            pad_constant_values=pad_constant_values,
+            normalization=normalization,
+            normalization_first=normalization_first,
+            norm_momentum=norm_momentum,
+            norm_group=norm_group,
+            activation=activation,
+            activation_first=activation_first,
+            activation_alpha=activation_alpha,
+            trainable=trainable,
+            name=name,
+            **kwargs)
+
+
+class UpsampleConv2DBlock(BaseBlock):
+    def __init__(self,
                  filters,
                  kernel_size,
                  strides=(1, 1),
@@ -810,7 +995,9 @@ class UpsampleConv2DBlock(BaseBlock):
                  conv_padding='valid',
                  size=None,
                  scale=None,
-                 method='bilinear',
+                 method='nearest',
+                 preserve_aspect_ratio=False,
+                 antialias=False,
                  dilation_rate=(1, 1),
                  groups=1,
                  use_noise=False,
@@ -844,8 +1031,35 @@ class UpsampleConv2DBlock(BaseBlock):
                  **kwargs):
         super().__init__(
             rank=2,
-            data_format=data_format,
+            filters=filters,
+            kernel_size=kernel_size,
+            strides=strides,
             padding=padding,
+            conv_padding=conv_padding,
+            size=size,
+            scale=scale,
+            method=method,
+            preserve_aspect_ratio=preserve_aspect_ratio,
+            antialias=antialias,
+            data_format=data_format,
+            dilation_rate=dilation_rate,
+            groups=groups,
+            use_noise=use_noise,
+            noise_strength=noise_strength,
+            noise_strength_trainable=noise_strength_trainable,
+            use_bias=use_bias,
+            use_spectral_norm=use_spectral_norm,
+            spectral_iteration=spectral_iteration,
+            use_weight_scaling=use_weight_scaling,
+            gain=gain,
+            lr_multiplier=lr_multiplier,
+            kernel_initializer=kernel_initializer,
+            bias_initializer=bias_initializer,
+            kernel_regularizer=kernel_regularizer,
+            bias_regularizer=bias_regularizer,
+            activity_regularizer=activity_regularizer,
+            kernel_constraint=kernel_constraint,
+            bias_constraint=bias_constraint,
             pad_type=pad_type,
             pad_constant_values=pad_constant_values,
             normalization=normalization,
@@ -859,23 +1073,71 @@ class UpsampleConv2DBlock(BaseBlock):
             name=name,
             **kwargs)
 
-        # convolution layer
-        self.conv = UpsampleConv2D(
+
+class UpsampleConv3DBlock(BaseBlock):
+    def __init__(self,
+                 filters,
+                 kernel_size,
+                 strides=(1, 1, 1),
+                 padding=(0, 0, 0),
+                 conv_padding='valid',
+                 size=None,
+                 scale=None,
+                 method='nearest',
+                 preserve_aspect_ratio=False,
+                 antialias=False,
+                 dilation_rate=(1, 1, 1),
+                 groups=1,
+                 use_noise=False,
+                 noise_strength=0.0,
+                 noise_strength_trainable=True,
+                 use_bias=False,
+                 use_spectral_norm=False,
+                 spectral_iteration=1,
+                 use_weight_scaling=False,
+                 gain=np.sqrt(2),
+                 lr_multiplier=1.0,
+                 kernel_initializer='he_normal',
+                 bias_initializer='zeros',
+                 kernel_regularizer=None,
+                 bias_regularizer=None,
+                 activity_regularizer=None,
+                 kernel_constraint=None,
+                 bias_constraint=None,
+                 data_format=None,
+                 pad_type='constant',
+                 pad_constant_values=0,
+                 normalization=None,
+                 normalization_first=False,
+                 norm_momentum=0.99,
+                 norm_group=32,
+                 activation=None,
+                 activation_alpha=0.3,
+                 activation_first=False,
+                 trainable=True,
+                 name=None,
+                 **kwargs):
+        super().__init__(
+            rank=3,
             filters=filters,
             kernel_size=kernel_size,
             strides=strides,
-            padding=conv_padding,
+            padding=padding,
+            conv_padding=conv_padding,
             size=size,
             scale=scale,
             method=method,
-            data_format=self.data_format,
+            preserve_aspect_ratio=preserve_aspect_ratio,
+            antialias=antialias,
+            data_format=data_format,
             dilation_rate=dilation_rate,
             groups=groups,
-            activation=None,
             use_noise=use_noise,
             noise_strength=noise_strength,
             noise_strength_trainable=noise_strength_trainable,
             use_bias=use_bias,
+            use_spectral_norm=use_spectral_norm,
+            spectral_iteration=spectral_iteration,
             use_weight_scaling=use_weight_scaling,
             gain=gain,
             lr_multiplier=lr_multiplier,
@@ -886,15 +1148,18 @@ class UpsampleConv2DBlock(BaseBlock):
             activity_regularizer=activity_regularizer,
             kernel_constraint=kernel_constraint,
             bias_constraint=bias_constraint,
+            pad_type=pad_type,
+            pad_constant_values=pad_constant_values,
+            normalization=normalization,
+            normalization_first=normalization_first,
+            norm_momentum=norm_momentum,
+            norm_group=norm_group,
+            activation=activation,
+            activation_first=activation_first,
+            activation_alpha=activation_alpha,
             trainable=trainable,
-            name=f'upsample_conv{self.rank}d')
-
-        # spectral normalization
-        if use_spectral_norm:
-            self.conv = SpectralNormalization(
-                self.conv,
-                power_iterations=spectral_iteration,
-                name='spectral_normalization')
+            name=name,
+            **kwargs)
 
 
 class SubPixelConv2DBlock(BaseBlock):
