@@ -630,7 +630,7 @@ class DownConvBlock(BaseBlock):
             kernel_constraint=kernel_constraint,
             bias_constraint=bias_constraint,
             trainable=trainable,
-            name=f'upsample_conv{self.rank}d')
+            name=f'downsample_conv{self.rank}d')
 
         # spectral normalization
         if use_spectral_norm:

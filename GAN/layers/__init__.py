@@ -22,5 +22,6 @@ from .embedding import Embedding
 from .noise import GaussianNoise
 from .normalizations import FilterResponseNormalization
 from .padding import Padding1D, Padding2D, Padding3D
-from .residual_blocks import ResBlock2D, UpResBlock2D, ResIdentityBlock2D
+from .residual_blocks import ResBlock2D, DownResBlock2D, UpResBlock2D
+from .residual_blocks import ResIdentityBlock2D
 from .resample import Downsample, Upsample
