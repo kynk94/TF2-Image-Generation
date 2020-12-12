@@ -7,8 +7,8 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.python.keras.utils.conv_utils import normalize_data_format
 from tensorflow_addons.layers import SpectralNormalization
-from .conv import Conv, TransposeConv
-from .conv import UpsampleConv, SubPixelConv2D
+from .conv import Conv, TransposeConv, UpsampleConv
+from .conv import SubPixelConv2D
 from .utils import get_activation_layer, get_normalization_layer, get_padding_layer
 from .utils import get_layer_config
 
@@ -898,7 +898,7 @@ class UpsampleConvBlock(BaseBlock):
                 name='spectral_normalization')
 
 
-class UpsampleConv1DBlock(BaseBlock):
+class UpsampleConv1DBlock(UpsampleConvBlock):
     def __init__(self,
                  filters,
                  kernel_size,
@@ -986,7 +986,7 @@ class UpsampleConv1DBlock(BaseBlock):
             **kwargs)
 
 
-class UpsampleConv2DBlock(BaseBlock):
+class UpsampleConv2DBlock(UpsampleConvBlock):
     def __init__(self,
                  filters,
                  kernel_size,
@@ -1074,7 +1074,7 @@ class UpsampleConv2DBlock(BaseBlock):
             **kwargs)
 
 
-class UpsampleConv3DBlock(BaseBlock):
+class UpsampleConv3DBlock(UpsampleConvBlock):
     def __init__(self,
                  filters,
                  kernel_size,
