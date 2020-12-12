@@ -87,7 +87,7 @@ class Padding(tf.keras.layers.Layer):
         pad_type_upper = pad_type.upper()
         if pad_type_upper in {'CONSTANT', 'REFLECT', 'SYMMETRIC'}:
             return pad_type_upper, constant_values
-        if pad_type_upper == 'ZERO':
+        if pad_type_upper in {'ZEROS', 'ZERO'}:
             return 'CONSTANT', 0
         raise ValueError(f'Unsupported `pad_type`: {pad_type}')
 

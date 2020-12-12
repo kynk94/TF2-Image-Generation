@@ -10,12 +10,15 @@ class GaussianNoise(tf.keras.layers.GaussianNoise):
     def __init__(self,
                  stddev=1.0,
                  strength=0.0,
-                 strength_trainable=True,
                  channel_same=True,
+                 trainable=True,
+                 name=None,
                  **kwargs):
-        super().__init__(stddev, **kwargs)
+        super().__init__(stddev=stddev,
+                         trainable=trainable,
+                         name=name,
+                         **kwargs)
         self.strength_val = strength
-        self.strength_trainable = strength_trainable
         self.channel_same = channel_same
 
     def build(self, input_shape):
@@ -28,10 +31,12 @@ class GaussianNoise(tf.keras.layers.GaussianNoise):
                 input_shape = [*input_shape[:-1], 1]
             input_shape = tf.TensorShape(input_shape)
         self.noise_shape = input_shape[1:]
-        self.strength = tf.Variable(initial_value=self.strength_val,
-                                    dtype=tf.dtypes.float32,
-                                    trainable=self.strength_trainable,
-                                    name='strength')
+        self.strength = self.add_weight(
+            name='strength',
+            shape=(),
+            initializer=tf.initializers.Constant(self.strength_val),
+            trainable=True,
+            dtype=self.dtype)
 
     def call(self, inputs, training=None):
         def noised():
@@ -39,17 +44,15 @@ class GaussianNoise(tf.keras.layers.GaussianNoise):
             noise = tf.random.normal(shape=shape,
                                      mean=0.0,
                                      stddev=self.stddev,
-                                     dtype=inputs.dtype)
-            return inputs + noise * tf.cast(self.strength, inputs.dtype)
-        return tf.keras.backend.in_train_phase(noised,
-                                               inputs,
-                                               training=training)
+                                     dtype=self.dtype)
+            return inputs + noise * self.strength
+        return tf.keras.backend.in_train_phase(
+            noised, inputs, training=training)
 
     def get_config(self):
         config = super().get_config()
         config.update({
-            'strength_val': self.strength_val,
-            'strength_trainable': self.strength_trainable,
+            'init_strength': self.strength_val,
             'channel_same': self.channel_same
         })
         return config

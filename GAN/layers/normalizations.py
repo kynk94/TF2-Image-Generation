@@ -56,7 +56,7 @@ class FilterResponseNormalization(tfa.layers.FilterResponseNormalization):
                  **kwargs):
         super().__init__(
             epsilon=epsilon,
-            axis=self._get_spatial_axis(axis),
+            axis=axis,
             beta_initializer=beta_initializer,
             gamma_initializer=gamma_initializer,
             beta_regularizer=beta_regularizer,
@@ -69,7 +69,7 @@ class FilterResponseNormalization(tfa.layers.FilterResponseNormalization):
             **kwargs)
 
     def build(self, input_shape):
-        self._set_spatial_axis(input_shape)
+        self._set_spatial_axes(input_shape)
         self._check_if_input_shape_is_none(input_shape)
         self._create_input_spec(input_shape)
         self._add_gamma_weight(input_shape)
@@ -83,7 +83,7 @@ class FilterResponseNormalization(tfa.layers.FilterResponseNormalization):
                 'Use tf.layer.batch_normalization instead')
         self.axis = axis
 
-    def _set_spatial_axis(self, input_shape):
+    def _set_spatial_axes(self, input_shape):
         reduction_axes = list(range(len(input_shape)))
         del reduction_axes[self.axis]
         del reduction_axes[0]
