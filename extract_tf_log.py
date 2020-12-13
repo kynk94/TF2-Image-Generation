@@ -11,7 +11,7 @@ import tensorflow as tf
 from collections import defaultdict
 from tqdm import tqdm
 from tensorflow.core.util import event_pb2
-from utils import DigitFirstSort, str_to_bool
+from util import DigitFirstSort, str_to_bool
 
 
 def main():

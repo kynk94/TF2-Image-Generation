@@ -7,6 +7,7 @@ import tensorflow as tf
 import tensorflow_addons as tfa
 from tensorflow.keras.layers import BatchNormalization, LayerNormalization
 from tensorflow_addons.layers import GroupNormalization, InstanceNormalization
+from .noise import GaussianNoise, UniformNoise
 from .normalizations import FilterResponseNormalization
 from .padding import Padding
 
@@ -64,6 +65,31 @@ def get_padding_layer(rank, padding, pad_type, constant_values, data_format):
                    name=f'padding{rank}d')
 
 
+def get_noise_layer(noise,
+                    strength=0.0,
+                    channel_same=True,
+                    trainable=True,
+                    **kwargs):
+    if noise is None:
+        return None
+    if hasattr(noise, '__call__'):
+        return noise
+    if isinstance(noise, str):
+        l_noise = noise.lower()
+        if l_noise in {'gaussian_noise', 'gaussian', 'normal_noise', 'normal'}:
+            return GaussianNoise(
+                strength=strength,
+                channel_same=channel_same,
+                trainable=trainable,
+                **kwargs)
+        if l_noise in {'uniform_noise', 'uniform'}:
+            return UniformNoise(
+                strength=strength,
+                channel_same=channel_same,
+                trainable=trainable,
+                **kwargs)
+
+
 def get_normalization_layer(channel_axis,
                             normalization,
                             normalization_momentum=0.99,
@@ -74,35 +100,35 @@ def get_normalization_layer(channel_axis,
     if hasattr(normalization, '__call__'):
         return normalization
     if isinstance(normalization, str):
-        normalization = normalization.lower()
-        if normalization in {'batch_normalization',
-                             'batch_norm', 'bn'}:
+        l_normalization = normalization.lower()
+        if l_normalization in {'batch_normalization',
+                               'batch_norm', 'bn'}:
             return BatchNormalization(
                 axis=channel_axis,
                 momentum=normalization_momentum,
                 epsilon=normalization_epsilon,
                 name='batch_normalization')
-        if normalization in {'layer_normalization',
-                             'layer_norm', 'ln'}:
+        if l_normalization in {'layer_normalization',
+                               'layer_norm', 'ln'}:
             return LayerNormalization(
                 axis=channel_axis,
                 epsilon=normalization_epsilon,
                 name='layer_normalization')
-        if normalization in {'instance_normalization',
-                             'instance_norm', 'in'}:
+        if l_normalization in {'instance_normalization',
+                               'instance_norm', 'in'}:
             return InstanceNormalization(
                 axis=channel_axis,
                 epsilon=normalization_epsilon,
                 name='instance_normalization')
-        if normalization in {'group_normalization',
-                             'group_norm', 'gn'}:
+        if l_normalization in {'group_normalization',
+                               'group_norm', 'gn'}:
             return GroupNormalization(
                 axis=channel_axis,
                 groups=normalization_group,
                 epsilon=normalization_epsilon,
                 name='group_normalization')
-        if normalization in {'filter_response_normalization',
-                             'filter_response_norm', 'frn'}:
+        if l_normalization in {'filter_response_normalization',
+                               'filter_response_norm', 'frn'}:
             # FilterResponseNormalization is not official implementation.
             # Official need to input axis as spatial, not channel.
             return FilterResponseNormalization(
@@ -118,21 +144,21 @@ def get_activation_layer(activation, activation_alpha=0.3):
     if hasattr(activation, '__call__'):
         return activation
     if isinstance(activation, str):
-        activation = activation.lower()
-        if activation == 'relu':
+        l_activation = activation.lower()
+        if l_activation == 'relu':
             return tf.keras.layers.ReLU(name='relu')
-        if activation in {'leaky_relu', 'lrelu'}:
+        if l_activation in {'leaky_relu', 'lrelu'}:
             return tf.keras.layers.LeakyReLU(
                 alpha=activation_alpha,
                 name='leaky_relu')
-        if activation in {'exp_lu', 'elu'}:
+        if l_activation in {'exp_lu', 'elu'}:
             return tf.keras.layers.ELU(
                 alpha=activation_alpha,
                 name='elu')
-        if activation in {'trelu', 'tlu'}:
+        if l_activation in {'trelu', 'tlu'}:
             return tfa.layers.TLU()
-        if activation == 'tanh':
-            return tf.nn.tanh
+        if l_activation == 'tanh':
+            return tf.keras.layers.Activation('tanh')
     raise ValueError(f'Unsupported `activation`: {activation}')
 
 

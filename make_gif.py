@@ -10,7 +10,7 @@ import tqdm
 import imageio
 import numpy as np
 from PIL import Image
-from utils import NumericStringSort, float_0_to_1, extension_pattern
+from util import NumericStringSort, float_0_to_1, extension_pattern
 
 IMAGE_EXT = {'jpg', 'jpeg', 'png'}
 

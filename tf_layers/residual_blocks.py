@@ -207,9 +207,9 @@ class ResBlock(BaseResBlock):
                  shortcut_padding=0,
                  dilation_rate=1,
                  groups=1,
-                 use_noise=False,
+                 noise=None,
                  noise_strength=0.0,
-                 noise_strength_trainable=True,
+                 noise_trainable=True,
                  use_bias=False,
                  use_spectral_norm=False,
                  spectral_iteration=1,
@@ -283,9 +283,9 @@ class ResBlock(BaseResBlock):
 
         # convolution blocks
         self.conv_block_args = {
-            'use_noise': use_noise,
+            'noise': noise,
             'noise_strength': noise_strength,
-            'noise_strength_trainable': noise_strength_trainable,
+            'noise_trainable': noise_trainable,
             'normalization': normalization,
             'normalization_first': normalization_first,
             'activation': activation,
@@ -368,9 +368,9 @@ class DownResBlock(BaseResBlock):
                  method='nearest',
                  dilation_rate=1,
                  groups=1,
-                 use_noise=False,
+                 noise=None,
                  noise_strength=0.0,
-                 noise_strength_trainable=True,
+                 noise_trainable=True,
                  use_bias=False,
                  use_spectral_norm=False,
                  spectral_iteration=1,
@@ -450,9 +450,9 @@ class DownResBlock(BaseResBlock):
 
         # convolution blocks
         self.conv_block_args = {
-            'use_noise': use_noise,
+            'noise': noise,
             'noise_strength': noise_strength,
-            'noise_strength_trainable': noise_strength_trainable,
+            'noise_trainable': noise_trainable,
             'normalization': normalization,
             'normalization_first': normalization_first,
             'activation': activation,
@@ -544,9 +544,9 @@ class UpResBlock(BaseResBlock):
                  method='nearest',
                  dilation_rate=1,
                  groups=1,
-                 use_noise=False,
+                 noise=None,
                  noise_strength=0.0,
-                 noise_strength_trainable=True,
+                 noise_trainable=True,
                  use_bias=False,
                  use_spectral_norm=False,
                  spectral_iteration=1,
@@ -626,9 +626,9 @@ class UpResBlock(BaseResBlock):
 
         # convolution blocks
         self.conv_block_args = {
-            'use_noise': use_noise,
+            'noise': noise,
             'noise_strength': noise_strength,
-            'noise_strength_trainable': noise_strength_trainable,
+            'noise_trainable': noise_trainable,
             'normalization': normalization,
             'normalization_first': normalization_first,
             'activation': activation,

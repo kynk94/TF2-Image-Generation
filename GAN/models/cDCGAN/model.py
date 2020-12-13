@@ -1,7 +1,7 @@
 import tensorflow as tf
 from tensorflow.keras.optimizers import Adam
 
-from models import BaseModel
+from layers import BaseModel
 from utils import tf_image_concat
 from .generator import Generator
 from .discriminator import Discriminator

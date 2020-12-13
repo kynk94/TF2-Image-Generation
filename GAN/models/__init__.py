@@ -1,4 +1,3 @@
-from .base_model import BaseModel
 from .GAN import GAN
 from .CGAN import CGAN
 from .DCGAN import DCGAN
@@ -8,7 +7,6 @@ from .WGAN import WGAN
 from .WGAN_GP import WGAN_GP
 
 __all__ = [
-    'BaseModel',
     'GAN',
     'CGAN',
     'DCGAN',

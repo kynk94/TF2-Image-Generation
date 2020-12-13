@@ -10,7 +10,7 @@ import re
 import tqdm
 import numpy as np
 from PIL import Image
-from utils import NumericStringSort, extension_pattern, str_to_bool
+from util import NumericStringSort, extension_pattern, str_to_bool
 
 IMAGE_EXT = {'jpg', 'jpeg', 'png'}
 
