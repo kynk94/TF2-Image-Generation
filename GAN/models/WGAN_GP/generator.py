@@ -28,11 +28,11 @@ class Generator(tf.keras.Model):
                  layers.Dense(n_filter * init_size**2),
                  layers.Reshape((n_filter, init_size, init_size))]
         for _ in range(n_layer - 1):
-            n_filter //= 2
             model.append(layers.UpResBlock2D(n_filter, 3, 1, 1,
                                              normalization='bn',
                                              activation='relu',
                                              normalization_first=True))
+            n_filter //= 2
         model.extend([layers.Conv2DBlock(channel, 3, 1, 1,
                                          activation='relu',
                                          normalization='bn',

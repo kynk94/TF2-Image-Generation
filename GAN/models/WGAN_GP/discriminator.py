@@ -26,7 +26,7 @@ class Discriminator(tf.keras.Model):
         model = [layers.Input(input_shape),
                  layers.Conv2D(n_filter, 3, 1, 1)]
         for _ in range(n_layer - 1):
-            n_filter *= 2
+            n_filter = min(2*n_filter, 512)
             model.append(layers.DownResBlock2D(n_filter, 3, 1, 1,
                                                normalization='bn',
                                                activation='relu',

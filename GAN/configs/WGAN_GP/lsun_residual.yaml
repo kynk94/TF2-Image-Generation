@@ -1,5 +1,5 @@
 # config for LSUN
-input_size: 64
+input_size: 128
 channel: 3
 
 # train
@@ -8,7 +8,7 @@ epochs: 0
 steps: 2000000
 save_step: 100000
 use_residual: true
-batch_size: 4
+batch_size: 16
 latent_dim: 128
 learning_rate: 0.0001
 beta_1: 0.5
@@ -16,7 +16,7 @@ penalty_lambda: 10
 n_critic: 5
 gen:
   n_layer: 5
-  n_filter: 1024
+  n_filter: 512
 dis:
   n_layer: 5
   n_filter: 64
