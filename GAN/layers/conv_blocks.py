@@ -9,7 +9,7 @@ from tensorflow.python.keras.utils.conv_utils import normalize_data_format
 from tensorflow_addons.layers import SpectralNormalization
 from .conv import Conv, DownConv, TransposeConv, UpConv
 from .conv import SubPixelConv2D
-from .utils import get_activation_layer, get_normalization_layer, get_padding_layer
+from .utils import get_activation_layer, get_normalization_layer
 from .utils import get_layer_config
 
 
@@ -17,15 +17,12 @@ class BaseBlock(tf.keras.Model):
     """
     Base Block for Convolution Block.
 
-    Base block consists of pad, normalization, and activation layers.
+    Base block consists of normalization, and activation layers.
     """
 
     def __init__(self,
                  rank,
                  data_format=None,
-                 padding=0,
-                 pad_type='constant',
-                 pad_constant_values=0,
                  normalization=None,
                  normalization_first=False,
                  norm_momentum=0.99,
@@ -55,13 +52,6 @@ class BaseBlock(tf.keras.Model):
         # activation layer
         self.activation = get_activation_layer(activation, activation_alpha)
 
-        # padding layer
-        self.pad = get_padding_layer(rank=rank,
-                                     padding=padding,
-                                     pad_type=pad_type,
-                                     constant_values=pad_constant_values,
-                                     data_format=self.data_format)
-
         # convolution layer
         self.conv = getattr(self, 'conv', None)
 
@@ -73,22 +63,16 @@ class BaseBlock(tf.keras.Model):
                 outputs = self.normalization(outputs)
             if self.activation:
                 outputs = self.activation(outputs)
-            if self.pad:
-                outputs = self.pad(outputs)
             outputs = self.conv(outputs)
         # activation -> convolution -> normalization
         elif self.activation_first:
             if self.activation:
                 outputs = self.activation(outputs)
-            if self.pad:
-                outputs = self.pad(outputs)
             outputs = self.conv(outputs)
             if self.normalization:
                 outputs = self.normalization(outputs)
         # convolution -> normalization -> activation
         else:
-            if self.pad:
-                outputs = self.pad(outputs)
             outputs = self.conv(outputs)
             if self.normalization:
                 outputs = self.normalization(outputs)
@@ -109,8 +93,7 @@ class BaseBlock(tf.keras.Model):
             'activation_first': self.activation_first,
             'convolution': get_layer_config(self.conv),
             'normalization': get_layer_config(self.normalization),
-            'activation': get_layer_config(self.activation),
-            'pad': get_layer_config(self.pad),
+            'activation': get_layer_config(self.activation)
         }
         return config
 
@@ -129,7 +112,8 @@ class ConvBlock(BaseBlock):
                  kernel_size,
                  strides=1,
                  padding=0,
-                 conv_padding='valid',
+                 pad_type='constant',
+                 pad_constant_values=0,
                  dilation_rate=1,
                  groups=1,
                  use_noise=False,
@@ -149,8 +133,6 @@ class ConvBlock(BaseBlock):
                  kernel_constraint=None,
                  bias_constraint=None,
                  data_format=None,
-                 pad_type='constant',
-                 pad_constant_values=0,
                  normalization=None,
                  normalization_first=False,
                  norm_momentum=0.99,
@@ -164,9 +146,6 @@ class ConvBlock(BaseBlock):
         super().__init__(
             rank=rank,
             data_format=data_format,
-            padding=padding,
-            pad_type=pad_type,
-            pad_constant_values=pad_constant_values,
             normalization=normalization,
             normalization_first=normalization_first,
             norm_momentum=norm_momentum,
@@ -184,7 +163,9 @@ class ConvBlock(BaseBlock):
             filters=filters,
             kernel_size=kernel_size,
             strides=strides,
-            padding=conv_padding,
+            padding=padding,
+            pad_type=pad_type,
+            pad_constant_values=pad_constant_values,
             data_format=self.data_format,
             dilation_rate=dilation_rate,
             groups=groups,
@@ -220,7 +201,6 @@ class Conv1DBlock(ConvBlock):
                  kernel_size,
                  strides=1,
                  padding=0,
-                 conv_padding='valid',
                  use_noise=False,
                  use_bias=False,
                  use_weight_scaling=False,
@@ -237,7 +217,6 @@ class Conv1DBlock(ConvBlock):
             kernel_size=kernel_size,
             strides=strides,
             padding=padding,
-            conv_padding=conv_padding,
             use_noise=use_noise,
             use_bias=use_bias,
             use_weight_scaling=use_weight_scaling,
@@ -256,7 +235,6 @@ class Conv2DBlock(ConvBlock):
                  kernel_size,
                  strides=(1, 1),
                  padding=(0, 0),
-                 conv_padding='valid',
                  use_noise=False,
                  use_bias=False,
                  use_weight_scaling=False,
@@ -273,7 +251,6 @@ class Conv2DBlock(ConvBlock):
             kernel_size=kernel_size,
             strides=strides,
             padding=padding,
-            conv_padding=conv_padding,
             use_noise=use_noise,
             use_bias=use_bias,
             use_weight_scaling=use_weight_scaling,
@@ -292,7 +269,6 @@ class Conv3DBlock(ConvBlock):
                  kernel_size,
                  strides=(1, 1, 1),
                  padding=(0, 0, 0),
-                 conv_padding='valid',
                  use_noise=False,
                  use_bias=False,
                  use_weight_scaling=False,
@@ -309,7 +285,6 @@ class Conv3DBlock(ConvBlock):
             kernel_size=kernel_size,
             strides=strides,
             padding=padding,
-            conv_padding=conv_padding,
             use_noise=use_noise,
             use_bias=use_bias,
             use_weight_scaling=use_weight_scaling,
@@ -336,7 +311,8 @@ class TransConvBlock(BaseBlock):
                  kernel_size,
                  strides=1,
                  padding=0,
-                 conv_padding='valid',
+                 pad_type='constant',
+                 pad_constant_values=0,
                  output_padding=None,
                  dilation_rate=1,
                  groups=1,
@@ -357,8 +333,6 @@ class TransConvBlock(BaseBlock):
                  kernel_constraint=None,
                  bias_constraint=None,
                  data_format=None,
-                 pad_type='constant',
-                 pad_constant_values=0,
                  normalization=None,
                  normalization_first=False,
                  norm_momentum=0.99,
@@ -372,9 +346,6 @@ class TransConvBlock(BaseBlock):
         super().__init__(
             rank=rank,
             data_format=data_format,
-            padding=padding,
-            pad_type=pad_type,
-            pad_constant_values=pad_constant_values,
             normalization=normalization,
             normalization_first=normalization_first,
             norm_momentum=norm_momentum,
@@ -392,7 +363,9 @@ class TransConvBlock(BaseBlock):
             filters=filters,
             kernel_size=kernel_size,
             strides=strides,
-            padding=conv_padding,
+            padding=padding,
+            pad_type=pad_type,
+            pad_constant_values=pad_constant_values,
             output_padding=output_padding,
             data_format=self.data_format,
             dilation_rate=dilation_rate,
@@ -429,7 +402,6 @@ class TransConv1DBlock(TransConvBlock):
                  kernel_size,
                  strides=1,
                  padding=0,
-                 conv_padding='valid',
                  use_noise=False,
                  use_bias=False,
                  use_weight_scaling=False,
@@ -446,7 +418,6 @@ class TransConv1DBlock(TransConvBlock):
             kernel_size=kernel_size,
             strides=strides,
             padding=padding,
-            conv_padding=conv_padding,
             use_noise=use_noise,
             use_bias=use_bias,
             use_weight_scaling=use_weight_scaling,
@@ -465,7 +436,6 @@ class TransConv2DBlock(TransConvBlock):
                  kernel_size,
                  strides=(1, 1),
                  padding=(0, 0),
-                 conv_padding='valid',
                  use_noise=False,
                  use_bias=False,
                  use_weight_scaling=False,
@@ -482,7 +452,6 @@ class TransConv2DBlock(TransConvBlock):
             kernel_size=kernel_size,
             strides=strides,
             padding=padding,
-            conv_padding=conv_padding,
             use_noise=use_noise,
             use_bias=use_bias,
             use_weight_scaling=use_weight_scaling,
@@ -501,7 +470,6 @@ class TransConv3DBlock(TransConvBlock):
                  kernel_size,
                  strides=(1, 1, 1),
                  padding=(0, 0, 0),
-                 conv_padding='valid',
                  use_noise=False,
                  use_bias=False,
                  use_weight_scaling=False,
@@ -518,7 +486,6 @@ class TransConv3DBlock(TransConvBlock):
             kernel_size=kernel_size,
             strides=strides,
             padding=padding,
-            conv_padding=conv_padding,
             use_noise=use_noise,
             use_bias=use_bias,
             use_weight_scaling=use_weight_scaling,
@@ -545,7 +512,6 @@ class DownConvBlock(BaseBlock):
                  kernel_size,
                  strides=1,
                  padding=0,
-                 conv_padding='valid',
                  factor=None,
                  size=None,
                  method='nearest',
@@ -585,9 +551,6 @@ class DownConvBlock(BaseBlock):
         super().__init__(
             rank=rank,
             data_format=data_format,
-            padding=padding,
-            pad_type=pad_type,
-            pad_constant_values=pad_constant_values,
             normalization=normalization,
             normalization_first=normalization_first,
             norm_momentum=norm_momentum,
@@ -605,7 +568,9 @@ class DownConvBlock(BaseBlock):
             filters=filters,
             kernel_size=kernel_size,
             strides=strides,
-            padding=conv_padding,
+            padding=padding,
+            pad_type=pad_type,
+            pad_constant_values=pad_constant_values,
             factor=factor,
             size=size,
             method=method,
@@ -630,7 +595,7 @@ class DownConvBlock(BaseBlock):
             kernel_constraint=kernel_constraint,
             bias_constraint=bias_constraint,
             trainable=trainable,
-            name=f'downsample_conv{self.rank}d')
+            name=f'down_conv{self.rank}d')
 
         # spectral normalization
         if use_spectral_norm:
@@ -646,7 +611,6 @@ class DownConv1DBlock(DownConvBlock):
                  kernel_size,
                  strides=1,
                  padding=0,
-                 conv_padding='valid',
                  factor=2,
                  method='nearest',
                  use_noise=False,
@@ -665,7 +629,6 @@ class DownConv1DBlock(DownConvBlock):
             kernel_size=kernel_size,
             strides=strides,
             padding=padding,
-            conv_padding=conv_padding,
             factor=factor,
             method=method,
             use_noise=use_noise,
@@ -686,7 +649,6 @@ class DownConv2DBlock(DownConvBlock):
                  kernel_size,
                  strides=(1, 1),
                  padding=(0, 0),
-                 conv_padding='valid',
                  factor=2,
                  method='nearest',
                  use_noise=False,
@@ -705,7 +667,6 @@ class DownConv2DBlock(DownConvBlock):
             kernel_size=kernel_size,
             strides=strides,
             padding=padding,
-            conv_padding=conv_padding,
             factor=factor,
             method=method,
             use_noise=use_noise,
@@ -726,7 +687,6 @@ class DownConv3DBlock(DownConvBlock):
                  kernel_size,
                  strides=(1, 1, 1),
                  padding=(0, 0, 0),
-                 conv_padding='valid',
                  factor=2,
                  method='nearest',
                  use_noise=False,
@@ -745,7 +705,6 @@ class DownConv3DBlock(DownConvBlock):
             kernel_size=kernel_size,
             strides=strides,
             padding=padding,
-            conv_padding=conv_padding,
             factor=factor,
             method=method,
             use_noise=use_noise,
@@ -774,7 +733,6 @@ class UpConvBlock(BaseBlock):
                  kernel_size,
                  strides=1,
                  padding=0,
-                 conv_padding='valid',
                  factor=None,
                  size=None,
                  method='nearest',
@@ -814,9 +772,6 @@ class UpConvBlock(BaseBlock):
         super().__init__(
             rank=rank,
             data_format=data_format,
-            padding=padding,
-            pad_type=pad_type,
-            pad_constant_values=pad_constant_values,
             normalization=normalization,
             normalization_first=normalization_first,
             norm_momentum=norm_momentum,
@@ -834,7 +789,9 @@ class UpConvBlock(BaseBlock):
             filters=filters,
             kernel_size=kernel_size,
             strides=strides,
-            padding=conv_padding,
+            padding=padding,
+            pad_type=pad_type,
+            pad_constant_values=pad_constant_values,
             factor=factor,
             size=size,
             method=method,
@@ -859,7 +816,7 @@ class UpConvBlock(BaseBlock):
             kernel_constraint=kernel_constraint,
             bias_constraint=bias_constraint,
             trainable=trainable,
-            name=f'upsample_conv{self.rank}d')
+            name=f'up_conv{self.rank}d')
 
         # spectral normalization
         if use_spectral_norm:
@@ -875,7 +832,6 @@ class UpConv1DBlock(UpConvBlock):
                  kernel_size,
                  strides=1,
                  padding=0,
-                 conv_padding='valid',
                  factor=2,
                  method='nearest',
                  use_noise=False,
@@ -894,7 +850,6 @@ class UpConv1DBlock(UpConvBlock):
             kernel_size=kernel_size,
             strides=strides,
             padding=padding,
-            conv_padding=conv_padding,
             factor=factor,
             method=method,
             use_noise=use_noise,
@@ -915,7 +870,6 @@ class UpConv2DBlock(UpConvBlock):
                  kernel_size,
                  strides=(1, 1),
                  padding=(0, 0),
-                 conv_padding='valid',
                  factor=2,
                  method='nearest',
                  use_noise=False,
@@ -934,7 +888,6 @@ class UpConv2DBlock(UpConvBlock):
             kernel_size=kernel_size,
             strides=strides,
             padding=padding,
-            conv_padding=conv_padding,
             factor=factor,
             method=method,
             use_noise=use_noise,
@@ -955,7 +908,6 @@ class UpConv3DBlock(UpConvBlock):
                  kernel_size,
                  strides=(1, 1, 1),
                  padding=(0, 0, 0),
-                 conv_padding='valid',
                  factor=2,
                  method='nearest',
                  use_noise=False,
@@ -974,7 +926,6 @@ class UpConv3DBlock(UpConvBlock):
             kernel_size=kernel_size,
             strides=strides,
             padding=padding,
-            conv_padding=conv_padding,
             factor=factor,
             method=method,
             use_noise=use_noise,
@@ -987,6 +938,7 @@ class UpConv3DBlock(UpConvBlock):
             activation=activation,
             activation_first=activation_first,
             **kwargs)
+
 
 class SubPixelConv2DBlock(BaseBlock):
     """
@@ -1001,7 +953,6 @@ class SubPixelConv2DBlock(BaseBlock):
                  kernel_size,
                  strides=(1, 1),
                  padding=(0, 0),
-                 conv_padding='valid',
                  scale=2,
                  use_icnr_initializer=False,
                  dilation_rate=(1, 1),
@@ -1038,9 +989,6 @@ class SubPixelConv2DBlock(BaseBlock):
         super().__init__(
             rank=2,
             data_format=data_format,
-            padding=padding,
-            pad_type=pad_type,
-            pad_constant_values=pad_constant_values,
             normalization=normalization,
             normalization_first=normalization_first,
             norm_momentum=norm_momentum,
@@ -1057,7 +1005,9 @@ class SubPixelConv2DBlock(BaseBlock):
             filters=filters,
             kernel_size=kernel_size,
             strides=strides,
-            padding=conv_padding,
+            padding=padding,
+            pad_type=pad_type,
+            pad_constant_values=pad_constant_values,
             scale=scale,
             use_icnr_initializer=use_icnr_initializer,
             data_format=self.data_format,

@@ -91,6 +91,7 @@ class BaseResBlock(tf.keras.Model):
         self.conv_blocks = getattr(self, 'conv_blocks', None)
         self.conv_block_args = getattr(self, 'conv_block_args', dict())
         self.shortcut_block_args = getattr(self, 'shortcut_block_args', dict())
+        self.other_args = getattr(self, 'other_args', dict())
 
     def build(self, input_shape):
         self.conv_blocks = self._build_conv_blocks(input_shape)
@@ -103,9 +104,6 @@ class BaseResBlock(tf.keras.Model):
             self.filters = (*self.filters[:-1], channel)
 
         conv_blocks = []
-        block_name = generic_utils.to_snake_case(
-            self.conv_op.__name__).split('_')
-        block_name = '_'.join(block_name[:-1]) + f'_{self.rank}d_block'
         normalization_first = self.conv_block_args['normalization_first']
         activation_first = self.conv_block_args['activation_first']
         for i in range(self.depth):
@@ -113,28 +111,28 @@ class BaseResBlock(tf.keras.Model):
                                             activation_first):
                 self.conv_block_args['activation'] = None
             conv_blocks.append(
-                self.conv_op(
+                self.conv_op[i](
                     rank=self.rank,
                     filters=self.filters[i],
                     kernel_size=self.kernel_size[i],
                     strides=self.strides[i],
                     padding=self.padding[i],
                     data_format=self.data_format,
-                    name=f'{block_name}_{i}',
+                    name=f'{self._get_block_name(self.conv_op[i])}_{i}',
+                    **self.other_args,
                     **self.conv_block_args))
+            if i == 0:
+                self.other_args.clear()
         return conv_blocks
 
     def _build_shortcut_block(self):
         if not self.use_shortcut:
             return None
-        block_name = generic_utils.to_snake_case(
-            self.shortcut_op.__name__).split('_')
-        block_name = '_'.join(block_name[:-1]) + f'_{self.rank}d_block'
         return self.shortcut_op(
             rank=self.rank,
             filters=self.filters[-1],
             data_format=self.data_format,
-            name=f'shortcut_{block_name}',
+            name=f'shortcut_{self._get_block_name(self.shortcut_op)}',
             **self.shortcut_block_args)
 
     def call(self, inputs):
@@ -173,6 +171,10 @@ class BaseResBlock(tf.keras.Model):
             return op
         return (op,) + (ConvBlock,) * (self.depth - 1)
 
+    def _get_block_name(self, block):
+        block_name = generic_utils.to_snake_case(block.__name__).split('_')
+        return '_'.join(block_name[:-1]) + f'_{self.rank}d_block'
+
     def _get_channel_axis(self):
         if self.data_format == 'channels_first':
             return 1
@@ -200,7 +202,9 @@ class ResBlock(BaseResBlock):
                  kernel_size=3,
                  strides=1,
                  padding=1,
-                 conv_padding='valid',
+                 shortcut_kernel_size=1,
+                 shortcut_strides=1,
+                 shortcut_padding=0,
                  dilation_rate=1,
                  groups=1,
                  use_noise=False,
@@ -235,9 +239,6 @@ class ResBlock(BaseResBlock):
                  multiplier_trainable=True,
                  use_shortcut=False,
                  use_shortcut_bias=False,
-                 shortcut_kernel_size=1,
-                 shortcut_strides=1,
-                 shortcut_padding=0,
                  shortcut_normalization=None,
                  trainable=True,
                  name=None,
@@ -265,7 +266,6 @@ class ResBlock(BaseResBlock):
         common_conv_args = {
             'pad_type': pad_type,
             'pad_constant_values': pad_constant_values,
-            'conv_padding': conv_padding,
             'dilation_rate': dilation_rate,
             'groups': groups,
             'norm_momentum': norm_momentum,
@@ -314,8 +314,10 @@ class ResBlock2D(ResBlock):
                  kernel_size=3,
                  strides=1,
                  padding=1,
+                 shortcut_kernel_size=1,
+                 shortcut_strides=1,
+                 shortcut_padding=0,
                  depth=2,
-                 conv_padding='valid',
                  use_bias=False,
                  pad_type='zero',
                  normalization=None,
@@ -325,9 +327,6 @@ class ResBlock2D(ResBlock):
                  output_activation=None,
                  use_shortcut=False,
                  use_shortcut_bias=False,
-                 shortcut_kernel_size=1,
-                 shortcut_strides=1,
-                 shortcut_padding=0,
                  shortcut_normalization=None,
                  **kwargs):
         super().__init__(
@@ -336,8 +335,10 @@ class ResBlock2D(ResBlock):
             kernel_size=kernel_size,
             strides=strides,
             padding=padding,
+            shortcut_kernel_size=shortcut_kernel_size,
+            shortcut_strides=shortcut_strides,
+            shortcut_padding=shortcut_padding,
             depth=depth,
-            conv_padding=conv_padding,
             use_bias=use_bias,
             pad_type=pad_type,
             normalization=normalization,
@@ -347,9 +348,6 @@ class ResBlock2D(ResBlock):
             output_activation=output_activation,
             use_shortcut=use_shortcut,
             use_shortcut_bias=use_shortcut_bias,
-            shortcut_kernel_size=shortcut_kernel_size,
-            shortcut_strides=shortcut_strides,
-            shortcut_padding=shortcut_padding,
             shortcut_normalization=shortcut_normalization,
             **kwargs)
 
@@ -362,7 +360,9 @@ class DownResBlock(BaseResBlock):
                  kernel_size=3,
                  strides=1,
                  padding=1,
-                 conv_padding='valid',
+                 shortcut_kernel_size=1,
+                 shortcut_strides=1,
+                 shortcut_padding=0,
                  factor=None,
                  size=None,
                  method='nearest',
@@ -398,11 +398,8 @@ class DownResBlock(BaseResBlock):
                  use_multiplier=False,
                  multiplier_value=1.0,
                  multiplier_trainable=True,
-                 use_shortcut=False,
+                 use_shortcut=True,
                  use_shortcut_bias=False,
-                 shortcut_kernel_size=1,
-                 shortcut_strides=1,
-                 shortcut_padding=0,
                  shortcut_normalization=None,
                  trainable=True,
                  name=None,
@@ -428,12 +425,8 @@ class DownResBlock(BaseResBlock):
             **kwargs)
 
         common_conv_args = {
-            'factor': factor,
-            'size': size,
-            'method': method,
             'pad_type': pad_type,
             'pad_constant_values': pad_constant_values,
-            'conv_padding': conv_padding,
             'dilation_rate': dilation_rate,
             'groups': groups,
             'norm_momentum': norm_momentum,
@@ -448,6 +441,12 @@ class DownResBlock(BaseResBlock):
             'activity_regularizer': activity_regularizer,
             'kernel_constraint': kernel_constraint,
             'bias_constraint': bias_constraint}
+
+        self.other_args = {
+            'factor': factor,
+            'size': size,
+            'method': method,
+        }
 
         # convolution blocks
         self.conv_block_args = {
@@ -473,6 +472,7 @@ class DownResBlock(BaseResBlock):
             'normalization_first': normalization_first,
             'activation': None,
             'use_bias': use_shortcut_bias,
+            **self.other_args,
             **common_conv_args}
 
 
@@ -482,8 +482,10 @@ class DownResBlock2D(DownResBlock):
                  kernel_size=3,
                  strides=1,
                  padding=1,
+                 shortcut_kernel_size=1,
+                 shortcut_strides=1,
+                 shortcut_padding=0,
                  depth=2,
-                 conv_padding='valid',
                  factor=2,
                  method='nearest',
                  use_bias=False,
@@ -495,9 +497,6 @@ class DownResBlock2D(DownResBlock):
                  output_activation=None,
                  use_shortcut=True,
                  use_shortcut_bias=False,
-                 shortcut_kernel_size=1,
-                 shortcut_strides=1,
-                 shortcut_padding=0,
                  shortcut_normalization=None,
                  trainable=True,
                  name=None,
@@ -508,8 +507,10 @@ class DownResBlock2D(DownResBlock):
             kernel_size=kernel_size,
             strides=strides,
             padding=padding,
+            shortcut_kernel_size=shortcut_kernel_size,
+            shortcut_strides=shortcut_strides,
+            shortcut_padding=shortcut_padding,
             depth=depth,
-            conv_padding=conv_padding,
             factor=factor,
             method=method,
             use_bias=use_bias,
@@ -521,13 +522,11 @@ class DownResBlock2D(DownResBlock):
             output_activation=output_activation,
             use_shortcut=use_shortcut,
             use_shortcut_bias=use_shortcut_bias,
-            shortcut_kernel_size=shortcut_kernel_size,
-            shortcut_strides=shortcut_strides,
-            shortcut_padding=shortcut_padding,
             shortcut_normalization=shortcut_normalization,
             trainable=trainable,
             name=name,
             **kwargs)
+
 
 class UpResBlock(BaseResBlock):
     def __init__(self,
@@ -537,7 +536,9 @@ class UpResBlock(BaseResBlock):
                  kernel_size=3,
                  strides=1,
                  padding=1,
-                 conv_padding='valid',
+                 shortcut_kernel_size=1,
+                 shortcut_strides=1,
+                 shortcut_padding=0,
                  factor=None,
                  size=None,
                  method='nearest',
@@ -573,11 +574,8 @@ class UpResBlock(BaseResBlock):
                  use_multiplier=False,
                  multiplier_value=1.0,
                  multiplier_trainable=True,
-                 use_shortcut=False,
+                 use_shortcut=True,
                  use_shortcut_bias=False,
-                 shortcut_kernel_size=1,
-                 shortcut_strides=1,
-                 shortcut_padding=0,
                  shortcut_normalization=None,
                  trainable=True,
                  name=None,
@@ -603,12 +601,8 @@ class UpResBlock(BaseResBlock):
             **kwargs)
 
         common_conv_args = {
-            'factor': factor,
-            'size': size,
-            'method': method,
             'pad_type': pad_type,
             'pad_constant_values': pad_constant_values,
-            'conv_padding': conv_padding,
             'dilation_rate': dilation_rate,
             'groups': groups,
             'norm_momentum': norm_momentum,
@@ -623,6 +617,12 @@ class UpResBlock(BaseResBlock):
             'activity_regularizer': activity_regularizer,
             'kernel_constraint': kernel_constraint,
             'bias_constraint': bias_constraint}
+
+        self.other_args = {
+            'factor': factor,
+            'size': size,
+            'method': method,
+        }
 
         # convolution blocks
         self.conv_block_args = {
@@ -648,6 +648,7 @@ class UpResBlock(BaseResBlock):
             'normalization_first': normalization_first,
             'activation': None,
             'use_bias': use_shortcut_bias,
+            **self.other_args,
             **common_conv_args}
 
 
@@ -657,8 +658,10 @@ class UpResBlock2D(UpResBlock):
                  kernel_size=3,
                  strides=1,
                  padding=1,
+                 shortcut_kernel_size=1,
+                 shortcut_strides=1,
+                 shortcut_padding=0,
                  depth=2,
-                 conv_padding='valid',
                  factor=2,
                  method='nearest',
                  use_bias=False,
@@ -670,9 +673,6 @@ class UpResBlock2D(UpResBlock):
                  output_activation=None,
                  use_shortcut=True,
                  use_shortcut_bias=False,
-                 shortcut_kernel_size=1,
-                 shortcut_strides=1,
-                 shortcut_padding=0,
                  shortcut_normalization=None,
                  trainable=True,
                  name=None,
@@ -683,8 +683,10 @@ class UpResBlock2D(UpResBlock):
             kernel_size=kernel_size,
             strides=strides,
             padding=padding,
+            shortcut_kernel_size=shortcut_kernel_size,
+            shortcut_strides=shortcut_strides,
+            shortcut_padding=shortcut_padding,
             depth=depth,
-            conv_padding=conv_padding,
             factor=factor,
             method=method,
             use_bias=use_bias,
@@ -696,9 +698,6 @@ class UpResBlock2D(UpResBlock):
             output_activation=output_activation,
             use_shortcut=use_shortcut,
             use_shortcut_bias=use_shortcut_bias,
-            shortcut_kernel_size=shortcut_kernel_size,
-            shortcut_strides=shortcut_strides,
-            shortcut_padding=shortcut_padding,
             shortcut_normalization=shortcut_normalization,
             trainable=trainable,
             name=name,
@@ -712,7 +711,6 @@ class ResIdentityBlock2D(ResBlock):
                  strides=1,
                  padding=1,
                  pad_type='zero',
-                 conv_padding='valid',
                  normalization='bn',
                  activation='relu',
                  use_bias=False,
@@ -731,7 +729,6 @@ class ResIdentityBlock2D(ResBlock):
             strides=((1, 1), strides, (1, 1)),
             padding=((0, 0), padding, (0, 0)),
             pad_type=pad_type,
-            conv_padding=conv_padding,
             normalization=normalization,
             activation=activation,
             use_bias=use_bias,

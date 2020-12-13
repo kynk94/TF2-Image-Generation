@@ -15,13 +15,11 @@ class Discriminator(tf.keras.Model):
 
     def build_model(self, input_shape, n_layer, n_filter):
         model = [layers.Input(input_shape),
-                 layers.Conv2DBlock(n_filter, 5, 2,
-                                    conv_padding='same',
+                 layers.Conv2DBlock(n_filter, 5, 2, 'same',
                                     activation='lrelu')]
         for _ in range(n_layer - 1):
             n_filter *= 2
-            model.extend([layers.Conv2DBlock(n_filter, 5, 2,
-                                             conv_padding='same',
+            model.extend([layers.Conv2DBlock(n_filter, 5, 2, 'same',
                                              normalization='bn',
                                              activation='lrelu')])
         model.extend([layers.Flatten(),

@@ -1,6 +1,8 @@
 import numpy as np
 import tensorflow as tf
 from tensorflow.python.keras.layers.ops import core as core_ops
+from .utils import get_activation_layer, get_normalization_layer
+from .utils import get_layer_config
 
 
 class Dense(tf.keras.layers.Dense):
@@ -81,7 +83,7 @@ class Dense(tf.keras.layers.Dense):
                  use_weight_scaling=False,
                  gain=np.sqrt(2),
                  lr_multiplier=1.0,
-                 kernel_initializer='he_normal',
+                 kernel_initializer='he_uniform',
                  bias_initializer='zeros',
                  kernel_regularizer=None,
                  bias_regularizer=None,
@@ -138,4 +140,105 @@ class Dense(tf.keras.layers.Dense):
             'lr_multiplier':
                 self.lr_multiplier
         })
+        return config
+
+
+class DenseBlock(tf.keras.Model):
+    """
+    Dense Block.
+
+    Dense block consists of dense, normalization, and activation layers.
+    """
+
+    def __init__(self,
+                 units,
+                 use_bias=True,
+                 use_weight_scaling=False,
+                 gain=np.sqrt(2),
+                 lr_multiplier=1.0,
+                 kernel_initializer='he_uniform',
+                 bias_initializer='zeros',
+                 kernel_regularizer=None,
+                 bias_regularizer=None,
+                 activity_regularizer=None,
+                 kernel_constraint=None,
+                 bias_constraint=None,
+                 normalization=None,
+                 normalization_first=False,
+                 norm_momentum=0.99,
+                 norm_group=32,
+                 activation=None,
+                 activation_first=False,
+                 activation_alpha=0.3,
+                 trainable=True,
+                 name=None,
+                 **kwargs):
+        super().__init__(trainable=trainable, name=name, **kwargs)
+        if normalization_first and activation_first:
+            raise ValueError('Only one of `normalization_first` '
+                             'or `activation_first` can be True.')
+        self.normalization_first = normalization_first
+        self.activation_first = activation_first
+
+        # normalization layer
+        self.normalization = get_normalization_layer(-1,
+                                                     normalization,
+                                                     norm_momentum,
+                                                     norm_group)
+
+        # activation layer
+        self.activation = get_activation_layer(activation, activation_alpha)
+
+        # dense layer
+        self.dense = Dense(
+            units=units,
+            activation=None,
+            use_bias=use_bias,
+            use_weight_scaling=use_weight_scaling,
+            gain=gain,
+            lr_multiplier=lr_multiplier,
+            kernel_initializer=kernel_initializer,
+            bias_initializer=bias_initializer,
+            kernel_regularizer=kernel_regularizer,
+            bias_regularizer=bias_regularizer,
+            activity_regularizer=activity_regularizer,
+            kernel_constraint=kernel_constraint,
+            bias_constraint=bias_constraint,
+            trainable=trainable,
+            name='dense')
+
+    def call(self, inputs):
+        outputs = inputs
+        # normalization -> activation -> dense
+        if self.normalization_first:
+            if self.normalization:
+                outputs = self.normalization(outputs)
+            if self.activation:
+                outputs = self.activation(outputs)
+            outputs = self.dense(outputs)
+        # activation -> dense -> normalization
+        elif self.activation_first:
+            if self.activation:
+                outputs = self.activation(outputs)
+            outputs = self.dense(outputs)
+            if self.normalization:
+                outputs = self.normalization(outputs)
+        # dense -> normalization -> activation
+        else:
+            outputs = self.dense(outputs)
+            if self.normalization:
+                outputs = self.normalization(outputs)
+            if self.activation:
+                outputs = self.activation(outputs)
+        return outputs
+
+    def get_config(self):
+        config = {
+            'name': self.name,
+            'normalization_first': self.normalization_first,
+            'activation_first': self.activation_first,
+            'dense': get_layer_config(self.dense),
+            'normalization': get_layer_config(self.normalization),
+            'activation': get_layer_config(self.activation)
+        }
         return config

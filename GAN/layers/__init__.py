@@ -4,7 +4,7 @@ Licensed under the CC BY-NC-SA 4.0 license
 (https://creativecommons.org/licenses/by-nc-sa/4.0/).
 """
 from tensorflow.keras.layers import Input, Reshape, Flatten
-from tensorflow.keras.layers import ReLU, LeakyReLU
+from tensorflow.keras.layers import Activation, ReLU, LeakyReLU
 from tensorflow.keras.layers import BatchNormalization, Dropout
 from tensorflow_addons.layers import Maxout
 from .conv import Conv1D, Conv2D, Conv3D
@@ -17,7 +17,7 @@ from .conv_blocks import DownConv1DBlock, DownConv2DBlock, DownConv3DBlock
 from .conv_blocks import SubPixelConv2DBlock
 from .conv_blocks import TransConv1DBlock, TransConv2DBlock, TransConv3DBlock
 from .conv_blocks import UpConv1DBlock, UpConv2DBlock, UpConv3DBlock
-from .dense import Dense
+from .dense import Dense, DenseBlock
 from .embedding import Embedding
 from .noise import GaussianNoise
 from .normalizations import FilterResponseNormalization

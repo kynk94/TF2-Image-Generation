@@ -20,7 +20,19 @@ def get_layer_config(layer):
                    layer.__class__.__name__)
 
 
+def get_str_padding(padding):
+    if isinstance(padding, str):
+        l_padding = padding.lower()
+        if l_padding in {'same', 'valid'}:
+            return l_padding
+        raise ValueError(f'Unsupported `padding`: {padding}')
+    return 'valid'
+
+
 def get_padding_layer(rank, padding, pad_type, constant_values, data_format):
+    if isinstance(padding, str):
+        return None
+
     def _check_padding(rank, padding):
         if hasattr(padding, '__len__'):
             if len(padding) != rank:
@@ -126,7 +138,7 @@ def get_activation_layer(activation, activation_alpha=0.3):
 
 def kwargs_as_iterable(iter_len, **kwargs):
     for key, value in kwargs.items():
-        if hasattr(value, '__len__'):
+        if not isinstance(value, str) and hasattr(value, '__len__'):
             if len(value) == iter_len:
                 continue
             raise ValueError(f'`len({key})` does not match `iter_len`.')

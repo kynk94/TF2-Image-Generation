@@ -1,5 +1,5 @@
 # config for LSUN
-input_size: 128
+input_size: 64
 channel: 3
 
 # train
@@ -7,23 +7,23 @@ random_seed: 0
 epochs: 0
 steps: 2000000
 save_step: 100000
-use_residual: false
-batch_size: 64
+use_residual: true
+batch_size: 4
 latent_dim: 128
 learning_rate: 0.0001
 beta_1: 0.5
 penalty_lambda: 10
 n_critic: 5
 gen:
-  n_layer: 4
+  n_layer: 5
   n_filter: 1024
 dis:
-  n_layer: 4
+  n_layer: 5
   n_filter: 64
 
 # test
 test_step: 100
-test_batch_size: 64
+test_batch_size: 16
 
 # directory
 checkpoint_dir: ./checkpoints

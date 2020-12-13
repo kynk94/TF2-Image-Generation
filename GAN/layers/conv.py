@@ -13,7 +13,7 @@ from tensorflow.python.ops import nn_ops
 from .ICNR_initializer import ICNR
 from .noise import GaussianNoise
 from .resample import Downsample, Upsample
-from .utils import get_layer_config
+from .utils import get_padding_layer, get_str_padding, get_layer_config
 
 
 class ConvBase:
@@ -39,14 +39,13 @@ class ConvBase:
             self.runtime_coef = self.gain / np.sqrt(fan_in)
             self.runtime_coef *= self.lr_multiplier
 
-    def _set_noise(self,
+    def _get_noise(self,
                    use_noise=False,
                    noise_strength=0.0,
                    noise_strength_trainable=True):
         if not use_noise:
-            self.noise = None
-            return
-        self.noise = GaussianNoise(
+            return None
+        return GaussianNoise(
             stddev=1.0,
             strength=noise_strength,
             channel_same=True,
@@ -72,6 +71,8 @@ class ConvBase:
                 self.gain,
             'lr_multiplier':
                 self.lr_multiplier,
+            'padding':
+                get_layer_config(self.pad),
             'noise':
                 get_layer_config(self.noise)
         })
@@ -103,7 +104,8 @@ class Conv(ConvBase, convolutional.Conv):
             specifying the stride length of the convolution.
             Specifying any stride value != 1 is incompatible with specifying
             any `dilation_rate` value != 1.
-        padding: One of `"valid"`,  `"same"`, or `"causal"` (case-insensitive).
+        padding: An integer or tuple/list of n integers or one of `"valid"`,
+            `"same"`.
         data_format: A string, one of `channels_last` (default) or `channels_first`.
             The ordering of the dimensions in the inputs.
             `channels_last` corresponds to inputs with shape
@@ -144,6 +146,9 @@ class Conv(ConvBase, convolutional.Conv):
     """
 
     def __init__(self,
+                 padding=0,
+                 pad_type='constant',
+                 pad_constant_values=0,
                  use_noise=False,
                  noise_strength=0.0,
                  noise_strength_trainable=True,
@@ -153,6 +158,7 @@ class Conv(ConvBase, convolutional.Conv):
                  kernel_initializer='he_normal',
                  **kwargs):
         super().__init__(
+            padding=get_str_padding(padding),
             kernel_initializer=self._get_initializer(
                 use_weight_scaling,
                 gain,
@@ -160,9 +166,14 @@ class Conv(ConvBase, convolutional.Conv):
             **kwargs)
         self._channel_axis = self._get_channel_axis()
         self._spatial_axes = self._get_spatial_axes()
-        self._set_noise(use_noise,
-                        noise_strength,
-                        noise_strength_trainable)
+        self.pad = get_padding_layer(rank=self.rank,
+                                     padding=padding,
+                                     pad_type=pad_type,
+                                     constant_values=pad_constant_values,
+                                     data_format=self.data_format)
+        self.noise = self._get_noise(use_noise,
+                                     noise_strength,
+                                     noise_strength_trainable)
 
     def build(self, input_shape):
         super().build(input_shape)
@@ -172,6 +183,9 @@ class Conv(ConvBase, convolutional.Conv):
         if self._is_causal:  # Apply causal padding to inputs for Conv1D.
             inputs = tf.pad(
                 inputs, self._compute_causal_padding(inputs))
+
+        if self.pad:
+            inputs = self.pad(inputs)
 
         if self.use_weight_scaling:
             kernel = self.kernel * self.runtime_coef
@@ -219,7 +233,7 @@ class Conv1D(Conv):
                  filters,
                  kernel_size,
                  strides=1,
-                 padding='valid',
+                 padding=0,
                  activation=None,
                  use_noise=False,
                  use_bias=False,
@@ -245,7 +259,7 @@ class Conv2D(Conv):
                  filters,
                  kernel_size,
                  strides=(1, 1),
-                 padding='valid',
+                 padding=(0, 0),
                  activation=None,
                  use_noise=False,
                  use_bias=False,
@@ -271,7 +285,7 @@ class Conv3D(Conv):
                  filters,
                  kernel_size,
                  strides=(1, 1, 1),
-                 padding='valid',
+                 padding=(0, 0, 0),
                  activation=None,
                  use_noise=False,
                  use_bias=False,
@@ -306,7 +320,7 @@ class TransposeConv(Conv):
                  filters,
                  kernel_size,
                  strides=1,
-                 padding='valid',
+                 padding=0,
                  output_padding=None,
                  data_format=None,
                  dilation_rate=1,
@@ -435,6 +449,9 @@ class TransposeConv(Conv):
         self.built = True
 
     def call(self, inputs):
+        if self.pad:
+            inputs = self.pad(inputs)
+
         if self.use_weight_scaling:
             kernel = self.kernel * self.runtime_coef
         else:
@@ -492,7 +509,7 @@ class TransposeConv1D(TransposeConv):
                  filters,
                  kernel_size,
                  strides=1,
-                 padding='valid',
+                 padding=0,
                  activation=None,
                  use_noise=False,
                  use_bias=True,
@@ -518,7 +535,7 @@ class TransposeConv2D(TransposeConv):
                  filters,
                  kernel_size,
                  strides=(1, 1),
-                 padding='valid',
+                 padding=(0, 0),
                  activation=None,
                  use_noise=False,
                  use_bias=True,
@@ -544,7 +561,7 @@ class TransposeConv3D(TransposeConv):
                  filters,
                  kernel_size,
                  strides=(1, 1, 1),
-                 padding='valid',
+                 padding=(0, 0, 0),
                  activation=None,
                  use_noise=False,
                  use_bias=True,
@@ -571,7 +588,7 @@ class DownConv(Conv):
                  filters,
                  kernel_size,
                  strides=(1, 1),
-                 padding='valid',
+                 padding=(0, 0),
                  factor=None,
                  size=None,
                  method='nearest',
@@ -649,7 +666,7 @@ class DownConv1D(DownConv):
                  filters,
                  kernel_size,
                  strides=1,
-                 padding='valid',
+                 padding=0,
                  factor=2,
                  method='nearest',
                  activation=None,
@@ -679,7 +696,7 @@ class DownConv2D(DownConv):
                  filters,
                  kernel_size,
                  strides=(1, 1),
-                 padding='valid',
+                 padding=(0, 0),
                  factor=2,
                  method='nearest',
                  activation=None,
@@ -709,7 +726,7 @@ class DownConv3D(DownConv):
                  filters,
                  kernel_size,
                  strides=(1, 1, 1),
-                 padding='valid',
+                 padding=(0, 0, 0),
                  factor=2,
                  method='nearest',
                  activation=None,
@@ -740,7 +757,7 @@ class UpConv(Conv):
                  filters,
                  kernel_size,
                  strides=(1, 1),
-                 padding='valid',
+                 padding=(0, 0),
                  factor=None,
                  size=None,
                  method='nearest',
@@ -818,7 +835,7 @@ class UpConv1D(UpConv):
                  filters,
                  kernel_size,
                  strides=1,
-                 padding='valid',
+                 padding=0,
                  factor=2,
                  method='nearest',
                  activation=None,
@@ -848,7 +865,7 @@ class UpConv2D(UpConv):
                  filters,
                  kernel_size,
                  strides=(1, 1),
-                 padding='valid',
+                 padding=(0, 0),
                  factor=2,
                  method='nearest',
                  activation=None,
@@ -878,7 +895,7 @@ class UpConv3D(UpConv):
                  filters,
                  kernel_size,
                  strides=(1, 1, 1),
-                 padding='valid',
+                 padding=(0, 0, 0),
                  factor=2,
                  method='nearest',
                  activation=None,
@@ -908,7 +925,7 @@ class SubPixelConv2D(Conv2D):
                  filters,
                  kernel_size,
                  strides=(1, 1),
-                 padding='valid',
+                 padding=(0, 0),
                  scale=2,
                  use_icnr_initializer=False,
                  data_format=None,
