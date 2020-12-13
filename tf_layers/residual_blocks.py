@@ -110,6 +110,9 @@ class BaseResBlock(tf.keras.Model):
             if i == self.depth - 1 and not (normalization_first or
                                             activation_first):
                 self.conv_block_args['activation'] = None
+            conv_args = self.conv_block_args.copy()
+            if i == 0:
+                conv_args.update(self.other_args)
             conv_blocks.append(
                 self.conv_op[i](
                     rank=self.rank,
@@ -119,21 +122,20 @@ class BaseResBlock(tf.keras.Model):
                     padding=self.padding[i],
                     data_format=self.data_format,
                     name=f'{self._get_block_name(self.conv_op[i])}_{i}',
-                    **self.other_args,
-                    **self.conv_block_args))
-            if i == 0:
-                self.other_args.clear()
+                    **conv_args))
         return conv_blocks
 
     def _build_shortcut_block(self):
         if not self.use_shortcut:
             return None
+        shortcut_args = self.shortcut_block_args.copy()
+        shortcut_args.update(self.other_args)
         return self.shortcut_op(
             rank=self.rank,
             filters=self.filters[-1],
             data_format=self.data_format,
             name=f'shortcut_{self._get_block_name(self.shortcut_op)}',
-            **self.shortcut_block_args)
+            **shortcut_args)
 
     def call(self, inputs):
         outputs = inputs
@@ -472,7 +474,6 @@ class DownResBlock(BaseResBlock):
             'normalization_first': normalization_first,
             'activation': None,
             'use_bias': use_shortcut_bias,
-            **self.other_args,
             **common_conv_args}
 
 
@@ -648,7 +649,6 @@ class UpResBlock(BaseResBlock):
             'normalization_first': normalization_first,
             'activation': None,
             'use_bias': use_shortcut_bias,
-            **self.other_args,
             **common_conv_args}
 
 
