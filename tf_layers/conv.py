@@ -206,9 +206,21 @@ class Conv(ConvBase, convolutional.Conv):
                 outputs = tf.nn.bias_add(
                     outputs, bias, data_format=self._tf_data_format)
 
-        if self.activation is not None:
+        if self.activation:
             return self.activation(outputs)
         return outputs
+
+    def _spatial_output_shape(self, spatial_input_shape):
+        spatial_output_shape = super()._spatial_output_shape(spatial_input_shape)
+        if self.pad is None:
+            return spatial_output_shape
+
+        # spatial output shape for custom pad
+        padding = self.pad.padding
+        return [
+            length + sum(padding[self._spatial_axes[i]]) // self.strides[i]
+            for i, length in enumerate(spatial_output_shape)
+        ]
 
     def get_config(self):
         config = super().get_config()
@@ -464,7 +476,7 @@ class TransposeConv(Conv):
             outputs = tf.nn.bias_add(
                 outputs, bias, data_format=self._tf_data_format)
 
-        if self.activation is not None:
+        if self.activation:
             return self.activation(outputs)
         return outputs
 
@@ -473,7 +485,7 @@ class TransposeConv(Conv):
             output_padding = (None,) * self.rank
         else:
             output_padding = self.output_padding
-        return [
+        spatial_output_shape = [
             conv_utils.deconv_output_length(
                 length,
                 self.kernel_size[i],
@@ -482,6 +494,15 @@ class TransposeConv(Conv):
                 stride=self.strides[i],
                 dilation=self.dilation_rate[i])
             for i, length in enumerate(spatial_input_shape)
+        ]
+        if self.pad is None:
+            return spatial_output_shape
+
+        # spatial output shape for custom pad
+        padding = self.pad.padding
+        return [
+            length + sum(padding[self._spatial_axes[i]]) // self.strides[i]
+            for i, length in enumerate(spatial_output_shape)
         ]
 
     def get_config(self):
@@ -640,6 +661,15 @@ class DownConv(Conv):
     def call(self, inputs):
         outputs = self.downsample(inputs)
         return super().call(outputs)
+
+    def _spatial_output_shape(self, spatial_input_shape):
+        if hasattr(self.downsample.factor, '__len__'):
+            factor = self.downsample.factor
+        else:
+            factor = (self.downsample.factor,) * self.rank
+        return super()._spatial_output_shape(
+            length // factor[i]
+            for i, length in enumerate(spatial_input_shape))
 
     def get_config(self):
         config = super().get_config()
@@ -810,6 +840,15 @@ class UpConv(Conv):
         outputs = self.upsample(inputs)
         return super().call(outputs)
 
+    def _spatial_output_shape(self, spatial_input_shape):
+        if hasattr(self.upsample.factor, '__len__'):
+            factor = self.upsample.factor
+        else:
+            factor = (self.upsample.factor,) * self.rank
+        return super()._spatial_output_shape(
+            int(length * factor[i])
+            for i, length in enumerate(spatial_input_shape))
+
     def get_config(self):
         config = super().get_config()
         config.update({
@@ -914,58 +953,36 @@ class SubPixelConv2D(Conv2D):
                  kernel_size,
                  strides=(1, 1),
                  padding=(0, 0),
-                 scale=2,
+                 factor=2,
                  use_icnr_initializer=False,
-                 data_format=None,
-                 dilation_rate=(1, 1),
-                 groups=1,
                  activation=None,
                  noise=None,
-                 noise_strength=0.0,
-                 noise_trainable=True,
                  use_bias=False,
                  use_weight_scaling=False,
                  gain=np.sqrt(2),
                  lr_multiplier=1.0,
                  kernel_initializer='he_normal',
-                 bias_initializer='zeros',
-                 kernel_regularizer=None,
-                 bias_regularizer=None,
-                 activity_regularizer=None,
-                 kernel_constraint=None,
-                 bias_constraint=None,
                  **kwargs):
-        self.scale = scale
+        self.factor = factor
         self.use_icnr_initializer = use_icnr_initializer
         if use_weight_scaling:
             stddev = 1.0 / lr_multiplier
             kernel_initializer = tf.initializers.random_normal(0, stddev)
         if use_icnr_initializer:
-            kernel_initializer = ICNR(self.scale, kernel_initializer)
+            kernel_initializer = ICNR(self.factor, kernel_initializer)
 
         super().__init__(
-            filters=filters * (self.scale**2),
+            filters=filters * (self.factor**2),
             kernel_size=kernel_size,
             strides=strides,
             padding=padding,
-            data_format=data_format,
-            dilation_rate=dilation_rate,
-            groups=groups,
             activation=activation,
             noise=noise,
-            noise_strength=noise_strength,
-            noise_trainable=noise_trainable,
             use_bias=use_bias,
             use_weight_scaling=False,  # `use_weight_scaling` should be False.
             gain=gain,
             lr_multiplier=lr_multiplier,
             kernel_initializer=kernel_initializer,
-            bias_initializer=bias_initializer,
-            kernel_regularizer=kernel_regularizer,
-            bias_regularizer=bias_regularizer,
-            activity_regularizer=activity_regularizer,
-            kernel_constraint=kernel_constraint,
-            bias_constraint=bias_constraint,
             **kwargs)
 
         # reinitialize `use_weight_scaling` after super().__init__()
@@ -975,14 +992,32 @@ class SubPixelConv2D(Conv2D):
         outputs = super().call(inputs)
         data_format = 'NCHW' if self.data_format == 'channels_first' else 'NHWC'
         outputs = tf.nn.depth_to_space(input=outputs,
-                                       block_size=self.scale,
+                                       block_size=self.factor,
                                        data_format=data_format)
         return outputs
+
+    def _spatial_output_shape(self, spatial_input_shape):
+        return [
+            length * self.factor
+            for length in super()._spatial_output_shape(spatial_input_shape)
+        ]
+
+    def compute_output_shape(self, input_shape):
+        input_shape = tf.TensorShape(input_shape).as_list()
+        batch_rank = len(input_shape) - self.rank - 1
+        if self.data_format == 'channels_last':
+            return tf.TensorShape(
+                input_shape[:batch_rank]
+                + self._spatial_output_shape(input_shape[batch_rank:-1])
+                + [self.filters // self.factor**2])
+        return tf.TensorShape(
+            input_shape[:batch_rank] + [self.filters // self.factor**2] +
+            self._spatial_output_shape(input_shape[batch_rank + 1:]))
 
     def get_config(self):
         config = super().get_config()
         config.update({
-            'scale': self.scale,
+            'factor': self.factor,
             'use_icnr_initializer': self.use_icnr_initializer
         })
         return config
