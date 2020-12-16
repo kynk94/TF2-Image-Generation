@@ -669,10 +669,14 @@ class DecompTransConv(Conv):
         self.input_spec = tf.keras.layers.InputSpec(
             ndim=self.rank + 2, axes={self._channel_axis: input_channel})
         kernel_shapes = []
+        filters = self.filters // self.groups
         for i in range(self.rank):
             kernel_size = [1] * self.rank
             kernel_size[i] = self.kernel_size[i]
-            shape = (*kernel_size, self.filters // self.groups, input_channel)
+            if i == 0:
+                shape = (*kernel_size, filters, input_channel)
+            else:
+                shape = (*kernel_size, filters, filters)
             kernel_shapes.append(shape)
 
         self.kernels = [
