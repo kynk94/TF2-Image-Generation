@@ -89,7 +89,6 @@ Tensorflow 2 reimplementation of image generation model.
 
 ---
 
-
 ## Neural Style Transfer
 
 <table align="center">
@@ -153,6 +152,19 @@ Tensorflow 2 reimplementation of image generation model.
 - [ ] CycleGAN
 - [ ] StarGAN
 - [ ] UNIT
+
+## TF2 Custom Layer
+
+- [x] Resample Layers (Downsample, Upsample)
+- [x] Padding Layers
+- [x] Noise Layers
+- [x] Dense Block (support noise, weight scaling)
+- [x] Convolution Layers (support int pad, noise, weight scaling)
+- [x] Convolution Blocks (support normalization, activation, etc)
+- [x] Residual Blocks (support shortcut, Resample, Transpose, etc)
+- [x] Subpixel Convolution
+- [x] ICNR Initializer
+- [ ] Separable Transpose Convolution
 
 # Utilities
 

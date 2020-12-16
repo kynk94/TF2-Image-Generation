@@ -1,7 +1,7 @@
 import numpy as np
 import tensorflow as tf
 from tensorflow.python.keras.layers.ops import core as core_ops
-from .utils import get_activation_layer, get_normalization_layer
+from .utils import get_activation_layer, get_noise_layer, get_normalization_layer
 from .utils import get_layer_config
 
 
@@ -80,6 +80,9 @@ class Dense(tf.keras.layers.Dense):
                  units,
                  activation=None,
                  use_bias=True,
+                 noise=None,
+                 noise_strength=0.0,
+                 noise_trainable=True,
                  use_weight_scaling=False,
                  gain=np.sqrt(2),
                  lr_multiplier=1.0,
@@ -97,6 +100,9 @@ class Dense(tf.keras.layers.Dense):
         if use_weight_scaling:
             stddev = 1.0 / lr_multiplier
             kernel_initializer = tf.initializers.random_normal(0, stddev)
+        self.noise = get_noise_layer(noise=noise,
+                                     strength=noise_strength,
+                                     trainable=noise_trainable)
         super().__init__(
             units=units,
             activation=activation,
@@ -123,12 +129,20 @@ class Dense(tf.keras.layers.Dense):
             kernel = self.kernel * self.runtime_coef
         else:
             kernel = self.kernel
-        return core_ops.dense(
-            inputs,
-            kernel,
-            self.bias,
-            self.activation,
+        outputs = core_ops.dense(
+            inputs=inputs,
+            kernel=kernel,
+            bias=None,
+            activation=None,
             dtype=self._compute_dtype_object)
+
+        if self.noise:
+            outputs = self.noise(outputs)
+        if self.bias:
+            outputs = tf.nn.bias_add(outputs, self.bias)
+        if self.activation:
+            outputs = self.activation(outputs)
+        return outputs
 
     def get_config(self):
         config = super().get_config()
@@ -138,7 +152,9 @@ class Dense(tf.keras.layers.Dense):
             'gain':
                 self.gain,
             'lr_multiplier':
-                self.lr_multiplier
+                self.lr_multiplier,
+            'noise':
+                get_layer_config(self.noise)
         })
         return config
 
@@ -153,6 +169,9 @@ class DenseBlock(tf.keras.Model):
     def __init__(self,
                  units,
                  use_bias=True,
+                 noise=None,
+                 noise_strength=0.0,
+                 noise_trainable=True,
                  use_weight_scaling=False,
                  gain=np.sqrt(2),
                  lr_multiplier=1.0,
@@ -194,6 +213,9 @@ class DenseBlock(tf.keras.Model):
             units=units,
             activation=None,
             use_bias=use_bias,
+            noise=noise,
+            noise_strength=noise_strength,
+            noise_trainable=noise_trainable,
             use_weight_scaling=use_weight_scaling,
             gain=gain,
             lr_multiplier=lr_multiplier,
