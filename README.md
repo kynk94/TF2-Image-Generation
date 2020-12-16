@@ -164,7 +164,7 @@ Tensorflow 2 reimplementation of image generation model.
 - [x] Residual Blocks (support shortcut, Resample, Transpose, etc)
 - [x] Subpixel Convolution
 - [x] ICNR Initializer
-- [ ] Separable Transpose Convolution
+- [x] Decomposed Transposed Convolution
 
 # Utilities
 

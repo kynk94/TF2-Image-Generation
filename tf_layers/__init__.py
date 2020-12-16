@@ -11,6 +11,7 @@ from .conv import Conv1D, Conv2D, Conv3D
 from .conv import DownConv1D, DownConv2D, DownConv3D
 from .conv import SubPixelConv2D
 from .conv import TransposeConv1D, TransposeConv2D, TransposeConv3D
+from .conv import DecompTransConv2D, DecompTransConv3D
 from .conv import UpConv1D, UpConv2D, UpConv3D
 from .conv_blocks import Conv1DBlock, Conv2DBlock, Conv3DBlock
 from .conv_blocks import DownConv1DBlock, DownConv2DBlock, DownConv3DBlock

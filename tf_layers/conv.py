@@ -329,7 +329,7 @@ class TransposeConv(Conv):
                  noise=None,
                  noise_strength=0.0,
                  noise_trainable=True,
-                 use_bias=True,
+                 use_bias=False,
                  use_weight_scaling=False,
                  gain=np.sqrt(2),
                  lr_multiplier=1.0,
@@ -501,7 +501,7 @@ class TransposeConv(Conv):
         # spatial output shape for custom pad
         padding = self.pad.padding
         return [
-            length + sum(padding[self._spatial_axes[i]]) // self.strides[i]
+            length + sum(padding[self._spatial_axes[i]]) * self.strides[i]
             for i, length in enumerate(spatial_output_shape)
         ]
 
@@ -521,7 +521,7 @@ class TransposeConv1D(TransposeConv):
                  padding=0,
                  activation=None,
                  noise=None,
-                 use_bias=True,
+                 use_bias=False,
                  use_weight_scaling=False,
                  kernel_initializer='he_normal',
                  **kwargs):
@@ -547,7 +547,7 @@ class TransposeConv2D(TransposeConv):
                  padding=(0, 0),
                  activation=None,
                  noise=None,
-                 use_bias=True,
+                 use_bias=False,
                  use_weight_scaling=False,
                  kernel_initializer='he_normal',
                  **kwargs):
@@ -573,7 +573,7 @@ class TransposeConv3D(TransposeConv):
                  padding=(0, 0, 0),
                  activation=None,
                  noise=None,
-                 use_bias=True,
+                 use_bias=False,
                  use_weight_scaling=False,
                  kernel_initializer='he_normal',
                  **kwargs):
@@ -584,6 +584,279 @@ class TransposeConv3D(TransposeConv):
             strides=strides,
             padding=padding,
             activation=activation,
+            noise=noise,
+            use_bias=use_bias,
+            use_weight_scaling=use_weight_scaling,
+            kernel_initializer=kernel_initializer,
+            **kwargs)
+
+
+class DecompTransConv(Conv):
+    """
+    Decomposed Transposed Convolution.
+    Not depthwise convolution, decomposed with spatial dimension.
+    """
+
+    def __init__(self,
+                 rank,
+                 filters,
+                 kernel_size,
+                 strides=1,
+                 padding=0,
+                 data_format=None,
+                 dilation_rate=1,
+                 groups=1,
+                 activation=None,
+                 noise=None,
+                 noise_strength=0.0,
+                 noise_trainable=True,
+                 use_bias=False,
+                 use_weight_scaling=False,
+                 gain=np.sqrt(2),
+                 lr_multiplier=1.0,
+                 kernel_initializer='he_normal',
+                 bias_initializer='zeros',
+                 kernel_regularizer=None,
+                 bias_regularizer=None,
+                 activity_regularizer=None,
+                 kernel_constraint=None,
+                 bias_constraint=None,
+                 **kwargs):
+        if rank <= 1:
+            raise ValueError('`rank` of DecomposeTransposeConv should '
+                             'greater than 1.')
+        super().__init__(
+            rank=rank,
+            filters=filters,
+            kernel_size=kernel_size,
+            strides=strides,
+            padding=padding,
+            data_format=data_format,
+            dilation_rate=dilation_rate,
+            groups=groups,
+            activation=activation,
+            noise=noise,
+            noise_strength=noise_strength,
+            noise_trainable=noise_trainable,
+            use_bias=use_bias,
+            use_weight_scaling=use_weight_scaling,
+            gain=gain,
+            lr_multiplier=lr_multiplier,
+            kernel_initializer=kernel_initializer,
+            bias_initializer=bias_initializer,
+            kernel_regularizer=kernel_regularizer,
+            bias_regularizer=bias_regularizer,
+            activity_regularizer=activity_regularizer,
+            kernel_constraint=kernel_constraint,
+            bias_constraint=bias_constraint,
+            **kwargs)
+
+    def build(self, input_shape):
+        input_shape = tf.TensorShape(input_shape)
+        if len(input_shape) != self.rank + 2:
+            raise ValueError(f'Inputs should have rank {self.rank + 2}.'
+                             f'Received input shape: {input_shape}')
+        if input_shape.dims[self._channel_axis].value is None:
+            raise ValueError('The channel dimension of the inputs should be '
+                             'defined. Found `None`.')
+        input_channel = int(input_shape[self._channel_axis])
+        if input_channel % self.groups != 0:
+            raise ValueError(
+                'The number of input channels must be evenly divisible by the '
+                f'number of groups. Received groups={self.groups}, but the '
+                f'input has {input_channel} channels (full input shape is '
+                f'{input_shape}).')
+        self.input_spec = tf.keras.layers.InputSpec(
+            ndim=self.rank + 2, axes={self._channel_axis: input_channel})
+        kernel_shapes = []
+        for i in range(self.rank):
+            kernel_size = [1] * self.rank
+            kernel_size[i] = self.kernel_size[i]
+            shape = (*kernel_size, self.filters // self.groups, input_channel)
+            kernel_shapes.append(shape)
+
+        self.kernels = [
+            self.add_weight(
+                f'kernel_{i}',
+                shape=kernel_shape,
+                initializer=self.kernel_initializer,
+                regularizer=self.kernel_regularizer,
+                constraint=self.kernel_constraint,
+                trainable=True,
+                dtype=self.dtype)
+            for i, kernel_shape in enumerate(kernel_shapes)
+        ]
+        if self.use_bias:
+            self.bias = self.add_weight(
+                'bias',
+                shape=(self.filters,),
+                initializer=self.bias_initializer,
+                regularizer=self.bias_regularizer,
+                constraint=self.bias_constraint,
+                trainable=True,
+                dtype=self.dtype)
+        else:
+            self.bias = None
+
+        temporal_output_shape = []
+        for axis in self._spatial_axes:
+            shape = conv_utils.deconv_output_length(
+                input_shape[axis],
+                1,
+                padding=self.padding,
+                output_padding=None,
+                stride=1,
+                dilation=1)
+            if self.pad is not None:
+                shape += sum(self.pad.padding[axis])
+            temporal_output_shape.append(shape)
+
+        self.spatial_output_shapes = []
+        spatial_output_shape = self._spatial_output_shape(
+            input_shape[axis] for axis in self._spatial_axes)
+        for i in range(self.rank):
+            output_shape = spatial_output_shape[:i+1] + \
+                temporal_output_shape[i+1:]
+            if self.data_format == 'channels_first':
+                output_shape = (self.filters, *output_shape)
+            else:
+                output_shape = (*output_shape, self.filters)
+            self.spatial_output_shapes.append(output_shape)
+
+        conv_kwargs = {
+            'padding': self.padding.upper(),
+            'dilations': self.dilation_rate,
+            'data_format': self._tf_data_format}
+        if self.rank == 1:
+            conv_op = tf.nn.conv1d_transpose
+        elif self.rank == 2:
+            if self.dilation_rate[0] == 1:
+                conv_op = tf.nn.conv2d_transpose
+            else:
+                conv_op = tf.keras.backend.conv2d_transpose
+                conv_kwargs.update({
+                    'dilation_rate': conv_kwargs.pop('dilations'),
+                    'data_format': self.data_format})
+        else:
+            conv_op = tf.nn.conv3d_transpose
+
+        self._convolution_ops = []
+        for i in range(self.rank):
+            strides = [1] * self.rank
+            strides[i] = self.strides[i]
+            self._convolution_ops.append(
+                functools.partial(
+                    conv_op,
+                    strides=tuple(strides),
+                    **conv_kwargs)
+            )
+
+        if self.use_weight_scaling:
+            self.runtime_coefs = []
+            for kernel_shape in kernel_shapes:
+                fan_in = np.prod(kernel_shape[:-1])
+                runtime_coef = self.gain / np.sqrt(fan_in)
+                self.runtime_coefs.append(runtime_coef * self.lr_multiplier)
+        self.built = True
+
+    def call(self, inputs):
+        if self.pad:
+            inputs = self.pad(inputs)
+
+        outputs = inputs
+        for i in range(self.rank):
+            if self.use_weight_scaling:
+                kernel = self.kernels[i] * self.runtime_coefs[i]
+            else:
+                kernel = self.kernels[i]
+            outputs = self._convolution_ops[i](
+                outputs,
+                kernel,
+                tf.stack((tf.shape(inputs)[0], *self.spatial_output_shapes[i]))
+            )
+
+        if not context.executing_eagerly():
+            out_shape = self.compute_output_shape(inputs.shape)
+            outputs.set_shape(out_shape)
+
+        if self.noise:
+            outputs = self.noise(outputs)
+
+        if self.use_bias:
+            if self.use_weight_scaling:
+                bias = self.bias * self.lr_multiplier
+            else:
+                bias = self.bias
+            outputs = tf.nn.bias_add(
+                outputs, bias, data_format=self._tf_data_format)
+
+        if self.activation:
+            return self.activation(outputs)
+        return outputs
+
+    def _spatial_output_shape(self, spatial_input_shape):
+        spatial_output_shape = [
+            conv_utils.deconv_output_length(
+                length,
+                self.kernel_size[i],
+                padding=self.padding,
+                output_padding=None,
+                stride=self.strides[i],
+                dilation=self.dilation_rate[i])
+            for i, length in enumerate(spatial_input_shape)
+        ]
+        if self.pad is None:
+            return spatial_output_shape
+
+        # spatial output shape for custom pad
+        padding = self.pad.padding
+        return [
+            length + sum(padding[self._spatial_axes[i]]) * self.strides[i]
+            for i, length in enumerate(spatial_output_shape)
+        ]
+
+
+class DecompTransConv2D(DecompTransConv):
+    def __init__(self,
+                 filters,
+                 kernel_size,
+                 strides=(1, 1),
+                 padding=(0, 0),
+                 noise=None,
+                 use_bias=False,
+                 use_weight_scaling=False,
+                 kernel_initializer='he_normal',
+                 **kwargs):
+        super().__init__(
+            rank=2,
+            filters=filters,
+            kernel_size=kernel_size,
+            strides=strides,
+            padding=padding,
+            noise=noise,
+            use_bias=use_bias,
+            use_weight_scaling=use_weight_scaling,
+            kernel_initializer=kernel_initializer,
+            **kwargs)
+
+
+class DecompTransConv3D(DecompTransConv):
+    def __init__(self,
+                 filters,
+                 kernel_size,
+                 strides=(1, 1, 1),
+                 padding=(0, 0, 0),
+                 noise=None,
+                 use_bias=False,
+                 use_weight_scaling=False,
+                 kernel_initializer='he_normal',
+                 **kwargs):
+        super().__init__(
+            rank=3,
+            filters=filters,
+            kernel_size=kernel_size,
+            strides=strides,
+            padding=padding,
             noise=noise,
             use_bias=use_bias,
             use_weight_scaling=use_weight_scaling,
