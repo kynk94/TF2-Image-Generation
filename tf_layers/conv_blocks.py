@@ -7,7 +7,7 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.python.keras.utils.conv_utils import normalize_data_format
 from tensorflow_addons.layers import SpectralNormalization
-from .conv import Conv, DownConv, TransposeConv, UpConv
+from .conv import Conv, TransposeConv, DecompTransConv, DownConv, UpConv
 from .conv import SubPixelConv2D
 from .utils import get_activation_layer, get_normalization_layer
 from .utils import get_layer_config
@@ -386,7 +386,7 @@ class TransConvBlock(BaseBlock):
             kernel_constraint=kernel_constraint,
             bias_constraint=bias_constraint,
             trainable=trainable,
-            name=f'conv{rank}d_transpose')
+            name=f'transpose_conv{rank}d')
 
         # spectral normalization
         if use_spectral_norm:
@@ -465,6 +465,160 @@ class TransConv2DBlock(TransConvBlock):
 
 
 class TransConv3DBlock(TransConvBlock):
+    def __init__(self,
+                 filters,
+                 kernel_size,
+                 strides=(1, 1, 1),
+                 padding=(0, 0, 0),
+                 noise=None,
+                 use_bias=False,
+                 use_weight_scaling=False,
+                 kernel_initializer='he_normal',
+                 pad_type='zero',
+                 normalization=None,
+                 normalization_first=False,
+                 activation=None,
+                 activation_first=False,
+                 **kwargs):
+        super().__init__(
+            rank=3,
+            filters=filters,
+            kernel_size=kernel_size,
+            strides=strides,
+            padding=padding,
+            noise=noise,
+            use_bias=use_bias,
+            use_weight_scaling=use_weight_scaling,
+            kernel_initializer=kernel_initializer,
+            pad_type=pad_type,
+            normalization=normalization,
+            normalization_first=normalization_first,
+            activation=activation,
+            activation_first=activation_first,
+            **kwargs)
+
+
+class DecompTransConvBlock(BaseBlock):
+    """
+    Decomposed Transposed Convolution Block.
+
+    Block consists of transposed convolution,
+    pad, normalization, and activation layers.
+    """
+
+    def __init__(self,
+                 rank,
+                 filters,
+                 kernel_size,
+                 strides=1,
+                 padding=0,
+                 pad_type='constant',
+                 pad_constant_values=0,
+                 groups=1,
+                 noise=None,
+                 noise_strength=0.0,
+                 noise_trainable=True,
+                 use_bias=False,
+                 use_weight_scaling=False,
+                 gain=np.sqrt(2),
+                 lr_multiplier=1.0,
+                 kernel_initializer='he_normal',
+                 bias_initializer='zeros',
+                 kernel_regularizer=None,
+                 bias_regularizer=None,
+                 activity_regularizer=None,
+                 kernel_constraint=None,
+                 bias_constraint=None,
+                 data_format=None,
+                 normalization=None,
+                 normalization_first=False,
+                 norm_momentum=0.99,
+                 norm_group=32,
+                 activation=None,
+                 activation_alpha=0.3,
+                 activation_first=False,
+                 trainable=True,
+                 name=None,
+                 **kwargs):
+        super().__init__(
+            rank=rank,
+            data_format=data_format,
+            normalization=normalization,
+            normalization_first=normalization_first,
+            norm_momentum=norm_momentum,
+            norm_group=norm_group,
+            activation=activation,
+            activation_first=activation_first,
+            activation_alpha=activation_alpha,
+            trainable=trainable,
+            name=name,
+            **kwargs)
+
+        # convolution layer
+        self.conv = DecompTransConv(
+            rank=rank,
+            filters=filters,
+            kernel_size=kernel_size,
+            strides=strides,
+            padding=padding,
+            pad_type=pad_type,
+            pad_constant_values=pad_constant_values,
+            data_format=self.data_format,
+            groups=groups,
+            activation=None,
+            noise=noise,
+            noise_strength=noise_strength,
+            noise_trainable=noise_trainable,
+            use_bias=use_bias,
+            use_weight_scaling=use_weight_scaling,
+            gain=gain,
+            lr_multiplier=lr_multiplier,
+            kernel_initializer=kernel_initializer,
+            bias_initializer=bias_initializer,
+            kernel_regularizer=kernel_regularizer,
+            bias_regularizer=bias_regularizer,
+            activity_regularizer=activity_regularizer,
+            kernel_constraint=kernel_constraint,
+            bias_constraint=bias_constraint,
+            trainable=trainable,
+            name=f'decomp_trans_conv{rank}d')
+
+
+class DecompTransConv2DBlock(DecompTransConvBlock):
+    def __init__(self,
+                 filters,
+                 kernel_size,
+                 strides=(1, 1),
+                 padding=(0, 0),
+                 noise=None,
+                 use_bias=False,
+                 use_weight_scaling=False,
+                 kernel_initializer='he_normal',
+                 pad_type='zero',
+                 normalization=None,
+                 normalization_first=False,
+                 activation=None,
+                 activation_first=False,
+                 **kwargs):
+        super().__init__(
+            rank=2,
+            filters=filters,
+            kernel_size=kernel_size,
+            strides=strides,
+            padding=padding,
+            noise=noise,
+            use_bias=use_bias,
+            use_weight_scaling=use_weight_scaling,
+            kernel_initializer=kernel_initializer,
+            pad_type=pad_type,
+            normalization=normalization,
+            normalization_first=normalization_first,
+            activation=activation,
+            activation_first=activation_first,
+            **kwargs)
+
+
+class DecompTransConv3DBlock(DecompTransConvBlock):
     def __init__(self,
                  filters,
                  kernel_size,
