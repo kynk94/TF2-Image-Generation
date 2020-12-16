@@ -138,7 +138,7 @@ class Dense(tf.keras.layers.Dense):
 
         if self.noise:
             outputs = self.noise(outputs)
-        if self.bias:
+        if self.use_bias:
             outputs = tf.nn.bias_add(outputs, self.bias)
         if self.activation:
             outputs = self.activation(outputs)
