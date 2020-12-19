@@ -3,10 +3,12 @@ Copyright (C) https://github.com/kynk94. All rights reserved.
 Licensed under the CC BY-NC-SA 4.0 license
 (https://creativecommons.org/licenses/by-nc-sa/4.0/).
 """
+import numpy as np
 import tensorflow as tf
 import tensorflow_addons as tfa
 from tensorflow.keras.layers import BatchNormalization, LayerNormalization
 from tensorflow_addons.layers import GroupNormalization, InstanceNormalization
+from .filters import FIRFilter
 from .noise import GaussianNoise, UniformNoise
 from .normalizations import FilterResponseNormalization
 from .padding import Padding
@@ -19,6 +21,13 @@ def get_layer_config(layer):
         return layer.get_config()
     return getattr(layer, '__name__',
                    layer.__class__.__name__)
+
+
+def get_initializer(initializer, use_weight_scaling=False, lr_multiplier=1.0):
+    if not use_weight_scaling:
+        return tf.keras.initializers.get(initializer)
+    stddev = 1.0 / lr_multiplier
+    return tf.initializers.random_normal(0, stddev)
 
 
 def get_str_padding(padding):
@@ -88,6 +97,28 @@ def get_noise_layer(noise,
                 channel_same=channel_same,
                 trainable=trainable,
                 **kwargs)
+
+
+def get_filter_layer(filter,
+                     factor=2,
+                     gain=np.sqrt(2),
+                     stride=1,
+                     kernel_normalize=True,
+                     data_format=None):
+    if filter is None:
+        return None
+    if filter == True:
+        return FIRFilter(factor=factor,
+                         gain=gain,
+                         stride=stride,
+                         kernel_normalize=kernel_normalize,
+                         data_format=data_format)
+    return FIRFilter(kernel=filter,
+                     factor=factor,
+                     gain=gain,
+                     stride=stride,
+                     kernel_normalize=kernel_normalize,
+                     data_format=data_format)
 
 
 def get_normalization_layer(channel_axis,

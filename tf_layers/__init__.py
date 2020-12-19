@@ -21,6 +21,7 @@ from .conv_blocks import UpConv1DBlock, UpConv2DBlock, UpConv3DBlock
 from .conv_blocks import SubPixelConv2DBlock
 from .dense import Dense, DenseBlock
 from .embedding import Embedding
+from .filters import FIRFilter
 from .noise import GaussianNoise, UniformNoise
 from .normalizations import FilterResponseNormalization
 from .padding import Padding1D, Padding2D, Padding3D
