@@ -9,7 +9,7 @@ class FIRFilter(tf.keras.layers.Layer):
     def __init__(self,
                  kernel=None,
                  factor=2,
-                 gain=np.sqrt(2),
+                 gain=1,
                  stride=1,
                  kernel_normalize=True,
                  data_format=None,
@@ -106,8 +106,7 @@ class FIRFilter(tf.keras.layers.Layer):
         if kernel.ndim == self.rank:
             if self.kernel_normalize:
                 kernel /= np.sum(kernel)
-            fan_in = np.prod(kernel.shape)
-            return kernel #* self.gain / np.sqrt(fan_in)
+            return kernel * self.gain
         elif kernel.ndim != 1:
             raise ValueError(f'`kernel` should have dimensioin {self.rank}. '
                              f'Received: {kernel.ndim}')
@@ -121,8 +120,7 @@ class FIRFilter(tf.keras.layers.Layer):
 
         if self.kernel_normalize:
             kernel /= np.sum(kernel)
-        fan_in = np.prod(kernel.shape)
-        return kernel #* self.gain / np.sqrt(fan_in)
+        return kernel * self.gain
 
     def _get_channel_axis(self):
         if self.data_format == 'channels_first':

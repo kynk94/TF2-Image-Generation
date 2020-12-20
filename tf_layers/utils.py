@@ -3,7 +3,6 @@ Copyright (C) https://github.com/kynk94. All rights reserved.
 Licensed under the CC BY-NC-SA 4.0 license
 (https://creativecommons.org/licenses/by-nc-sa/4.0/).
 """
-import numpy as np
 import tensorflow as tf
 import tensorflow_addons as tfa
 from tensorflow.keras.layers import BatchNormalization, LayerNormalization
@@ -101,7 +100,7 @@ def get_noise_layer(noise,
 
 def get_filter_layer(filter,
                      factor=2,
-                     gain=np.sqrt(2),
+                     gain=1,
                      stride=1,
                      kernel_normalize=True,
                      data_format=None):

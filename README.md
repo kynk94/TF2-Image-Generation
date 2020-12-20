@@ -159,12 +159,13 @@ Tensorflow 2 reimplementation of image generation model.
 - [x] Padding Layers
 - [x] Noise Layers
 - [x] Dense Block (support noise, weight scaling)
-- [x] Convolution Layers (support int pad, noise, weight scaling)
+- [x] Convolution Layers (support int pad, noise, weight scaling, fir filter)
 - [x] Convolution Blocks (support normalization, activation, etc)
 - [x] Residual Blocks (support shortcut, Resample, Transpose, etc)
 - [x] Subpixel Convolution
 - [x] ICNR Initializer
 - [x] Decomposed Transposed Convolution
+- [x] FIR Filter Layer (Need to set learning rate lower to use filter, according to experiment.)
 
 # Utilities
 

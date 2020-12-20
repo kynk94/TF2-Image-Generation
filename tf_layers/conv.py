@@ -121,7 +121,6 @@ class Conv(convolutional.Conv):
         self.fir = get_filter_layer(
             filter=fir,
             factor=fir_factor or self._fir_factor_from_stride(self.strides),
-            gain=gain,
             stride=fir_stride,
             kernel_normalize=fir_normalize,
             data_format=self.data_format)
@@ -1332,9 +1331,7 @@ class SubPixelConv2D(Conv2D):
             min_ndim=self.rank + 2, axes={channel_axis: input_channel})
 
         # Convert Keras formats to TF native formats.
-        if self.padding == 'causal':
-            tf_padding = 'VALID'
-        elif isinstance(self.padding, str):
+        if isinstance(self.padding, str):
             tf_padding = self.padding.upper()
         else:
             tf_padding = self.padding
