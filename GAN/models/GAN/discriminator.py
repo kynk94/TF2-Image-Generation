@@ -1,5 +1,5 @@
 import tensorflow as tf
-from tensorflow.keras import layers
+import layers
 
 
 class Discriminator(tf.keras.Model):
@@ -9,10 +9,10 @@ class Discriminator(tf.keras.Model):
         self.build_model()
 
     def build_model(self):
-        model = [layers.Dense(256, activation=tf.nn.leaky_relu),
-                 layers.Dense(256, activation=tf.nn.leaky_relu),
-                 layers.Dense(128, activation=tf.nn.leaky_relu),
-                 layers.Dense(1)]
+        model = [layers.Linear(256, activation=tf.nn.leaky_relu),
+                 layers.Linear(256, activation=tf.nn.leaky_relu),
+                 layers.Linear(128, activation=tf.nn.leaky_relu),
+                 layers.Linear(1)]
         self.model = tf.keras.Sequential(model, name='discriminator')
 
     def call(self, x):

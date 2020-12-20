@@ -23,7 +23,7 @@ class Discriminator(tf.keras.Model):
                                             normalization='bn',
                                             activation='lrelu'))
         model.extend([layers.Flatten(),
-                      layers.Dense(1)])
+                      layers.Linear(1)])
         self.model = tf.keras.Sequential(model, name='discriminator')
         self.model.summary()
 

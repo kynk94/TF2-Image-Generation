@@ -29,10 +29,10 @@ class Discriminator(tf.keras.Model):
             n_filter = min(2*n_filter, 512)
             model.append(layers.DownResBlock2D(n_filter, 3, 1, 1,
                                                normalization='bn',
-                                               activation='relu',
+                                               activation='lrelu',
                                                normalization_first=True))
         model.extend([layers.Flatten(),
-                      layers.Dense(1)])
+                      layers.Linear(1)])
         self.model = tf.keras.Sequential(model, name='discriminator')
         self.model.summary()
 
@@ -46,7 +46,7 @@ class Discriminator(tf.keras.Model):
                                             normalization='bn',
                                             activation='lrelu'))
         model.extend([layers.Flatten(),
-                      layers.Dense(1)])
+                      layers.Linear(1)])
         self.model = tf.keras.Sequential(model, name='discriminator')
         self.model.summary()
 

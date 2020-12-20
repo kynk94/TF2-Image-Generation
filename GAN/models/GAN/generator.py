@@ -1,5 +1,5 @@
 import tensorflow as tf
-from tensorflow.keras import layers
+import layers
 
 
 class Generator(tf.keras.Model):
@@ -11,10 +11,10 @@ class Generator(tf.keras.Model):
                          size=conf['input_size'])
 
     def build_model(self, input_dim, size):
-        model = [layers.Dense(128, activation=tf.nn.leaky_relu, input_dim=input_dim),
-                 layers.Dense(256, activation=tf.nn.leaky_relu),
-                 layers.Dense(256, activation=tf.nn.leaky_relu),
-                 layers.Dense(size**2, activation=tf.nn.tanh)]
+        model = [layers.Linear(128, activation=tf.nn.leaky_relu, input_dim=input_dim),
+                 layers.Linear(256, activation=tf.nn.leaky_relu),
+                 layers.Linear(256, activation=tf.nn.leaky_relu),
+                 layers.Linear(size**2, activation=tf.nn.tanh)]
         self.model = tf.keras.Sequential(model, name='generator')
 
     def call(self, x, reshape=False):

@@ -1,6 +1,7 @@
 import tensorflow as tf
 import layers
 
+
 class Discriminator(tf.keras.Model):
     def __init__(self, conf):
         super().__init__()
@@ -11,20 +12,21 @@ class Discriminator(tf.keras.Model):
                        layers.ReLU(),
                        layers.Dropout(conf['dropout_rate']),
                        layers.Maxout(hp['hidden_dim_label'])]
-        block_image = [layers.Dense(input_dim=conf['input_size']**2 * conf['channel'],
-                                    units=hp['hidden_dim_image'],
-                                    activation=tf.nn.relu),
+        block_image = [layers.Linear(input_dim=conf['input_size']**2 * conf['channel'],
+                                     units=hp['hidden_dim_image'],
+                                     activation=tf.nn.relu),
                        layers.Dropout(conf['dropout_rate']),
                        layers.Maxout(hp['hidden_dim_image'])]
-        block_combined = [layers.Dense(units=hp['hidden_dim_combined'],
-                                       activation=tf.nn.relu),
+        block_combined = [layers.Linear(units=hp['hidden_dim_combined'],
+                                        activation=tf.nn.relu),
                           layers.Dropout(conf['dropout_rate']),
                           layers.Maxout(hp['hidden_dim_combined']),
-                          layers.Dense(1)]
+                          layers.Linear(1)]
 
         self.block_label = tf.keras.Sequential(block_label, name='block_label')
         self.block_image = tf.keras.Sequential(block_image, name='block_image')
-        self.block_combined = tf.keras.Sequential(block_combined, name='block_combined')
+        self.block_combined = tf.keras.Sequential(
+            block_combined, name='block_combined')
 
     def call(self, image, label):
         image = self.block_image(image)

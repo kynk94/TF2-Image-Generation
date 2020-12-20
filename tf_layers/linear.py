@@ -5,75 +5,12 @@ from .utils import get_activation_layer, get_noise_layer, get_normalization_laye
 from .utils import get_layer_config
 
 
-class Dense(tf.keras.layers.Dense):
+class Linear(tf.keras.layers.Dense):
     """
-    Inherited from the official tf implementation.
+    Inherited from the official tf implementation Dense.
     (edited by https://github.com/kynk94)
 
-    Just your regular densely-connected NN layer.
-
-    `Dense` implements the operation:
-    `output = activation(dot(input, kernel) + bias)`
-    where `activation` is the element-wise activation function
-    passed as the `activation` argument, `kernel` is a weights matrix
-    created by the layer, and `bias` is a bias vector created by the layer
-    (only applicable if `use_bias` is `True`).
-
-    Note: If the input to the layer has a rank greater than 2, then `Dense`
-    computes the dot product between the `inputs` and the `kernel` along the
-    last axis of the `inputs` and axis 1 of the `kernel` (using `tf.tensordot`).
-    For example, if input has dimensions `(batch_size, d0, d1)`,
-    then we create a `kernel` with shape `(d1, units)`, and the `kernel` operates
-    along axis 2 of the `input`, on every sub-tensor of shape `(1, 1, d1)`
-    (there are `batch_size * d0` such sub-tensors).
-    The output in this case will have shape `(batch_size, d0, units)`.
-
-    Besides, layer attributes cannot be modified after the layer has been called
-    once (except the `trainable` attribute).
-
-    Example:
-
-    >>> # Create a `Sequential` model and add a Dense layer as the first layer.
-    >>> model = tf.keras.models.Sequential()
-    >>> model.add(tf.keras.Input(shape=(16,)))
-    >>> model.add(tf.keras.layers.Dense(32, activation='relu'))
-    >>> # Now the model will take as input arrays of shape (None, 16)
-    >>> # and output arrays of shape (None, 32).
-    >>> # Note that after the first layer, you don't need to specify
-    >>> # the size of the input anymore:
-    >>> model.add(tf.keras.layers.Dense(32))
-    >>> model.output_shape
-    (None, 32)
-
-    Arguments:
-        units: Positive integer, dimensionality of the output space.
-        activation: Activation function to use.
-            If you don't specify anything, no activation is applied
-            (ie. "linear" activation: `a(x) = x`).
-        use_bias: Boolean, whether the layer uses a bias vector.
-        use_weight_scaling: Boolean, whether the layer uses running weight scaling.
-        gain: Float, weight scaling gain.
-        lr_multiplier: Float, weight scaling learning rate multiplier.
-        kernel_initializer: Initializer for the `kernel` weights matrix.
-        bias_initializer: Initializer for the bias vector.
-        kernel_regularizer: Regularizer function applied to
-            the `kernel` weights matrix.
-        bias_regularizer: Regularizer function applied to the bias vector.
-        activity_regularizer: Regularizer function applied to
-            the output of the layer (its "activation").
-        kernel_constraint: Constraint function applied to
-            the `kernel` weights matrix.
-        bias_constraint: Constraint function applied to the bias vector.
-
-    Input shape:
-        N-D tensor with shape: `(batch_size, ..., input_dim)`.
-        The most common situation would be
-        a 2D input with shape `(batch_size, input_dim)`.
-
-    Output shape:
-        N-D tensor with shape: `(batch_size, ..., units)`.
-        For instance, for a 2D input with shape `(batch_size, input_dim)`,
-        the output would have shape `(batch_size, units)`.
+    Just your regular linearly-connected NN layer.
     """
 
     def __init__(self,
@@ -159,11 +96,11 @@ class Dense(tf.keras.layers.Dense):
         return config
 
 
-class DenseBlock(tf.keras.Model):
+class LinearBlock(tf.keras.Model):
     """
-    Dense Block.
+    Linear Block.
 
-    Dense block consists of dense, normalization, and activation layers.
+    Linear block consists of linear, normalization, and activation layers.
     """
 
     def __init__(self,
@@ -208,8 +145,8 @@ class DenseBlock(tf.keras.Model):
         # activation layer
         self.activation = get_activation_layer(activation, activation_alpha)
 
-        # dense layer
-        self.dense = Dense(
+        # linear layer
+        self.linear = Linear(
             units=units,
             activation=None,
             use_bias=use_bias,
@@ -227,27 +164,27 @@ class DenseBlock(tf.keras.Model):
             kernel_constraint=kernel_constraint,
             bias_constraint=bias_constraint,
             trainable=trainable,
-            name='dense')
+            name='linear')
 
     def call(self, inputs):
         outputs = inputs
-        # normalization -> activation -> dense
+        # normalization -> activation -> linear
         if self.normalization_first:
             if self.normalization:
                 outputs = self.normalization(outputs)
             if self.activation:
                 outputs = self.activation(outputs)
-            outputs = self.dense(outputs)
-        # activation -> dense -> normalization
+            outputs = self.linear(outputs)
+        # activation -> linear -> normalization
         elif self.activation_first:
             if self.activation:
                 outputs = self.activation(outputs)
-            outputs = self.dense(outputs)
+            outputs = self.linear(outputs)
             if self.normalization:
                 outputs = self.normalization(outputs)
-        # dense -> normalization -> activation
+        # linear -> normalization -> activation
         else:
-            outputs = self.dense(outputs)
+            outputs = self.linear(outputs)
             if self.normalization:
                 outputs = self.normalization(outputs)
             if self.activation:
@@ -259,7 +196,7 @@ class DenseBlock(tf.keras.Model):
             'name': self.name,
             'normalization_first': self.normalization_first,
             'activation_first': self.activation_first,
-            'dense': get_layer_config(self.dense),
+            'linear': get_layer_config(self.linear),
             'normalization': get_layer_config(self.normalization),
             'activation': get_layer_config(self.activation)
         }
