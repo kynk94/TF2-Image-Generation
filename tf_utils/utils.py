@@ -3,6 +3,23 @@ import glob
 import yaml
 import tensorflow as tf
 
+IMAGE_EXT = {'jpg', 'jpeg', 'png'}
+
+
+def extension_pattern(extension):
+    pattern = ''.join(f'[{e.lower()}{e.upper()}]' for e in extension)
+    return f'**/*.{pattern}'
+
+
+def find_images(path):
+    images = []
+    for EXT in IMAGE_EXT:
+        images.extend(glob.glob(os.path.join(path, extension_pattern(EXT)),
+                                recursive=True))
+    images.sort()
+    assert images, 'Image file not found'
+    return images
+
 
 def str_to_bool(value):
     if isinstance(value, bool):

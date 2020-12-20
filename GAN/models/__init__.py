@@ -5,13 +5,3 @@ from .cDCGAN import ConditionalDCGAN
 from .LSGAN import LSGAN
 from .WGAN import WGAN
 from .WGAN_GP import WGAN_GP
-
-__all__ = [
-    'GAN',
-    'CGAN',
-    'DCGAN',
-    'ConditionalDCGAN',
-    'LSGAN',
-    'WGAN',
-    'WGAN_GP'
-]

@@ -1,7 +1,7 @@
 import tensorflow as tf
 from tensorflow.keras.optimizers import Adam
 
-from models import BaseModel
+from layers import BaseModel
 from ops import calculate_gram_matrix
 from .feature_extractor import FeatureExtractor
 
