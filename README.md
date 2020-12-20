@@ -158,7 +158,7 @@ Tensorflow 2 reimplementation of image generation model.
 - [x] Resample Layers (Downsample, Upsample)
 - [x] Padding Layers
 - [x] Noise Layers
-- [x] Dense Block (support noise, weight scaling)
+- [x] Linear Block (support noise, weight scaling)
 - [x] Convolution Layers (support int pad, noise, weight scaling, fir filter)
 - [x] Convolution Blocks (support normalization, activation, etc)
 - [x] Residual Blocks (support shortcut, Resample, Transpose, etc)
