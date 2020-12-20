@@ -27,6 +27,8 @@ class NoiseBase(tf.keras.layers.Layer):
             else:
                 input_shape = [*input_shape[:-1], 1]
             input_shape = tf.TensorShape(input_shape)
+        else:
+            self.channel_same = False
         self.noise_shape = input_shape[1:]
         self.strength = self.add_weight(
             name='strength',
@@ -40,6 +42,10 @@ class NoiseBase(tf.keras.layers.Layer):
         return tf.keras.backend.in_train_phase(
             self._noise_op(inputs), inputs, training=training)
 
+    @tf_utils.shape_type_conversion
+    def compute_output_shape(self, input_shape):
+        return input_shape
+
     def get_config(self):
         config = super().get_config()
         config.update({
@@ -47,10 +53,6 @@ class NoiseBase(tf.keras.layers.Layer):
             'channel_same': self.channel_same
         })
         return config
-
-    @tf_utils.shape_type_conversion
-    def compute_output_shape(self, input_shape):
-        return input_shape
 
 
 class GaussianNoise(NoiseBase):

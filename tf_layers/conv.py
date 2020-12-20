@@ -12,61 +12,11 @@ from tensorflow.python.keras.utils import conv_utils
 from tensorflow.python.ops import nn_ops
 from .ICNR_initializer import ICNR
 from .resample import Downsample, Upsample
-from .utils import get_padding_layer, get_noise_layer
-from .utils import get_layer_config, get_str_padding
+from .utils import get_filter_layer, get_padding_layer, get_noise_layer
+from .utils import get_initializer, get_layer_config, get_str_padding
 
 
-class ConvBase:
-    """
-    Baseline of Convolution layer.
-
-    Should inherit as first position in custom conv layer.
-    """
-
-    def _get_initializer(self, use_weight_scaling, gain, lr_multiplier):
-        self.use_weight_scaling = use_weight_scaling
-        self.gain = gain
-        self.lr_multiplier = lr_multiplier
-        if use_weight_scaling:
-            stddev = 1.0 / lr_multiplier
-            return tf.initializers.random_normal(0, stddev)
-        return None
-
-    def _check_weight_scaling(self):
-        # kernel.shape: (kernel_size, kernel_size, channels//groups, filters)
-        if self.use_weight_scaling:
-            fan_in = np.prod(self.kernel.shape[:-1])
-            self.runtime_coef = self.gain / np.sqrt(fan_in)
-            self.runtime_coef *= self.lr_multiplier
-
-    def _get_channel_axis(self):
-        if self.data_format == 'channels_first':
-            return 1
-        return self.rank + 1
-
-    def _get_spatial_axes(self):
-        channel_axis = self._get_channel_axis()
-        spatial_axes = list(range(self.rank + 2))
-        del spatial_axes[channel_axis]
-        del spatial_axes[0]
-        return spatial_axes
-
-    def _update_config(self, config):
-        config.update({
-            'use_weight_scaling':
-                self.use_weight_scaling,
-            'gain':
-                self.gain,
-            'lr_multiplier':
-                self.lr_multiplier,
-            'pad':
-                get_layer_config(self.pad),
-            'noise':
-                get_layer_config(self.noise)
-        })
-
-
-class Conv(ConvBase, convolutional.Conv):
+class Conv(convolutional.Conv):
     """
     Inherited from the official tf implementation.
     (edited by https://github.com/kynk94)
@@ -137,6 +87,10 @@ class Conv(ConvBase, convolutional.Conv):
                  padding=0,
                  pad_type='constant',
                  pad_constant_values=0,
+                 fir=None,
+                 fir_factor=None,
+                 fir_stride=1,
+                 fir_normalize=True,
                  noise=None,
                  noise_strength=0.0,
                  noise_trainable=True,
@@ -145,33 +99,41 @@ class Conv(ConvBase, convolutional.Conv):
                  lr_multiplier=1.0,
                  kernel_initializer='he_normal',
                  **kwargs):
+        self.use_weight_scaling = use_weight_scaling
+        self.gain = gain
+        self.lr_multiplier = lr_multiplier
+
         super().__init__(
             padding=get_str_padding(padding),
-            kernel_initializer=self._get_initializer(
-                use_weight_scaling,
-                gain,
-                lr_multiplier) or kernel_initializer,
+            kernel_initializer=get_initializer(kernel_initializer,
+                                               use_weight_scaling,
+                                               lr_multiplier),
             **kwargs)
+
         self._channel_axis = self._get_channel_axis()
         self._spatial_axes = self._get_spatial_axes()
-        self.pad = get_padding_layer(rank=self.rank,
-                                     padding=padding,
-                                     pad_type=pad_type,
-                                     constant_values=pad_constant_values,
-                                     data_format=self.data_format)
-        self.noise = get_noise_layer(noise=noise,
-                                     strength=noise_strength,
-                                     trainable=noise_trainable)
+        self.pad = get_padding_layer(
+            rank=self.rank,
+            padding=padding,
+            pad_type=pad_type,
+            constant_values=pad_constant_values,
+            data_format=self.data_format)
+        self.fir = get_filter_layer(
+            filter=fir,
+            factor=fir_factor or self._fir_factor_from_stride(self.strides),
+            stride=fir_stride,
+            kernel_normalize=fir_normalize,
+            data_format=self.data_format)
+        self.noise = get_noise_layer(
+            noise=noise,
+            strength=noise_strength,
+            trainable=noise_trainable)
 
     def build(self, input_shape):
         super().build(input_shape)
         self._check_weight_scaling()
 
     def call(self, inputs):
-        if self._is_causal:  # Apply causal padding to inputs for Conv1D.
-            inputs = tf.pad(
-                inputs, self._compute_causal_padding(inputs))
-
         if self.pad:
             inputs = self.pad(inputs)
 
@@ -222,9 +184,44 @@ class Conv(ConvBase, convolutional.Conv):
             for i, length in enumerate(spatial_output_shape)
         ]
 
+    def _check_weight_scaling(self):
+        # kernel.shape: (kernel_size, kernel_size, channels//groups, filters)
+        if self.use_weight_scaling:
+            fan_in = np.prod(self.kernel.shape[:-1])
+            self.runtime_coef = self.gain / np.sqrt(fan_in)
+            self.runtime_coef *= self.lr_multiplier
+
+    def _fir_factor_from_stride(self, stride):
+        if isinstance(stride, int):
+            return stride
+        if hasattr(stride, '__len__'):
+            set_stride = set(stride)
+            if len(set_stride) == 1:
+                return set_stride.pop()
+        raise ValueError('Input `stride` does not support fir filter.')
+
+    def _get_channel_axis(self):
+        if self.data_format == 'channels_first':
+            return 1
+        return self.rank + 1
+
+    def _get_spatial_axes(self):
+        channel_axis = self._get_channel_axis()
+        spatial_axes = list(range(self.rank + 2))
+        del spatial_axes[channel_axis]
+        del spatial_axes[0]
+        return spatial_axes
+
     def get_config(self):
         config = super().get_config()
-        self._update_config(config)
+        config.update({
+            'use_weight_scaling': self.use_weight_scaling,
+            'gain': self.gain,
+            'lr_multiplier': self.lr_multiplier,
+            'pad': get_layer_config(self.pad),
+            'fir': get_layer_config(self.fir),
+            'noise': get_layer_config(self.noise)
+        })
         return config
 
 
@@ -326,6 +323,7 @@ class TransposeConv(Conv):
                  dilation_rate=1,
                  groups=1,
                  activation=None,
+                 fir=None,
                  noise=None,
                  noise_strength=0.0,
                  noise_trainable=True,
@@ -351,6 +349,7 @@ class TransposeConv(Conv):
             dilation_rate=dilation_rate,
             groups=groups,
             activation=activation,
+            fir=fir,
             noise=noise,
             noise_strength=noise_strength,
             noise_trainable=noise_trainable,
@@ -465,6 +464,9 @@ class TransposeConv(Conv):
             out_shape = self.compute_output_shape(inputs.shape)
             outputs.set_shape(out_shape)
 
+        if self.fir:
+            outputs = self.fir(outputs)
+
         if self.noise:
             outputs = self.noise(outputs)
 
@@ -520,6 +522,7 @@ class TransposeConv1D(TransposeConv):
                  strides=1,
                  padding=0,
                  activation=None,
+                 fir=None,
                  noise=None,
                  use_bias=False,
                  use_weight_scaling=False,
@@ -532,6 +535,7 @@ class TransposeConv1D(TransposeConv):
             strides=strides,
             padding=padding,
             activation=activation,
+            fir=fir,
             noise=noise,
             use_bias=use_bias,
             use_weight_scaling=use_weight_scaling,
@@ -546,6 +550,7 @@ class TransposeConv2D(TransposeConv):
                  strides=(1, 1),
                  padding=(0, 0),
                  activation=None,
+                 fir=[1, 2, 1],
                  noise=None,
                  use_bias=False,
                  use_weight_scaling=False,
@@ -558,6 +563,7 @@ class TransposeConv2D(TransposeConv):
             strides=strides,
             padding=padding,
             activation=activation,
+            fir=fir,
             noise=noise,
             use_bias=use_bias,
             use_weight_scaling=use_weight_scaling,
@@ -572,6 +578,7 @@ class TransposeConv3D(TransposeConv):
                  strides=(1, 1, 1),
                  padding=(0, 0, 0),
                  activation=None,
+                 fir=None,
                  noise=None,
                  use_bias=False,
                  use_weight_scaling=False,
@@ -584,6 +591,7 @@ class TransposeConv3D(TransposeConv):
             strides=strides,
             padding=padding,
             activation=activation,
+            fir=fir,
             noise=noise,
             use_bias=use_bias,
             use_weight_scaling=use_weight_scaling,
@@ -594,7 +602,8 @@ class TransposeConv3D(TransposeConv):
 class DecompTransConv(Conv):
     """
     Decomposed Transposed Convolution.
-    Not depthwise convolution, decomposed with spatial dimension.
+
+    Decomposed along spatial axes, not channel(depth) axis.
     """
 
     def __init__(self,
@@ -607,6 +616,7 @@ class DecompTransConv(Conv):
                  dilation_rate=1,
                  groups=1,
                  activation=None,
+                 fir=None,
                  noise=None,
                  noise_strength=0.0,
                  noise_trainable=True,
@@ -635,6 +645,7 @@ class DecompTransConv(Conv):
             dilation_rate=dilation_rate,
             groups=groups,
             activation=activation,
+            fir=fir,
             noise=noise,
             noise_strength=noise_strength,
             noise_trainable=noise_trainable,
@@ -774,14 +785,15 @@ class DecompTransConv(Conv):
             else:
                 kernel = self.kernels[i]
             outputs = self._convolution_ops[i](
-                outputs,
-                kernel,
-                tf.stack((tf.shape(inputs)[0], *self.spatial_output_shapes[i]))
-            )
+                outputs, kernel, tf.stack((tf.shape(inputs)[0],
+                                           *self.spatial_output_shapes[i])))
 
         if not context.executing_eagerly():
             out_shape = self.compute_output_shape(inputs.shape)
             outputs.set_shape(out_shape)
+
+        if self.fir:
+            outputs = self.fir(outputs)
 
         if self.noise:
             outputs = self.noise(outputs)
@@ -826,6 +838,7 @@ class DecompTransConv2D(DecompTransConv):
                  kernel_size,
                  strides=(1, 1),
                  padding=(0, 0),
+                 fir=None,
                  noise=None,
                  use_bias=False,
                  use_weight_scaling=False,
@@ -837,6 +850,7 @@ class DecompTransConv2D(DecompTransConv):
             kernel_size=kernel_size,
             strides=strides,
             padding=padding,
+            fir=fir,
             noise=noise,
             use_bias=use_bias,
             use_weight_scaling=use_weight_scaling,
@@ -850,6 +864,7 @@ class DecompTransConv3D(DecompTransConv):
                  kernel_size,
                  strides=(1, 1, 1),
                  padding=(0, 0, 0),
+                 fir=None,
                  noise=None,
                  use_bias=False,
                  use_weight_scaling=False,
@@ -861,6 +876,7 @@ class DecompTransConv3D(DecompTransConv):
             kernel_size=kernel_size,
             strides=strides,
             padding=padding,
+            fir=fir,
             noise=noise,
             use_bias=use_bias,
             use_weight_scaling=use_weight_scaling,
@@ -1062,6 +1078,7 @@ class UpConv(Conv):
                  dilation_rate=(1, 1),
                  groups=1,
                  activation=None,
+                 fir=None,
                  noise=None,
                  noise_strength=0.0,
                  noise_trainable=True,
@@ -1087,6 +1104,8 @@ class UpConv(Conv):
             dilation_rate=dilation_rate,
             groups=groups,
             activation=activation,
+            fir=fir,
+            fir_factor=factor,
             noise=noise,
             noise_strength=noise_strength,
             noise_trainable=noise_trainable,
@@ -1115,6 +1134,8 @@ class UpConv(Conv):
 
     def call(self, inputs):
         outputs = self.upsample(inputs)
+        if self.fir:
+            outputs = self.fir(outputs)
         return super().call(outputs)
 
     def _spatial_output_shape(self, spatial_input_shape):
@@ -1143,6 +1164,7 @@ class UpConv1D(UpConv):
                  factor=2,
                  method='nearest',
                  activation=None,
+                 fir=None,
                  noise=None,
                  use_bias=False,
                  use_weight_scaling=False,
@@ -1157,6 +1179,7 @@ class UpConv1D(UpConv):
             factor=factor,
             method=method,
             activation=activation,
+            fir=fir,
             noise=noise,
             use_bias=use_bias,
             use_weight_scaling=use_weight_scaling,
@@ -1173,6 +1196,7 @@ class UpConv2D(UpConv):
                  factor=2,
                  method='nearest',
                  activation=None,
+                 fir=None,
                  noise=None,
                  use_bias=False,
                  use_weight_scaling=False,
@@ -1187,6 +1211,7 @@ class UpConv2D(UpConv):
             factor=factor,
             method=method,
             activation=activation,
+            fir=fir,
             noise=noise,
             use_bias=use_bias,
             use_weight_scaling=use_weight_scaling,
@@ -1203,6 +1228,7 @@ class UpConv3D(UpConv):
                  factor=2,
                  method='nearest',
                  activation=None,
+                 fir=None,
                  noise=None,
                  use_bias=False,
                  use_weight_scaling=False,
@@ -1217,6 +1243,7 @@ class UpConv3D(UpConv):
             factor=factor,
             method=method,
             activation=activation,
+            fir=fir,
             noise=noise,
             use_bias=use_bias,
             use_weight_scaling=use_weight_scaling,
@@ -1233,6 +1260,7 @@ class SubPixelConv2D(Conv2D):
                  factor=2,
                  use_icnr_initializer=False,
                  activation=None,
+                 fir=None,
                  noise=None,
                  use_bias=False,
                  use_weight_scaling=False,
@@ -1249,11 +1277,13 @@ class SubPixelConv2D(Conv2D):
             kernel_initializer = ICNR(self.factor, kernel_initializer)
 
         super().__init__(
-            filters=filters * (self.factor**2),
+            filters=filters,
             kernel_size=kernel_size,
             strides=strides,
             padding=padding,
             activation=activation,
+            fir=fir,
+            fir_factor=factor // self._fir_factor_from_stride(strides),
             noise=noise,
             use_bias=use_bias,
             use_weight_scaling=False,  # `use_weight_scaling` should be False.
@@ -1265,12 +1295,101 @@ class SubPixelConv2D(Conv2D):
         # reinitialize `use_weight_scaling` after super().__init__()
         self.use_weight_scaling = use_weight_scaling
 
+    def build(self, input_shape):
+        input_shape = tf.TensorShape(input_shape)
+        input_channel = self._get_input_channel(input_shape)
+        if input_channel % self.groups != 0:
+            raise ValueError(
+                'The number of input channels must be evenly divisible by the '
+                f'number of groups. Received groups={self.groups}, but the '
+                f'input has {input_channel} channels (full input shape is '
+                f'{input_shape}).')
+        kernel_shape = self.kernel_size + (input_channel // self.groups,
+                                           self.filters * self.factor**2)
+
+        self.kernel = self.add_weight(
+            name='kernel',
+            shape=kernel_shape,
+            initializer=self.kernel_initializer,
+            regularizer=self.kernel_regularizer,
+            constraint=self.kernel_constraint,
+            trainable=True,
+            dtype=self.dtype)
+        if self.use_bias:
+            self.bias = self.add_weight(
+                name='bias',
+                shape=(self.filters,),
+                initializer=self.bias_initializer,
+                regularizer=self.bias_regularizer,
+                constraint=self.bias_constraint,
+                trainable=True,
+                dtype=self.dtype)
+        else:
+            self.bias = None
+        channel_axis = self._get_channel_axis()
+        self.input_spec = tf.keras.layers.InputSpec(
+            min_ndim=self.rank + 2, axes={channel_axis: input_channel})
+
+        # Convert Keras formats to TF native formats.
+        if isinstance(self.padding, str):
+            tf_padding = self.padding.upper()
+        else:
+            tf_padding = self.padding
+
+        self._convolution_op = functools.partial(
+            tf.nn.convolution,
+            strides=list(self.strides),
+            padding=tf_padding,
+            dilations=list(self.dilation_rate),
+            data_format=self._tf_data_format,
+            name=self.__class__.__name__)
+        self._check_weight_scaling()
+        self.built = True
+
+
     def call(self, inputs):
-        outputs = super().call(inputs)
-        data_format = 'NCHW' if self.data_format == 'channels_first' else 'NHWC'
+        if self.pad:
+            inputs = self.pad(inputs)
+
+        if self.use_weight_scaling:
+            kernel = self.kernel * self.runtime_coef
+        else:
+            kernel = self.kernel
+        outputs = self._convolution_op(inputs, kernel)
         outputs = tf.nn.depth_to_space(input=outputs,
                                        block_size=self.factor,
-                                       data_format=data_format)
+                                       data_format=self._tf_data_format)
+
+        if self.fir:
+            outputs = self.fir(outputs)
+
+        if self.noise:
+            outputs = self.noise(outputs)
+
+        if self.use_bias:
+            if self.use_weight_scaling:
+                bias = self.bias * self.lr_multiplier
+            else:
+                bias = self.bias
+            output_rank = outputs.shape.rank
+            if self.rank == 1 and self._channels_first:
+                # nn.bias_add does not accept a 1D input tensor.
+                bias = tf.reshape(bias, (1, self.filters, 1))
+                outputs += bias
+            # Handle multiple batch dimensions.
+            elif output_rank is not None and output_rank > 2 + self.rank:
+                def _apply_fn(o):
+                    return tf.nn.bias_add(
+                        o, bias, data_format=self._tf_data_format)
+
+                outputs = nn_ops.squeeze_batch_dims(
+                    outputs, _apply_fn, inner_rank=self.rank + 1)
+            else:
+                outputs = tf.nn.bias_add(
+                    outputs, bias, data_format=self._tf_data_format)
+
+        if self.activation:
+            return self.activation(outputs)
         return outputs
 
     def _spatial_output_shape(self, spatial_input_shape):
@@ -1286,9 +1405,9 @@ class SubPixelConv2D(Conv2D):
             return tf.TensorShape(
                 input_shape[:batch_rank]
                 + self._spatial_output_shape(input_shape[batch_rank:-1])
-                + [self.filters // self.factor**2])
+                + [self.filters])
         return tf.TensorShape(
-            input_shape[:batch_rank] + [self.filters // self.factor**2] +
+            input_shape[:batch_rank] + [self.filters] +
             self._spatial_output_shape(input_shape[batch_rank + 1:]))
 
     def get_config(self):
