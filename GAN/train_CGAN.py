@@ -52,6 +52,7 @@ def main():
     conf['n_class'] = loader.n_class
 
     train_dataset = loader.get_dataset(batch_size=conf['batch_size'],
+                                       channel=conf['channel'],
                                        flatten=True)
 
     labels = loader.get_label(str_label=map(str, range(conf['n_class'])))

@@ -68,8 +68,8 @@ class ImageLoader:
                                         self.class_dict.keys()))
         return dataset
 
-    def _read_file(self, data, label=None, new_size=None):
-        data = tf.io.decode_png(tf.io.read_file(data), channels=3)
+    def _read_file(self, data, label=None, new_size=None, channel=3):
+        data = tf.io.decode_png(tf.io.read_file(data), channels=channel)
         data = tf.cast(data, tf.float32)
         if new_size is not None:
             data = tf.image.resize(data, new_size)
@@ -81,6 +81,7 @@ class ImageLoader:
 
     def get_dataset(self,
                     batch_size,
+                    channels=3,
                     map_func=None,
                     scailing=True,
                     new_size=None,
@@ -97,7 +98,7 @@ class ImageLoader:
 
         dataset = dataset.map(
             map_func=lambda x, y=None: self._read_file(
-                x, label=y, new_size=new_size),
+                x, label=y, new_size=new_size, channels=channels),
             num_parallel_calls=tf.data.experimental.AUTOTUNE
         ).batch(
             batch_size=batch_size,

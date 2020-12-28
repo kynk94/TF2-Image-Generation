@@ -28,6 +28,7 @@ def main():
     """Load Dataset"""
     loader = ImageLoader(data_txt_file=conf['dataset']['train_data_txt'])
     train_dataset = loader.get_dataset(batch_size=conf['batch_size'],
+                                       channel=conf['channel'],
                                        flatten=True)
 
     test_data = tf.random.normal(shape=(conf['test_batch_size'], conf['latent_dim']),
