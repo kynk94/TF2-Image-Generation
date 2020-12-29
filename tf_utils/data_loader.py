@@ -81,7 +81,7 @@ class ImageLoader:
 
     def get_dataset(self,
                     batch_size,
-                    channels=3,
+                    channel=3,
                     map_func=None,
                     scailing=True,
                     new_size=None,
@@ -98,7 +98,7 @@ class ImageLoader:
 
         dataset = dataset.map(
             map_func=lambda x, y=None: self._read_file(
-                x, label=y, new_size=new_size, channels=channels),
+                x, label=y, new_size=new_size, channel=channel),
             num_parallel_calls=tf.data.experimental.AUTOTUNE
         ).batch(
             batch_size=batch_size,
