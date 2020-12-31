@@ -147,7 +147,7 @@ Tensorflow 2 reimplementation of image generation model.
 ## Style Transfer & Image to Image Translation
 
 - [x] Neural Style Transfer: [Paper](https://www.cv-foundation.org/openaccess/content_cvpr_2016/papers/Gatys_Image_Style_Transfer_CVPR_2016_paper.pdf)
-- [ ] Fast Style Transfer
+- [x] Fast Style Transfer: [Paper](https://arxiv.org/abs/1603.08155)
 - [ ] AdaIN
 - [ ] CycleGAN
 - [ ] StarGAN

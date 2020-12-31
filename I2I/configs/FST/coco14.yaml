@@ -1,0 +1,42 @@
+# config for MS COCO 2014
+input_size: 256
+channel: 3
+
+feature_extrator:
+  pretrained_model: vgg16
+  content_layers:
+    - block2_conv2
+  style_layers:
+    - block1_conv2
+    - block2_conv2
+    - block3_conv3
+    - block4_conv3
+transform_net:
+  n_residual: 5
+  n_filter: 32
+
+# train
+epochs: 0
+steps: 40000
+save_step: 10000
+batch_size: 4
+learning_rate: 0.001
+beta_1: 0.5
+content_weight: 0.001 # content / style
+total_variation_weight: 0.00001
+
+# test
+test_step: 100
+test_batch_size: 4
+
+# directory
+checkpoint_dir: ./checkpoints
+style_image:
+
+# data
+dataset:
+  data_dir: ../dataset/coco14
+  train_data_txt:
+  train_test_split: true
+  labeled_dir: true
+  cache: false

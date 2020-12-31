@@ -12,6 +12,8 @@ def extension_pattern(extension):
 
 
 def find_images(path):
+    if os.path.isfile(path):
+        return [path]
     images = []
     for EXT in IMAGE_EXT:
         images.extend(glob.glob(os.path.join(path, extension_pattern(EXT)),
