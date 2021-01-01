@@ -27,7 +27,7 @@ class FastStyleTransfer(BaseModel):
             generated_image = self.transform_net(inputs)
             content_feature, style_feature = self.feature_extractor(
                 generated_image)
-            content_target, _ = self.feature_extractor(inputs)
+            content_target = self.feature_extractor(inputs)[0]
             content_loss = self.content_loss(content_feature, content_target)
             content_loss *= self.content_weight
             style_loss = self.style_loss(style_feature, self.style_target)
@@ -47,7 +47,7 @@ class FastStyleTransfer(BaseModel):
         self.ckpt.step.assign_add(1)
         return log_dict
 
-    def test(self, inputs, step=None, save=False, display_shape=None):
+    def test(self, inputs, step=None, save=False, save_input=False, display_shape=None):
         if step is None:
             step = self.ckpt.step
         generated_image = self.transform_net(inputs, training=False)
@@ -61,8 +61,11 @@ class FastStyleTransfer(BaseModel):
             generated_image[:n_display], display_shape)
 
         if save:
-            self.image_write(filename='{:05d}.png'.format(step),
-                             data=concat_image)
+            self.image_write(filename=f'{step:05d}.png', data=concat_image)
+        if save_input:
+            inputs_data = tf_image_concat(inputs[:n_display], display_shape)
+            self.image_write(filename='inputs.png', data=inputs_data)
+            self.write_image_log(step=step, data=concat_image, name='inputs')
         self.write_image_log(step=step, data=concat_image)
         return generated_image
 

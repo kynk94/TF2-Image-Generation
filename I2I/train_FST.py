@@ -15,7 +15,7 @@ def main():
     arg_parser.add_argument('-c', '--config', type=str,
                             default='configs/FST/coco14.yaml')
     arg_parser.add_argument('-s', '--style', type=str,
-                            default='../dataset/style_transfer/론강의 별이 빛나는 밤.jpg')
+                            default='../dataset/style_transfer/rain_princess.jpg')
     arg_parser.add_argument('-ckpt', '--checkpoint', type=str,
                             default=None)
     args = vars(arg_parser.parse_args())
@@ -49,6 +49,7 @@ def main():
     model = FastStyleTransfer(conf, style_image, args['checkpoint'])
     if args['checkpoint'] is None:
         model.copy_conf(args['config'])
+        model.test(test_data, save_input=True)
 
     """Start Train"""
     start_epoch = model.ckpt.step // len(train_dataset) + 1
@@ -61,7 +62,6 @@ def main():
     save_step = conf['save_step']
     end_step = conf['steps']
 
-    loss_g = 0
     pbar = tqdm.trange(start_epoch, conf['epochs']+1,
                        position=0, leave=True)
     pbar_dict = dict()
@@ -73,7 +73,7 @@ def main():
 
             current_step = model.ckpt.step.numpy()
 
-            if current_step % 10 == 0:
+            if current_step % 1 == 0:
                 pbar_dict.update({
                     'Step': current_step,
                     'Content': '{:.4f}'.format(log_dict['loss/content']),

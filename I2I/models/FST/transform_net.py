@@ -26,19 +26,17 @@ class TransformNet(tf.keras.Model):
                                            normalization='in',
                                            activation='relu',
                                            normalization_first=True))
-        model.extend([layers.TransConv2DBlock(n_filter*2, 3, 2, 'same',
+        model.extend([layers.Normalization('in'),
+                      layers.ReLU(),
+                      layers.TransConv2DBlock(n_filter*2, 3, 2, 'same',
                                               normalization='in',
-                                              activation='relu',
-                                              normalization_first=True),
+                                              activation='relu'),
                       layers.TransConv2DBlock(n_filter, 3, 2, 'same',
                                               normalization='in',
-                                              activation='relu',
-                                              normalization_first=True),
+                                              activation='relu'),
                       layers.Conv2DBlock(channel, 9, 1, 4,
                                          normalization='in',
-                                         activation='relu',
-                                         normalization_first=True),
-                      layers.Activation('tanh')])
+                                         activation='tanh')])
         self.model = tf.keras.Sequential(model, name='transform_net')
         self.model.summary()
 

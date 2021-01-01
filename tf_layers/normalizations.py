@@ -1,4 +1,89 @@
+import tensorflow as tf
 import tensorflow_addons as tfa
+from tensorflow.python.keras.utils import conv_utils
+from tensorflow.keras.layers import BatchNormalization, LayerNormalization
+from tensorflow_addons.layers import GroupNormalization, InstanceNormalization
+
+
+class Normalization(tf.keras.layers.Layer):
+    def __init__(self,
+                 normalization,
+                 momentum=0.99,
+                 group=32,
+                 epsilon=1e-5,
+                 data_format=None,
+                 **kwargs):
+        super().__init__(**kwargs)
+        self.normalization = normalization
+        self.momentum = momentum
+        self.group = group
+        self.epsilon = epsilon
+        self.data_format = conv_utils.normalize_data_format(data_format)
+
+    def build(self, input_shape):
+        self.rank = len(input_shape) - 2
+        self._channel_axis = self._get_channel_axis()
+        self.normalization = self.get_normalization(
+            channel_axis=self._channel_axis,
+            normalization=self.normalization,
+            momentum=self.momentum,
+            group=self.group,
+            epsilon=self.epsilon)
+        self.built = True
+
+    def call(self, inputs):
+        return self.normalization(inputs)
+
+    def get_normalization(self,
+                          channel_axis,
+                          normalization,
+                          momentum=0.99,
+                          group=32,
+                          epsilon=1e-5):
+        if hasattr(normalization, '__call__'):
+            return normalization
+        if isinstance(normalization, str):
+            l_normalization = normalization.lower()
+            if l_normalization in {'batch_normalization',
+                                   'batch_norm', 'bn'}:
+                return BatchNormalization(
+                    axis=channel_axis,
+                    momentum=momentum,
+                    epsilon=epsilon,
+                    name='batch_normalization')
+            if l_normalization in {'layer_normalization',
+                                   'layer_norm', 'ln'}:
+                return LayerNormalization(
+                    axis=channel_axis,
+                    epsilon=epsilon,
+                    name='layer_normalization')
+            if l_normalization in {'instance_normalization',
+                                   'instance_norm', 'in'}:
+                return InstanceNormalization(
+                    axis=channel_axis,
+                    epsilon=epsilon,
+                    name='instance_normalization')
+            if l_normalization in {'group_normalization',
+                                   'group_norm', 'gn'}:
+                return GroupNormalization(
+                    axis=channel_axis,
+                    groups=group,
+                    epsilon=epsilon,
+                    name='group_normalization')
+            if l_normalization in {'filter_response_normalization',
+                                   'filter_response_norm', 'frn'}:
+                # FilterResponseNormalization is not official implementation.
+                # Official need to input axis as spatial, not channel.
+                return FilterResponseNormalization(
+                    axis=channel_axis,
+                    epsilon=epsilon,
+                    name='filter_response_normalization')
+        raise ValueError(f'Unsupported `normalization`: {normalization}')
+
+    def _get_channel_axis(self):
+        if self.data_format == 'channels_first':
+            return 1
+        return self.rank + 1
 
 
 class FilterResponseNormalization(tfa.layers.FilterResponseNormalization):
