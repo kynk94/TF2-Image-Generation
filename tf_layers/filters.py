@@ -45,7 +45,7 @@ class FIRFilter(tf.keras.layers.Layer):
 
         strides = conv_utils.normalize_tuple(self.stride, self.rank, 'stride')
         _tf_data_format = conv_utils.convert_data_format(
-            self.data_format, self.rank + 2)
+            'channels_first', self.rank + 2)
 
         if self.data_format == 'channels_first':
             def reshape_conv_op(inputs, filters, name):
@@ -73,7 +73,7 @@ class FIRFilter(tf.keras.layers.Layer):
                                             data_format=_tf_data_format,
                                             name=name)
                 outputs = tf.reshape(outputs, return_shape)
-                return tf.transpose(return_axes)
+                return tf.transpose(outputs, return_axes)
 
         self._conv_op = functools.partial(
             reshape_conv_op,

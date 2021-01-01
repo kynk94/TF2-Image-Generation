@@ -448,17 +448,19 @@ class TransposeConv(Conv):
         self.built = True
 
     def call(self, inputs):
+        outputs = inputs
+
         if self.pad:
-            inputs = self.pad(inputs)
+            outputs = self.pad(outputs)
 
         if self.use_weight_scaling:
             kernel = self.kernel * self.runtime_coef
         else:
             kernel = self.kernel
         outputs = self._convolution_op(
-            inputs,
+            outputs,
             kernel,
-            tf.stack((tf.shape(inputs)[0], *self.spatial_output_shape)))
+            tf.stack((tf.shape(outputs)[0], *self.spatial_output_shape)))
 
         if not context.executing_eagerly():
             out_shape = self.compute_output_shape(inputs.shape)
@@ -550,7 +552,7 @@ class TransposeConv2D(TransposeConv):
                  strides=(1, 1),
                  padding=(0, 0),
                  activation=None,
-                 fir=[1, 2, 1],
+                 fir=None,
                  noise=None,
                  use_bias=False,
                  use_weight_scaling=False,

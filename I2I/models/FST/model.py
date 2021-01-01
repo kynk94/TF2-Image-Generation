@@ -17,7 +17,8 @@ class FastStyleTransfer(BaseModel):
         self.set_checkpoint(transform_net=self.transform_net,
                             optimizer=self.opt)
 
-        self.style_target = self.feature_extractor(style_image)[1]
+        self.style_gram = [calculate_gram_matrix(s)
+                           for s in self.feature_extractor(style_image)[1]]
         self.content_weight = conf['content_weight']
         self.total_variation_weight = conf['total_variation_weight']
 
@@ -30,7 +31,7 @@ class FastStyleTransfer(BaseModel):
             content_target = self.feature_extractor(inputs)[0]
             content_loss = self.content_loss(content_feature, content_target)
             content_loss *= self.content_weight
-            style_loss = self.style_loss(style_feature, self.style_target) * 100
+            style_loss = self.style_loss(style_feature)
             total_variation_loss = self.total_variation_loss(generated_image)
             total_variation_loss *= self.total_variation_weight
             loss = content_loss + style_loss + total_variation_loss
@@ -75,18 +76,15 @@ class FastStyleTransfer(BaseModel):
             out += tf.reduce_mean(tf.square(i - c))
         return 0.5 * out
 
-    def style_loss(self, inputs, style):
+    def style_loss(self, inputs):
         out = 0
-        for i, s in zip(inputs, style):
+        for i, style_gram in zip(inputs, self.style_gram):
             prod_shape = tf.cast(tf.reduce_prod(i.shape[1:]), dtype=tf.float32)
             scale_const = tf.square(prod_shape)
-            matrix = calculate_gram_matrix(i) - calculate_gram_matrix(s)
+            matrix = calculate_gram_matrix(i) - style_gram
             out += tf.reduce_sum(tf.square(matrix)) / scale_const
         return 0.25 * out
 
     def total_variation_loss(self, inputs):
-        h_var = inputs[..., 1:, :] - inputs[..., :-1, :]
-        w_var = inputs[..., 1:] - inputs[..., :-1]
-        h = tf.reduce_mean(tf.square(h_var))
-        w = tf.reduce_mean(tf.square(w_var))
-        return h + w
+        H, W = inputs.shape[-2:]
+        return tf.reduce_sum(tf.image.total_variation(inputs)) / (H * W)

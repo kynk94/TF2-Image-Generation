@@ -14,15 +14,15 @@ class TransformNet(tf.keras.Model):
 
     def build_model(self, n_residual, n_filter, size, channel):
         model = [layers.Input((channel, size, size)),
-                 layers.Conv2DBlock(n_filter, 9, 1, 4,
+                 layers.Conv2DBlock(n_filter, 9, 1, 'same',
                                     normalization='in',
                                     activation='relu'),
-                 layers.Conv2DBlock(n_filter*2, 3, 2, 1,
+                 layers.Conv2DBlock(n_filter*2, 3, 2, 'same',
                                     normalization='in',
                                     activation='relu'),
-                 layers.Conv2DBlock(n_filter*4, 3, 2, 1)]
+                 layers.Conv2DBlock(n_filter*4, 3, 2, 'same')]
         for _ in range(n_residual):
-            model.append(layers.ResBlock2D(n_filter*4, 3, 1, 1,
+            model.append(layers.ResBlock2D(n_filter*4, 3, 1, 'same',
                                            normalization='in',
                                            activation='relu',
                                            normalization_first=True))
@@ -34,7 +34,7 @@ class TransformNet(tf.keras.Model):
                       layers.TransConv2DBlock(n_filter, 3, 2, 'same',
                                               normalization='in',
                                               activation='relu'),
-                      layers.Conv2DBlock(channel, 9, 1, 4,
+                      layers.Conv2DBlock(channel, 9, 1, 'same',
                                          normalization='in',
                                          activation='tanh')])
         self.model = tf.keras.Sequential(model, name='transform_net')

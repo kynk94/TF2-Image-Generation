@@ -1,4 +1,5 @@
 import tensorflow as tf
+from tensorflow.keras.applications.imagenet_utils import preprocess_input
 
 
 class FeatureExtractor(tf.keras.Model):
@@ -26,5 +27,8 @@ class FeatureExtractor(tf.keras.Model):
         self.model = tf.keras.Model(vgg.input, (content_output, style_output),
                                     trainable=False)
 
-    def call(self, x):
-        return self.model(x)
+    def call(self, inputs, denorm=True):
+        if denorm:
+            inputs = inputs * 127.5 + 127.5
+        inputs = tf.clip_by_value(inputs, 0, 255)
+        return self.model(preprocess_input(inputs))
