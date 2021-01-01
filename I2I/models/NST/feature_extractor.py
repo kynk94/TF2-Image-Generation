@@ -19,12 +19,12 @@ class FeatureExtractor(tf.keras.Model):
         else:
             raise ValueError(f'Unsupport {pretrained_model}')
 
-        vgg.trainable = False
         content_output = [vgg.get_layer(layer).output
                           for layer in content_layers]
         style_output = [vgg.get_layer(layer).output
                         for layer in style_layers]
-        self.model = tf.keras.Model(vgg.input, (content_output, style_output))
+        self.model = tf.keras.Model(vgg.input, (content_output, style_output),
+                                    trainable=False)
 
     def call(self, x):
         return self.model(x)

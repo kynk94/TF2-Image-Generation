@@ -30,7 +30,7 @@ class FastStyleTransfer(BaseModel):
             content_target = self.feature_extractor(inputs)[0]
             content_loss = self.content_loss(content_feature, content_target)
             content_loss *= self.content_weight
-            style_loss = self.style_loss(style_feature, self.style_target)
+            style_loss = self.style_loss(style_feature, self.style_target) * 100
             total_variation_loss = self.total_variation_loss(generated_image)
             total_variation_loss *= self.total_variation_weight
             loss = content_loss + style_loss + total_variation_loss
@@ -65,7 +65,7 @@ class FastStyleTransfer(BaseModel):
         if save_input:
             inputs_data = tf_image_concat(inputs[:n_display], display_shape)
             self.image_write(filename='inputs.png', data=inputs_data)
-            self.write_image_log(step=step, data=concat_image, name='inputs')
+            self.write_image_log(step=step, data=inputs_data, name='inputs')
         self.write_image_log(step=step, data=concat_image)
         return generated_image
 
