@@ -5,7 +5,7 @@ from collections.abc import Iterable
 from .utils import find_images
 
 
-def read_images(path, shape=None):
+def read_images(path, shape=None, channel=3):
     images = find_images(path)
 
     images_array = []
@@ -13,7 +13,7 @@ def read_images(path, shape=None):
     max_h = 0
     max_w = 0
     for image in images:
-        image = tf.io.decode_png(tf.io.read_file(image), channels=3)
+        image = tf.io.decode_png(tf.io.read_file(image), channels=channel)
         image = tf.cast(image, tf.float32)
         h, w, _ = image.shape
         images_array.append(image / 127.5 - 1)

@@ -73,9 +73,11 @@ def main():
 
         current_step = model.ckpt.step.numpy()
         if current_step % 10 == 0:
-            pbar_dict['Step'] = current_step
-            pbar_dict['C'] = '{:.4f}'.format(log_dict['loss/content'])
-            pbar_dict['S'] = '{:.4f}'.format(log_dict['loss/style'])
+            pbar_dict.update({
+                'Step': current_step,
+                'Content': '{:.4f}'.format(log_dict['loss/content']),
+                'Style': '{:.4f}'.format(log_dict['loss/style'])
+            })
             pbar.set_postfix(pbar_dict)
         if test_step and current_step % test_step == 0:
             model.write_drawing_image(init_shape, current_step, save=True)

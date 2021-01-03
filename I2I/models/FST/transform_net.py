@@ -14,27 +14,34 @@ class TransformNet(tf.keras.Model):
 
     def build_model(self, n_residual, n_filter, size, channel):
         model = [layers.Input((channel, size, size)),
-                 layers.Conv2DBlock(n_filter, 9, 1, 'same',
+                 layers.Conv2DBlock(n_filter, 9, 1, 4,
+                                    pad_type='reflect',
                                     normalization='in',
-                                    activation='relu'),
-                 layers.Conv2DBlock(n_filter*2, 3, 2, 'same',
+                                    activation='lrelu'),
+                 layers.Conv2DBlock(n_filter*2, 3, 2, 1,
+                                    pad_type='reflect',
                                     normalization='in',
-                                    activation='relu'),
-                 layers.Conv2DBlock(n_filter*4, 3, 2, 'same')]
+                                    activation='lrelu'),
+                 layers.Conv2DBlock(n_filter*4, 3, 2, 1,
+                                    pad_type='reflect')]
         for _ in range(n_residual):
-            model.append(layers.ResBlock2D(n_filter*4, 3, 1, 'same',
+            model.append(layers.ResBlock2D(n_filter*4, 3, 1, 1,
+                                           pad_type='reflect',
                                            normalization='in',
-                                           activation='relu',
+                                           activation='lrelu',
                                            normalization_first=True))
         model.extend([layers.Normalization('in'),
                       layers.ReLU(),
                       layers.TransConv2DBlock(n_filter*2, 3, 2, 'same',
+                                              fir=[1, 2, 1],
                                               normalization='in',
-                                              activation='relu'),
+                                              activation='lrelu'),
                       layers.TransConv2DBlock(n_filter, 3, 2, 'same',
+                                              fir=[1, 2, 1],
                                               normalization='in',
-                                              activation='relu'),
-                      layers.Conv2DBlock(channel, 9, 1, 'same',
+                                              activation='lrelu'),
+                      layers.Conv2DBlock(channel, 9, 1, 4,
+                                         pad_type='reflect',
                                          normalization='in',
                                          activation='tanh')])
         self.model = tf.keras.Sequential(model, name='transform_net')

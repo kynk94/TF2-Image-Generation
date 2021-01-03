@@ -3,14 +3,15 @@ input_size: 256
 channel: 3
 
 feature_extrator:
-  pretrained_model: vgg16
+  pretrained_model: vgg19
   content_layers:
-    - block2_conv2
+    - block4_conv2
   style_layers:
-    - block1_conv2
-    - block2_conv2
-    - block3_conv3
-    - block4_conv3
+    - block1_conv1
+    - block2_conv1
+    - block3_conv1
+    - block4_conv1
+    - block5_conv1
 transform_net:
   n_residual: 5
   n_filter: 32
@@ -22,12 +23,12 @@ save_step: 10000
 batch_size: 4
 learning_rate: 0.001
 beta_1: 0.5
-content_weight: 0.001 # content / style
-total_variation_weight: 0.00001
+content_weight: 0.1
+total_variation_weight: 10000
 
 # test
 test_step: 100
-test_batch_size: 4
+test_batch_size: 9
 
 # directory
 checkpoint_dir: ./checkpoints

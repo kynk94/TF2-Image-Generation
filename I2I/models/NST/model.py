@@ -65,14 +65,18 @@ class NeuralStyleTransfer(BaseModel):
     def content_loss(self, drawing):
         out = 0
         for d, c in zip(drawing, self.content_output):
-            out += tf.reduce_mean(tf.square(d - c))
-        return 0.5 * out
+            prod_shape = tf.cast(tf.reduce_prod(d.shape[1:]), dtype=tf.float32)
+            out += tf.reduce_sum(tf.square(d - c), axis=(1, 2, 3)) / prod_shape
+        return 0.5 * tf.reduce_mean(out)
 
     def style_loss(self, drawing):
         out = 0
         for d, style_gram in zip(drawing, self.style_gram):
+            # prod_shape: H * W * C = M * N
+            # scale_const: 4 * N^2 * M^2, equation (4) described in the paper
+            # (A neural algorithm of artistic style. arXiv:1508.06576)
             prod_shape = tf.cast(tf.reduce_prod(d.shape[1:]), dtype=tf.float32)
-            scale_const = tf.square(prod_shape)
+            scale_const = 4 * tf.square(prod_shape)
             matrix = calculate_gram_matrix(d) - style_gram
-            out += tf.reduce_sum(tf.square(matrix)) / scale_const
-        return 0.25 * out
+            out += tf.reduce_sum(tf.square(matrix), axis=(1, 2)) / scale_const
+        return tf.reduce_mean(out)

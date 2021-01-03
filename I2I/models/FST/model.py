@@ -42,7 +42,7 @@ class FastStyleTransfer(BaseModel):
         log_dict = {
             'loss/content': content_loss,
             'loss/style': style_loss,
-            'loss/total_variation': total_variation_loss
+            'loss/variation': total_variation_loss
         }
         self.write_scalar_log(**log_dict)
         self.ckpt.step.assign_add(1)
@@ -73,18 +73,24 @@ class FastStyleTransfer(BaseModel):
     def content_loss(self, inputs, content):
         out = 0
         for i, c in zip(inputs, content):
-            out += tf.reduce_mean(tf.square(i - c))
-        return 0.5 * out
+            # prod_shape: H * W * C
+            prod_shape = tf.cast(tf.reduce_prod(i.shape[1:]), dtype=tf.float32)
+            out += tf.reduce_sum(tf.square(i - c), axis=(1, 2, 3)) / prod_shape
+        return 0.5 * tf.reduce_mean(out)
 
     def style_loss(self, inputs):
         out = 0
         for i, style_gram in zip(inputs, self.style_gram):
+            # prod_shape: H * W * C
             prod_shape = tf.cast(tf.reduce_prod(i.shape[1:]), dtype=tf.float32)
-            scale_const = tf.square(prod_shape)
-            matrix = calculate_gram_matrix(i) - style_gram
-            out += tf.reduce_sum(tf.square(matrix)) / scale_const
-        return 0.25 * out
+            matrix = (calculate_gram_matrix(i) - style_gram) / prod_shape
+            out += tf.reduce_sum(tf.square(matrix), axis=(1, 2)) / prod_shape
+        return tf.reduce_mean(out)
 
     def total_variation_loss(self, inputs):
         H, W = inputs.shape[-2:]
-        return tf.reduce_sum(tf.image.total_variation(inputs)) / (H * W)
+        h_variation = tf.reduce_sum(
+            tf.abs(inputs[..., 1:, :] - inputs[..., :-1, :]), axis=(1, 2, 3))
+        w_variation = tf.reduce_sum(
+            tf.abs(inputs[..., 1:] - inputs[..., :-1]), axis=(1, 2, 3))
+        return tf.reduce_mean(h_variation + w_variation) / (H * W)

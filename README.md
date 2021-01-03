@@ -128,6 +128,23 @@ Tensorflow 2 reimplementation of image generation model.
 
 ---
 
+## Fast Style Transfer
+
+<table align="center">
+    <tbody>
+        <tr>
+            <td align="center"><img alt="Fast Style Transfer style - wave" src="https://user-images.githubusercontent.com/41245985/103476351-1dac6e80-4df8-11eb-826b-30508adc05d7.jpg"></td>
+            <td align="center"><img alt="Fast Style Transfer content - wave" src="https://user-images.githubusercontent.com/41245985/103476272-a1199000-4df7-11eb-9346-e97c6e6aed2f.png"></td>
+            <td align="center"><img alt="Fast Style Transfer output - wave" src="https://user-images.githubusercontent.com/41245985/103476276-a5de4400-4df7-11eb-9c4d-a4049ef03391.png"></td>
+        </tr>
+        <tr>
+            <td align="center"><img alt="Fast Style Transfer style - the scream" src="https://user-images.githubusercontent.com/41245985/103476350-1b4a1480-4df8-11eb-8057-25babf360e28.jpg"></td>
+            <td align="center"><img alt="Fast Style Transfer content - the scream" src="https://user-images.githubusercontent.com/41245985/103476278-a8409e00-4df7-11eb-91a6-cae157bd5dc7.png"></td>
+            <td align="center"><img alt="Fast Style Transfer output - the scream" src="https://user-images.githubusercontent.com/41245985/103476280-abd42500-4df7-11eb-9ebd-0540fcab73ee.png"></td>
+        </tr>
+    </tbody>
+</table>
+
 # Model List
 
 ## GAN

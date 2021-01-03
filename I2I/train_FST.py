@@ -15,7 +15,7 @@ def main():
     arg_parser.add_argument('-c', '--config', type=str,
                             default='configs/FST/coco14.yaml')
     arg_parser.add_argument('-s', '--style', type=str,
-                            default='../dataset/style_transfer/rain_princess.jpg')
+                            default='../dataset/style_transfer/the_scream.jpg')
     arg_parser.add_argument('-ckpt', '--checkpoint', type=str,
                             default=None)
     args = vars(arg_parser.parse_args())
@@ -77,7 +77,8 @@ def main():
                 pbar_dict.update({
                     'Step': current_step,
                     'Content': '{:.4f}'.format(log_dict['loss/content']),
-                    'Style': '{:.4f}'.format(log_dict['loss/style'])
+                    'Style': '{:.4f}'.format(log_dict['loss/style']),
+                    'Variation': '{:.4f}'.format(log_dict['loss/variation'])
                 })
                 sub_pbar.set_postfix(pbar_dict)
             if test_step and current_step % test_step == 0:
