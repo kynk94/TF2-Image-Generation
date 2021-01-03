@@ -145,6 +145,15 @@ Tensorflow 2 reimplementation of image generation model.
     </tbody>
 </table>
 
+### Differences from the official implementation
+
+- In Residual Block, follow the steps below.  
+  input -> (normalization -> activation -> conv) -> (normalization -> activation -> conv) -> add
+- Use FIR Filter in Transposed Convolution
+- Use Reflection Padding
+
+---
+
 # Model List
 
 ## GAN
