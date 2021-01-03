@@ -142,6 +142,11 @@ Tensorflow 2 reimplementation of image generation model.
             <td align="center"><img alt="Fast Style Transfer content - the scream" src="https://user-images.githubusercontent.com/41245985/103476278-a8409e00-4df7-11eb-91a6-cae157bd5dc7.png"></td>
             <td align="center"><img alt="Fast Style Transfer output - the scream" src="https://user-images.githubusercontent.com/41245985/103476280-abd42500-4df7-11eb-9ebd-0540fcab73ee.png"></td>
         </tr>
+        <tr>
+            <td align="center"><img alt="Fast Style Transfer style - udnie" src="https://user-images.githubusercontent.com/41245985/103479766-47bf5a00-4e13-11eb-8d51-54c91dc57046.jpg"></td>
+            <td align="center"><img alt="Fast Style Transfer content - udnie" src="https://user-images.githubusercontent.com/41245985/103479754-2c544f00-4e13-11eb-9177-b588452c7526.png"></td>
+            <td align="center"><img alt="Fast Style Transfer output - udnie" src="https://user-images.githubusercontent.com/41245985/103479757-2e1e1280-4e13-11eb-9d05-4c8ae0482462.png"></td>
+        </tr>
     </tbody>
 </table>
 
@@ -151,6 +156,7 @@ Tensorflow 2 reimplementation of image generation model.
   input -> (normalization -> activation -> conv) -> (normalization -> activation -> conv) -> add
 - Use FIR Filter in Transposed Convolution
 - Use Reflection Padding
+- Use Leaky ReLU
 
 ---
 
