@@ -6,6 +6,7 @@ Licensed under the CC BY-NC-SA 4.0 license
 from tensorflow.keras.layers import Input, Reshape, Flatten
 from tensorflow.keras.layers import Activation, ReLU, LeakyReLU
 from tensorflow.keras.layers import BatchNormalization, Dropout
+from tensorflow.keras.layers import Attention, AdditiveAttention
 from tensorflow_addons.layers import Maxout
 from .conv import Conv1D, Conv2D, Conv3D
 from .conv import TransposeConv1D, TransposeConv2D, TransposeConv3D
@@ -30,3 +31,8 @@ from .residual_blocks import ResIdentityBlock2D
 from .resample import Downsample, Upsample
 
 from .base_model import BaseModel
+
+from .utils import check_tf_version
+version = check_tf_version()
+if version[1] > 4:
+    from tensorflow.keras.layers import MultiHeadAttention
