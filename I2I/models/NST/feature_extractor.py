@@ -27,8 +27,9 @@ class FeatureExtractor(tf.keras.Model):
         self.model = tf.keras.Model(vgg.input, (content_output, style_output),
                                     trainable=False)
 
-    def call(self, inputs, denorm=True):
+    def call(self, inputs, denorm=True, clip=False):
         if denorm:
             inputs = inputs * 127.5 + 127.5
-        inputs = tf.clip_by_value(inputs, 0, 255)
+        if clip:
+            inputs = tf.clip_by_value(inputs, 0, 255)
         return self.model(preprocess_input(inputs))
