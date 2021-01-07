@@ -17,7 +17,7 @@ def check_tf_version():
     version = []
     for string in tf.__version__.split('.'):
         version.append(int(''.join(s for s in string if s.isdigit())))
-    assert version[0] > 2, 'Only support tensorflow 2.x'
+    assert version[0] == 2, 'Only support tensorflow 2.x'
     return version
 
 

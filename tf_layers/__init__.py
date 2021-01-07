@@ -34,5 +34,5 @@ from .base_model import BaseModel
 
 from .utils import check_tf_version
 version = check_tf_version()
-if version[1] > 4:
+if version[1] >= 4:
     from tensorflow.keras.layers import MultiHeadAttention
