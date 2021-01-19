@@ -201,6 +201,32 @@ Tensorflow 2 reimplementation of image generation model.
 
 # Utilities
 
+## Docker
+
+### Build
+
+```
+~$ docker pull tensorflow/tensorflow:nightly-gpu
+~$ docker build -f Dockerfile \
+  -t tf/image-generation:nightly \
+  --build-arg user_name=$USER \
+  --build-arg user_uid=$UID \
+  .
+```
+
+### Docker Compose
+
+```
+interactive container
+~$ docker-compose up -d
+~$ docker exec -it tf_nightly /bin/bash
+~$ cd TF2-Image_Generation
+~$ {something to do}
+
+otherwise, run command below after modifying docker-compose.yaml
+~$ docker-compose up
+```
+
 ## Dataset Extractor
 
 - [x] mnist: [HomePage](http://yann.lecun.com/exdb/mnist/)

@@ -1,0 +1,18 @@
+version: '2.3'
+services:
+  training:
+    image: tf/image-generation:nightly
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=0
+    container_name: "tf_nightly"
+    volumes:
+      - "./:/TF2-Image-Generation"
+
+    # Uncomment lines if use interactive container, otherwise comment out lines.
+    stdin_open: true
+    tty: true
+
+    # Uncomment lines if not use interactive container, otherwise comment out lines.
+    # working_dir: "/TF2-Image-Generation/GAN"
+    # command: ["python", "-u", "train_cDCGAN.py"]
