@@ -220,7 +220,7 @@ Tensorflow 2 reimplementation of image generation model.
 interactive container
 ~$ docker-compose up -d
 ~$ docker exec -it tf_nightly /bin/bash
-~$ cd TF2-Image_Generation
+~$ cd TF2-Image-Generation
 ~$ {something to do}
 
 otherwise, run command below after modifying docker-compose.yaml
