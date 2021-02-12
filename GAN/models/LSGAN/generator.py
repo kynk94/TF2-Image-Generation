@@ -15,7 +15,7 @@ class Generator(tf.keras.Model):
 
     def build_model(self, input_dim, n_layer, n_filter, size, channel):
         init_size = size // 2**(n_layer - 3)
-        model = [layers.Input(input_dim),
+        model = [layers.InputLayer(input_dim),
                  layers.LinearBlock(n_filter * init_size**2,
                                     normalization='bn',
                                     activation='relu'),

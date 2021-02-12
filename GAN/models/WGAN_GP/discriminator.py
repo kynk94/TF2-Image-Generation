@@ -23,7 +23,7 @@ class Discriminator(tf.keras.Model):
                 n_filter=hp['n_filter'])
 
     def build_residual_model(self, input_shape, n_layer, n_filter):
-        model = [layers.Input(input_shape),
+        model = [layers.InputLayer(input_shape),
                  layers.Conv2D(n_filter, 3, 1, 1)]
         for _ in range(n_layer - 1):
             n_filter = min(2*n_filter, 512)
@@ -37,7 +37,7 @@ class Discriminator(tf.keras.Model):
         self.model.summary()
 
     def build_model(self, input_shape, n_layer, n_filter):
-        model = [layers.Input(input_shape),
+        model = [layers.InputLayer(input_shape),
                  layers.Conv2DBlock(n_filter, 5, 2, 'same',
                                     activation='lrelu')]
         for _ in range(n_layer - 1):

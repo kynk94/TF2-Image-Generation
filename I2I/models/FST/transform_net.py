@@ -13,7 +13,7 @@ class TransformNet(tf.keras.Model):
                          channel=conf['channel'])
 
     def build_model(self, n_residual, n_filter, size, channel):
-        model = [layers.Input((channel, size, size)),
+        model = [layers.InputLayer((channel, size, size)),
                  layers.Conv2DBlock(n_filter, 9, 1, 4,
                                     pad_type='reflect',
                                     normalization='in',
