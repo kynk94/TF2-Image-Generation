@@ -77,7 +77,9 @@ def main():
                      conf['test_batch_size'] // conf['n_class'])
 
     """Model Initiate"""
-    model = ConditionalDCGAN(conf, args['checkpoint'])
+    strategy = tf.distribute.MirroredStrategy()
+    n_replica = strategy.num_replicas_in_sync
+    model = ConditionalDCGAN(conf, args['checkpoint'], strategy)
     if args['checkpoint'] is None:
         model.copy_conf(args['config'])
 
@@ -92,12 +94,15 @@ def main():
     save_step = conf['save_step']
     end_step = conf['steps']
 
+    train_dist_dataset = strategy.experimental_distribute_dataset(train_dataset)
+    len_dist_dataset = len(train_dataset) // n_replica
     pbar = tqdm.trange(start_epoch, conf['epochs']+1,
                        position=0, leave=True)
     pbar_dict = dict()
     for epoch in pbar:
         pbar.set_postfix({'Current Epoch': epoch})
-        sub_pbar = tqdm.tqdm(train_dataset, leave=False)
+        sub_pbar = tqdm.tqdm(train_dist_dataset, total=len_dist_dataset,
+                             leave=False)
         for image_batch in sub_pbar:
             log_dict = model.train(image_batch)
 

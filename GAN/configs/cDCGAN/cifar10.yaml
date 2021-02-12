@@ -13,7 +13,7 @@ batch_size: 128
 latent_dim: 100
 label_dim: 1
 gen:
-  n_layer: 3 # 4 in the paper
+  n_layer: 4 # 4 in the paper
   n_filter: 512 # 1024 in the paper
 dis:
   n_layer: 3 # 4 in the paper
