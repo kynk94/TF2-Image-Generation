@@ -7,7 +7,7 @@ import tensorflow as tf
 
 
 class BaseModel(ABC):
-    def __init__(self, conf, ckpt=None):
+    def __init__(self, conf, ckpt=None, strategy=None):
         self.conf = conf
         self.ckpt = None
         self.ckpt_file = None
@@ -15,9 +15,35 @@ class BaseModel(ABC):
         self._conf_path = None
         self._checkpoint_dir = None
         self._output_dir = None
+        self._strategy = strategy
 
         self._set_dirs(self.load(ckpt))
-        self._logger = self._create_logger()
+        self._logger = tf.summary.create_file_writer(self._checkpoint_dir)
+
+    def strategy(func):
+        def decorator(*args, **kwargs):
+            self = args[0]
+            if self._strategy is None:
+                return func(*args, **kwargs)
+            with self._strategy.scope():
+                return func(*args, **kwargs)
+        return decorator
+
+    def strategy_run(func):
+        def decorator(*args, **kwargs):
+            self = args[0]
+            if self._strategy is None:
+                return func(*args, **kwargs)
+            output = self._strategy.run(func, args, kwargs)
+            if not isinstance(output, dict):
+                return output
+            log_dict = {
+                key: self._strategy.reduce(
+                    tf.distribute.ReduceOp.MEAN, val, axis=None)
+                for key, val in output.items()
+            }
+            return log_dict
+        return decorator
 
     def _set_dirs(self, time_stamp=None):
         if time_stamp is None:
@@ -66,20 +92,25 @@ class BaseModel(ABC):
         self.ckpt_file = ckpt
         return os.path.basename(os.path.dirname(ckpt))
 
-    def _create_logger(self):
-        return tf.summary.create_file_writer(self._checkpoint_dir)
-
     def write_scalar_log(self, **kwargs):
         step = self.ckpt.step
         with self._logger.as_default():
             for name, data in kwargs.items():
                 tf.summary.scalar(name=name, data=data, step=step)
 
-    def write_image_log(self, step, data, name='output', denorm=True):
-        data = tf.clip_by_value(data, -1, 1)
+    def write_image_log(self, step, data, name='outputs', denorm=True):
         if len(data.shape) == 3:
             data = tf.expand_dims(data, axis=0)
         if denorm:
             data = data / 2 + 0.5
+        data = tf.clip_by_value(data, -1, 1)
         with self._logger.as_default():
             tf.summary.image(name=name, data=data, step=step)
+
+
+class _Decorator:
+    def __init__(self, func):
+        self.func = func
+
+    def __call__(self, *args, **kwargs):
+        return self.func(*args, **kwargs)
