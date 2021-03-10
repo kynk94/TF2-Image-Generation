@@ -105,7 +105,7 @@ class FIRFilter(tf.keras.layers.Layer):
 
         if kernel.ndim == self.rank:
             if self.kernel_normalize:
-                kernel /= np.sum(kernel)
+                kernel /= np.sum(np.abs(kernel))
             return kernel * self.gain
         elif kernel.ndim != 1:
             raise ValueError(f'`kernel` should have dimensioin {self.rank}. '
@@ -119,7 +119,7 @@ class FIRFilter(tf.keras.layers.Layer):
         kernel = np.prod(kernels)
 
         if self.kernel_normalize:
-            kernel /= np.sum(kernel)
+            kernel /= np.sum(np.abs(kernel))
         return kernel * self.gain
 
     def _get_channel_axis(self):

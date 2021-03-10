@@ -29,6 +29,7 @@ from .padding import Padding1D, Padding2D, Padding3D
 from .residual_blocks import ResBlock2D, DownResBlock2D, UpResBlock2D
 from .residual_blocks import ResIdentityBlock2D
 from .resample import Downsample, Upsample
+from .wavelet import HaarTransform2D, HaarInverseTransform2D
 
 from .base_model import BaseModel
 

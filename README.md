@@ -198,6 +198,7 @@ Tensorflow 2 reimplementation of image generation model.
 - [x] ICNR Initializer
 - [x] Decomposed Transposed Convolution
 - [x] FIR Filter Layer (Need to set learning rate low or resolution high to use filter, according to experiment.)
+- [x] HaarTransform Layers
 
 # Utilities
 
