@@ -1,4 +1,10 @@
-"""wavelet transform for SWAGAN (https://arxiv.org/abs/2102.06108)"""
+"""
+Copyright (C) https://github.com/kynk94. All rights reserved.
+Licensed under the CC BY-NC-SA 4.0 license
+(https://creativecommons.org/licenses/by-nc-sa/4.0/).
+
+wavelet transform for SWAGAN (https://arxiv.org/abs/2102.06108)
+"""
 import numpy as np
 import tensorflow as tf
 from tensorflow.python.keras.utils import conv_utils
