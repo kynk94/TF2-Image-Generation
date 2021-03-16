@@ -9,12 +9,13 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.python.keras.utils import conv_utils
 from .filters import FIRFilter
+from .padding import Padding
 from .resample import Downsample, Upsample
 
 
 class HaarTransform2D(tf.keras.layers.Layer):
     def __init__(self,
-                 concat_direction='spatial',
+                 concat_direction='channel',
                  data_format=None,
                  **kwargs):
         super().__init__(**kwargs)
@@ -22,15 +23,19 @@ class HaarTransform2D(tf.keras.layers.Layer):
         self.data_format = conv_utils.normalize_data_format(data_format)
         self.transforms = [FIRFilter(kernel=[[1, 1],
                                              [1, 1]],
+                                     padding=0,
                                      kernel_normalize=True),
                            FIRFilter(kernel=[[-1, -1],
                                              [1, 1]],
+                                     padding=0,
                                      kernel_normalize=True),
                            FIRFilter(kernel=[[-1, 1],
                                              [-1, 1]],
+                                     padding=0,
                                      kernel_normalize=True),
                            FIRFilter(kernel=[[1, -1],
                                              [-1, 1]],
+                                     padding=0,
                                      kernel_normalize=True)]
         self.resample_layer = Downsample(factor=2, method='nearest')
 
@@ -41,7 +46,6 @@ class HaarTransform2D(tf.keras.layers.Layer):
         self._spatial_axes = self._get_spatial_axes()
         for transform in self.transforms:
             transform.build(input_shape)
-        self.resample_layer.build(input_shape)
         super().build(input_shape)
 
     def call(self, inputs):
@@ -76,14 +80,15 @@ class HaarTransform2D(tf.keras.layers.Layer):
 
 class HaarInverseTransform2D(HaarTransform2D):
     def __init__(self,
-                 concat_direction='spatial',
+                 concat_direction='channel',
                  data_format=None,
                  **kwargs):
         super().__init__(concat_direction=concat_direction,
                          data_format=data_format,
                          **kwargs)
-        for i in [1, 2]:
+        for i in (1, 2):
             self.transforms[i].kernel = -np.array(self.transforms[i].kernel)
+        self.padding_layer = Padding(rank=2, padding=((1, 0), (1, 0)))
         self.resample_layer = Upsample(factor=2, method='nearest')
 
     def build(self, input_shape):
@@ -110,5 +115,5 @@ class HaarInverseTransform2D(HaarTransform2D):
 
         outputs = 0.0
         for input, transform in zip(inputs, self.transforms):
-            outputs += self.resample_layer(transform(input))
+            outputs += transform(self.padding_layer(self.resample_layer(input)))
         return outputs

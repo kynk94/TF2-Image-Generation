@@ -170,30 +170,44 @@ class Upsample(Resample):
         self._spatial_axes = self._get_spatial_axes()
         self._check_factored_size(input_shape)
 
-        input_channels = int(input_shape[self._channel_axis])
-        if self.method == 'nearest' and self.is_integer_factor:
-            new_shape = []
-            tile_multiples = []
-            return_shape = []
-            for axis, factor in zip(self._spatial_axes, self.factor):
-                new_shape.extend([input_shape[axis], 1])
-                tile_multiples.extend([1, factor])
-                return_shape.append(input_shape[axis] * factor)
-            if self.data_format == 'channels_first':
-                new_shape = (-1, input_channels, *new_shape)
-                tile_multiples = (1, 1, *tile_multiples)
-                return_shape = (-1, input_channels, *return_shape)
-            else:
-                new_shape = (-1, *new_shape, input_channels)
-                tile_multiples = (1, *tile_multiples, 1)
-                return_shape = (-1, *return_shape, input_channels)
+        if not self.is_integer_factor:
+            self._resize_op = self._get_resize_op()
+            self.built = True
+            return
 
+        input_channels = int(input_shape[self._channel_axis])
+        new_shape = []
+        tile_multiples = []
+        pad_multiples = []
+        return_shape = []
+        for axis, factor in zip(self._spatial_axes, self.factor):
+            new_shape.extend([input_shape[axis], 1])
+            tile_multiples.extend([1, factor])
+            pad_multiples.extend([(0, 0), (0, factor-1)])
+            return_shape.append(input_shape[axis] * factor)
+        if self.data_format == 'channels_first':
+            new_shape = (-1, input_channels, *new_shape)
+            tile_multiples = (1, 1, *tile_multiples)
+            pad_multiples = ((0, 0), (0, 0), *pad_multiples)
+            return_shape = (-1, input_channels, *return_shape)
+        else:
+            new_shape = (-1, *new_shape, input_channels)
+            tile_multiples = (1, *tile_multiples, 1)
+            pad_multiples = ((0, 0), *pad_multiples, (0, 0))
+            return_shape = (-1, *return_shape, input_channels)
+
+        if self.method == 'nearest':
             def resize_op(inputs):
                 outputs = tf.reshape(inputs, new_shape)
                 outputs = tf.tile(outputs, tile_multiples)
                 return tf.reshape(outputs, return_shape)
-        else:
-            resize_op = self._get_resize_op()
+        elif self.method.startswith('zero'):
+            def resize_op(inputs):
+                outputs = tf.reshape(inputs, new_shape)
+                outputs = tf.pad(outputs, pad_multiples,
+                                 mode='CONSTANT', constant_values=0)
+                return tf.reshape(outputs, return_shape)
+
         self._resize_op = resize_op
         self.built = True
 
@@ -231,16 +245,38 @@ class Downsample(Resample):
             reduction_axes = []
             for i, (axis, factor) in enumerate(zip(self._spatial_axes,
                                                    self.factor)):
+                if input_shape[axis] % factor:
+                    break
                 new_shape.extend([input_shape[axis] // factor, factor])
                 reduction_axes.append(axis + i + 1)
-            if self.data_format == 'channels_first':
-                new_shape = (-1, input_channels, *new_shape)
             else:
-                new_shape = (-1, *new_shape, input_channels)
+                if self.data_format == 'channels_first':
+                    new_shape = (-1, input_channels, *new_shape)
+                else:
+                    new_shape = (-1, *new_shape, input_channels)
+
+                def resize_op(inputs):
+                    outputs = tf.reshape(inputs, new_shape)
+                    return tf.reduce_mean(outputs, axis=reduction_axes)
+                self._resize_op = resize_op
+                self.built = True
+                return
 
             def resize_op(inputs):
-                outputs = tf.reshape(inputs, new_shape)
-                return tf.reduce_mean(outputs, axis=reduction_axes)
+                if self.data_format == 'channels_first':
+                    if self.rank == 1:
+                        return inputs[..., ::self.factor[0]]
+                    if self.rank == 2:
+                        return inputs[..., ::self.factor[0], ::self.factor[1]]
+                    elif self.rank == 3:
+                        return inputs[..., ::self.factor[0], ::self.factor[1], ::self.factor[2]]
+                elif self.data_format == 'channels_last':
+                    if self.rank == 1:
+                        return inputs[..., ::self.factor[0], :]
+                    if self.rank == 2:
+                        return inputs[..., ::self.factor[0], ::self.factor[1], :]
+                    elif self.rank == 3:
+                        return inputs[..., ::self.factor[0], ::self.factor[1], ::self.factor[2], :]
         else:
             resize_op = self._get_resize_op()
         self._resize_op = resize_op
