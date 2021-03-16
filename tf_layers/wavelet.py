@@ -1,8 +1,4 @@
 """
-Copyright (C) https://github.com/kynk94. All rights reserved.
-Licensed under the CC BY-NC-SA 4.0 license
-(https://creativecommons.org/licenses/by-nc-sa/4.0/).
-
 wavelet transform for SWAGAN (https://arxiv.org/abs/2102.06108)
 """
 import numpy as np
@@ -24,28 +20,31 @@ class HaarTransform2D(tf.keras.layers.Layer):
         self.transforms = [FIRFilter(kernel=[[1, 1],
                                              [1, 1]],
                                      padding=0,
-                                     kernel_normalize=True),
+                                     kernel_normalize=True,
+                                     data_format=self.data_format),
                            FIRFilter(kernel=[[-1, -1],
                                              [1, 1]],
                                      padding=0,
-                                     kernel_normalize=True),
+                                     kernel_normalize=True,
+                                     data_format=self.data_format),
                            FIRFilter(kernel=[[-1, 1],
                                              [-1, 1]],
                                      padding=0,
-                                     kernel_normalize=True),
+                                     kernel_normalize=True,
+                                     data_format=self.data_format),
                            FIRFilter(kernel=[[1, -1],
                                              [-1, 1]],
                                      padding=0,
-                                     kernel_normalize=True)]
-        self.resample_layer = Downsample(factor=2, method='nearest')
+                                     kernel_normalize=True,
+                                     data_format=self.data_format)]
+        self.resample_layer = Downsample(factor=2, method='nearest',
+                                         data_format=self.data_format)
 
     def build(self, input_shape):
         input_shape = tf.TensorShape(input_shape)
         self.rank = len(input_shape) - 2
         self._channel_axis = self._get_channel_axis()
         self._spatial_axes = self._get_spatial_axes()
-        for transform in self.transforms:
-            transform.build(input_shape)
         super().build(input_shape)
 
     def call(self, inputs):
@@ -88,19 +87,12 @@ class HaarInverseTransform2D(HaarTransform2D):
                          **kwargs)
         for i in (1, 2):
             self.transforms[i].kernel = -np.array(self.transforms[i].kernel)
-        self.padding_layer = Padding(rank=2, padding=((1, 0), (1, 0)))
-        self.resample_layer = Upsample(factor=2, method='nearest')
+        self.padding_layer = Padding(rank=2, padding=((1, 0), (1, 0)),
+                                     data_format=self.data_format)
+        self.resample_layer = Upsample(factor=2, method='nearest',
+                                       data_format=self.data_format)
 
     def build(self, input_shape):
-        input_shape = tf.TensorShape(input_shape)
-        self.rank = len(input_shape) - 2
-        self._channel_axis = self._get_channel_axis()
-        self._spatial_axes = self._get_spatial_axes()
-        if self.concat_direction == 'spatial':
-            for spatial_axis in self._spatial_axes:
-                input_shape.dims[spatial_axis] //= 2
-        else:
-            input_shape.dims[self._channel_axis] //= 4
         super().build(input_shape)
 
     def call(self, inputs):
