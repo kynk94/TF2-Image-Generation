@@ -79,7 +79,7 @@ class FIRFilter(tf.keras.layers.Layer):
                                                              strides)]
 
         _tf_data_format = conv_utils.convert_data_format(
-            'channels_first', self.rank + 2)
+            self.data_format, self.rank + 2)
         if self.data_format == 'channels_first':
             def reshape_conv_op(inputs, pad_op, new_shape, return_shape, filters, name):
                 outputs = pad_op(inputs)
@@ -100,6 +100,7 @@ class FIRFilter(tf.keras.layers.Layer):
                 outputs = pad_op(inputs)
                 outputs = tf.transpose(outputs, transpose_axes)
                 outputs = tf.reshape(outputs, new_shape)
+                outputs = tf.transpose(outputs, return_axes)
                 outputs = tf.nn.convolution(outputs,
                                             filters=filters,
                                             strides=list(strides),
@@ -107,6 +108,7 @@ class FIRFilter(tf.keras.layers.Layer):
                                             dilations=[1] * self.rank,
                                             data_format=_tf_data_format,
                                             name=name)
+                outputs = tf.transpose(outputs, transpose_axes)
                 outputs = tf.reshape(outputs, return_shape)
                 return tf.transpose(outputs, return_axes)
 
@@ -125,11 +127,11 @@ class FIRFilter(tf.keras.layers.Layer):
             filters=flipped_kernel,
             name='fir_backward')
 
-    @ tf.custom_gradient
+    @tf.custom_gradient
     def call(self, inputs):
         outputs = self._conv_op(inputs)
 
-        @ tf.custom_gradient
+        @tf.custom_gradient
         def grad(d_outputs):
             d_inputs = self._back_conv_op(d_outputs)
             return d_inputs, lambda dd_inputs: self._conv_op(dd_inputs)
