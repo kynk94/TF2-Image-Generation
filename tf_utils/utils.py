@@ -87,9 +87,12 @@ def tf_image_concat(images, display_shape, mode='nchw'):
     if mode.lower() == 'nchw':
         images = tf.transpose(images, perm=(0, 2, 3, 1))
     output = []
-    for i in range(n_row):
-        output.append(tf.concat([*images[n_col*i:n_col*(i+1)]], axis=1))
-    return tf.concat(output, axis=0)
+    images = images[:n_row * n_col]
+    output = tf.concat(
+        tf.split(tf.reshape(images, (1, -1, *images.shape[2:])),
+                 n_col, axis=1),
+        axis=2)
+    return output[0]
 
 
 def tf_image_write(filename, contents, denorm=True):

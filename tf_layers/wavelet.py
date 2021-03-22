@@ -5,7 +5,6 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.python.keras.utils import conv_utils
 from .filters import FIRFilter
-from .padding import Padding
 from .resample import Downsample, Upsample
 
 
@@ -19,22 +18,18 @@ class HaarTransform2D(tf.keras.layers.Layer):
         self.data_format = conv_utils.normalize_data_format(data_format)
         self.transforms = [FIRFilter(kernel=[[1, 1],
                                              [1, 1]],
-                                     padding=0,
                                      kernel_normalize=True,
                                      data_format=self.data_format),
                            FIRFilter(kernel=[[-1, -1],
                                              [1, 1]],
-                                     padding=0,
                                      kernel_normalize=True,
                                      data_format=self.data_format),
                            FIRFilter(kernel=[[-1, 1],
                                              [-1, 1]],
-                                     padding=0,
                                      kernel_normalize=True,
                                      data_format=self.data_format),
                            FIRFilter(kernel=[[1, -1],
                                              [-1, 1]],
-                                     padding=0,
                                      kernel_normalize=True,
                                      data_format=self.data_format)]
         self.resample_layer = Downsample(factor=2, method='nearest',
@@ -87,8 +82,6 @@ class HaarInverseTransform2D(HaarTransform2D):
                          **kwargs)
         for i in (1, 2):
             self.transforms[i].kernel = -np.array(self.transforms[i].kernel)
-        self.padding_layer = Padding(rank=2, padding=((1, 0), (1, 0)),
-                                     data_format=self.data_format)
         self.resample_layer = Upsample(factor=2, method='nearest',
                                        data_format=self.data_format)
 
@@ -107,5 +100,5 @@ class HaarInverseTransform2D(HaarTransform2D):
 
         outputs = 0.0
         for input, transform in zip(inputs, self.transforms):
-            outputs += transform(self.padding_layer(self.resample_layer(input)))
+            outputs += transform((self.resample_layer(input)))
         return outputs

@@ -81,8 +81,8 @@ class FIRFilter(tf.keras.layers.Layer):
         _tf_data_format = conv_utils.convert_data_format(
             self.data_format, self.rank + 2)
         if self.data_format == 'channels_first':
-            def reshape_conv_op(inputs, pad_op, new_shape, return_shape, filters, name):
-                outputs = pad_op(inputs)
+            def reshape_conv_op(inputs, new_shape, return_shape, padding, filters, name):
+                outputs = tf.pad(inputs, padding)
                 outputs = tf.reshape(outputs, new_shape)
                 outputs = tf.nn.convolution(outputs,
                                             filters=filters,
@@ -96,8 +96,8 @@ class FIRFilter(tf.keras.layers.Layer):
             transpose_axes = (0, self._channel_axis, *range(1, self.rank+1))
             return_axes = (0, *range(2, self.rank+2), 1)
 
-            def reshape_conv_op(inputs, pad_op, new_shape, return_shape, filters, name):
-                outputs = pad_op(inputs)
+            def reshape_conv_op(inputs, new_shape, return_shape, padding, filters, name):
+                outputs = tf.pad(inputs, padding)
                 outputs = tf.transpose(outputs, transpose_axes)
                 outputs = tf.reshape(outputs, new_shape)
                 outputs = tf.transpose(outputs, return_axes)
@@ -114,14 +114,14 @@ class FIRFilter(tf.keras.layers.Layer):
 
         self._conv_op = functools.partial(
             reshape_conv_op,
-            pad_op=self._pad,
+            padding=self._pad.padding,
             new_shape=(-1, 1, *padded_dims),
             return_shape=(-1, self.input_channel, *output_dims),
             filters=kernel,
             name='fir_forward')
         self._back_conv_op = functools.partial(
             reshape_conv_op,
-            pad_op=self._back_pad,
+            padding=self._back_pad.padding,
             new_shape=(-1, 1, *back_padded_dims),
             return_shape=(-1, self.input_channel, *back_output_dims),
             filters=flipped_kernel,
