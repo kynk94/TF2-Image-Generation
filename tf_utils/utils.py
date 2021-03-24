@@ -1,7 +1,9 @@
 import os
 import glob
 import yaml
+import numpy as np
 import tensorflow as tf
+from PIL import Image
 
 IMAGE_EXT = {'jpg', 'jpeg', 'png'}
 
@@ -48,6 +50,48 @@ def allow_memory_growth():
             print(e)
 
 
+def tf_image_concat(images, display_shape, mode='nchw'):
+    n_row, n_col = display_shape
+    if mode.lower() == 'nchw':
+        images = tf.transpose(images, perm=(0, 2, 3, 1))
+    output = []
+    images = images[:n_row * n_col]
+    output = tf.concat(
+        tf.split(tf.reshape(images, (1, -1, *images.shape[2:])),
+                 n_col, axis=1),
+        axis=2)
+    return output[0]
+
+
+def tf_image_write(filename, contents, denorm=True):
+    if denorm:
+        contents = contents * 127.5 + 127.5
+    tf.io.write_file(filename=filename,
+                     contents=tf.io.encode_png(tf.cast(contents, tf.uint8)))
+
+
+def tensor2image(tensor, denorm=True, mode='nchw'):
+    if mode.lower() == 'nchw':
+        tensor = tf.transpose(tensor, perm=(0, 2, 3, 1))
+    if denorm:
+        tensor = tf.clip_by_value(tensor, -1., 1.) * 127.5 + 127.5
+    image = tf.cast(tensor, tf.uint8).numpy()
+    return image
+
+
+def image2tensor(image, normalize=True, mode='nchw', dtype=tf.float32):
+    if isinstance(image, str):
+        image = np.array(Image.open(image).convert('RGB'))
+    tensor = tf.convert_to_tensor(image, dtype=dtype)
+    if tensor.ndim == 3:
+        tensor = tf.expand_dims(tensor, 0)
+    if mode.lower() == 'nchw':
+        tensor = tf.transpose(tensor, perm=(0, 3, 1, 2))
+    if normalize:
+        tensor = tensor / 127.5 - 1.0
+    return tensor
+
+
 def get_config(config):
     with open(config, 'r') as stream:
         return yaml.load(stream, Loader=yaml.FullLoader)
@@ -80,26 +124,6 @@ def check_dataset_config(config, make_txt=False):
         dataset_config['train_data_txt'], dataset_config['test_data_txt'] = txt_output
     else:
         dataset_config['train_data_txt'] = txt_output
-
-
-def tf_image_concat(images, display_shape, mode='nchw'):
-    n_row, n_col = display_shape
-    if mode.lower() == 'nchw':
-        images = tf.transpose(images, perm=(0, 2, 3, 1))
-    output = []
-    images = images[:n_row * n_col]
-    output = tf.concat(
-        tf.split(tf.reshape(images, (1, -1, *images.shape[2:])),
-                 n_col, axis=1),
-        axis=2)
-    return output[0]
-
-
-def tf_image_write(filename, contents, denorm=True):
-    if denorm:
-        contents = contents * 127.5 + 127.5
-    tf.io.write_file(filename=filename,
-                     contents=tf.io.encode_png(tf.cast(contents, tf.uint8)))
 
 
 def make_dataset_txt(data_dir,

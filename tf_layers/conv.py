@@ -423,27 +423,19 @@ class TransposeConv(Conv):
         else:
             self.spatial_output_shape = (*spatial_output_shape, self.filters)
 
-        conv_kwargs = {
-            'strides': self.strides,
-            'padding': self.padding.upper(),
-            'dilations': self.dilation_rate,
-            'data_format': self._tf_data_format}
         if self.rank == 1:
             conv_op = tf.nn.conv1d_transpose
         elif self.rank == 2:
-            if self.dilation_rate[0] == 1:
-                conv_op = tf.nn.conv2d_transpose
-            else:
-                conv_op = tf.keras.backend.conv2d_transpose
-                conv_kwargs.update({
-                    'dilation_rate': conv_kwargs.pop('dilations'),
-                    'data_format': self.data_format})
+            conv_op = tf.nn.conv2d_transpose
         else:
             conv_op = tf.nn.conv3d_transpose
 
         self._convolution_op = functools.partial(
             conv_op,
-            **conv_kwargs)
+            strides=self.strides,
+            padding=self.padding.upper(),
+            dilations=self.dilation_rate,
+            data_format=self._tf_data_format)
         self._check_weight_scaling()
         self.built = True
 
@@ -523,6 +515,7 @@ class TransposeConv1D(TransposeConv):
                  kernel_size,
                  strides=1,
                  padding=0,
+                 dilation_rate=1,
                  activation=None,
                  fir=None,
                  noise=None,
@@ -536,6 +529,7 @@ class TransposeConv1D(TransposeConv):
             kernel_size=kernel_size,
             strides=strides,
             padding=padding,
+            dilation_rate=dilation_rate,
             activation=activation,
             fir=fir,
             noise=noise,
@@ -551,6 +545,7 @@ class TransposeConv2D(TransposeConv):
                  kernel_size,
                  strides=(1, 1),
                  padding=(0, 0),
+                 dilation_rate=1,
                  activation=None,
                  fir=None,
                  noise=None,
@@ -564,6 +559,7 @@ class TransposeConv2D(TransposeConv):
             kernel_size=kernel_size,
             strides=strides,
             padding=padding,
+            dilation_rate=dilation_rate,
             activation=activation,
             fir=fir,
             noise=noise,
@@ -579,6 +575,7 @@ class TransposeConv3D(TransposeConv):
                  kernel_size,
                  strides=(1, 1, 1),
                  padding=(0, 0, 0),
+                 dilation_rate=1,
                  activation=None,
                  fir=None,
                  noise=None,
@@ -592,6 +589,7 @@ class TransposeConv3D(TransposeConv):
             kernel_size=kernel_size,
             strides=strides,
             padding=padding,
+            dilation_rate=dilation_rate,
             activation=activation,
             fir=fir,
             noise=noise,
@@ -740,20 +738,10 @@ class DecompTransConv(Conv):
                 output_shape = (*output_shape, self.filters)
             self.spatial_output_shapes.append(output_shape)
 
-        conv_kwargs = {
-            'padding': self.padding.upper(),
-            'dilations': self.dilation_rate,
-            'data_format': self._tf_data_format}
         if self.rank == 1:
             conv_op = tf.nn.conv1d_transpose
         elif self.rank == 2:
-            if self.dilation_rate[0] == 1:
-                conv_op = tf.nn.conv2d_transpose
-            else:
-                conv_op = tf.keras.backend.conv2d_transpose
-                conv_kwargs.update({
-                    'dilation_rate': conv_kwargs.pop('dilations'),
-                    'data_format': self.data_format})
+            conv_op = tf.nn.conv2d_transpose
         else:
             conv_op = tf.nn.conv3d_transpose
 
@@ -765,7 +753,9 @@ class DecompTransConv(Conv):
                 functools.partial(
                     conv_op,
                     strides=tuple(strides),
-                    **conv_kwargs)
+                    padding=self.padding.upper(),
+                    dilations=self.dilation_rate,
+                    data_format=self._tf_data_format)
             )
 
         if self.use_weight_scaling:
@@ -840,6 +830,7 @@ class DecompTransConv2D(DecompTransConv):
                  kernel_size,
                  strides=(1, 1),
                  padding=(0, 0),
+                 dilation_rate=1,
                  fir=None,
                  noise=None,
                  use_bias=False,
@@ -852,6 +843,7 @@ class DecompTransConv2D(DecompTransConv):
             kernel_size=kernel_size,
             strides=strides,
             padding=padding,
+            dilation_rate=dilation_rate,
             fir=fir,
             noise=noise,
             use_bias=use_bias,
@@ -866,6 +858,7 @@ class DecompTransConv3D(DecompTransConv):
                  kernel_size,
                  strides=(1, 1, 1),
                  padding=(0, 0, 0),
+                 dilation_rate=1,
                  fir=None,
                  noise=None,
                  use_bias=False,
@@ -878,6 +871,7 @@ class DecompTransConv3D(DecompTransConv):
             kernel_size=kernel_size,
             strides=strides,
             padding=padding,
+            dilation_rate=dilation_rate,
             fir=fir,
             noise=noise,
             use_bias=use_bias,
@@ -1347,7 +1341,6 @@ class SubPixelConv2D(Conv2D):
             name=self.__class__.__name__)
         self._check_weight_scaling()
         self.built = True
-
 
     def call(self, inputs):
         if self.pad:
