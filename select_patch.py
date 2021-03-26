@@ -127,9 +127,9 @@ def mod_patch_info(patch_info, auto_square, n_target=None):
 
 
 def extract_patches(arr, n_row, n_col):
-    width, height, channel = arr.shape
-    patch_shape = (width // n_col, height // n_row, channel)
-    n_patch_axis = (n_col, n_row, 1)
+    height, width, channel = arr.shape
+    patch_shape = (height // n_row, width // n_col, channel)
+    n_patch_axis = (n_row, n_col, 1)
 
     shape = n_patch_axis + patch_shape
     strides = tuple(np.array(arr.strides) * patch_shape) + arr.strides
@@ -139,7 +139,7 @@ def extract_patches(arr, n_row, n_col):
 
 
 def merge_patches(patches, n_row, n_col):
-    n_patches, width, height, channel = patches.shape
+    n_patches, height, width, channel = patches.shape
     assert n_patches == n_row * n_col, 'Shape does not match'
 
     merged = np.zeros((height * n_row, width * n_col, channel),
@@ -147,8 +147,8 @@ def merge_patches(patches, n_row, n_col):
     patch_iter = iter(patches)
     for r in range(n_row):
         for c in range(n_col):
-            merged[r*width:(r+1)*width,
-                   c*height:(c+1)*height] = next(patch_iter)
+            merged[r*height:(r+1)*height,
+                   c*width:(c+1)*width] = next(patch_iter)
     return merged
 
 
