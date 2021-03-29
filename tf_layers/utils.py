@@ -5,12 +5,26 @@ Licensed under the CC BY-NC-SA 4.0 license
 """
 import tensorflow as tf
 import tensorflow_addons as tfa
-from tensorflow.keras.layers import BatchNormalization, LayerNormalization
-from tensorflow_addons.layers import GroupNormalization, InstanceNormalization
-from .filters import FIRFilter
 from .noise import GaussianNoise, UniformNoise
-from .normalizations import FilterResponseNormalization
 from .padding import Padding
+
+
+def hasattr_not_none(__obj, attr):
+    if not hasattr(__obj, attr):
+        return False
+    if getattr(__obj, attr) is None:
+        return False
+    return True
+
+
+def kwargs_as_iterable(iter_len, **kwargs):
+    for key, value in kwargs.items():
+        if not isinstance(value, str) and hasattr(value, '__len__'):
+            if len(value) == iter_len:
+                continue
+            raise ValueError(f'`len({key})` does not match `iter_len`.')
+        kwargs[key] = (value, ) * iter_len
+    return kwargs
 
 
 def check_tf_version():
@@ -98,82 +112,13 @@ def get_noise_layer(noise,
                 channel_same=channel_same,
                 trainable=trainable,
                 **kwargs)
-        if l_noise in {'uniform_noise', 'uniform'}:
+        if l_noise.startswith('uniform'):
             return UniformNoise(
                 strength=strength,
                 channel_same=channel_same,
                 trainable=trainable,
                 **kwargs)
-
-
-def get_filter_layer(filter,
-                     factor=2,
-                     gain=1,
-                     stride=1,
-                     kernel_normalize=True,
-                     data_format=None):
-    if filter is None:
-        return None
-    if filter == True:
-        return FIRFilter(factor=factor,
-                         gain=gain,
-                         stride=stride,
-                         kernel_normalize=kernel_normalize,
-                         data_format=data_format)
-    return FIRFilter(kernel=filter,
-                     factor=factor,
-                     gain=gain,
-                     stride=stride,
-                     kernel_normalize=kernel_normalize,
-                     data_format=data_format)
-
-
-def get_normalization_layer(channel_axis,
-                            normalization,
-                            normalization_momentum=0.99,
-                            normalization_group=32,
-                            normalization_epsilon=1e-5):
-    if normalization is None:
-        return None
-    if hasattr(normalization, '__call__'):
-        return normalization
-    if isinstance(normalization, str):
-        l_normalization = normalization.lower()
-        if l_normalization in {'batch_normalization',
-                               'batch_norm', 'bn'}:
-            return BatchNormalization(
-                axis=channel_axis,
-                momentum=normalization_momentum,
-                epsilon=normalization_epsilon,
-                name='batch_normalization')
-        if l_normalization in {'layer_normalization',
-                               'layer_norm', 'ln'}:
-            return LayerNormalization(
-                axis=channel_axis,
-                epsilon=normalization_epsilon,
-                name='layer_normalization')
-        if l_normalization in {'instance_normalization',
-                               'instance_norm', 'in'}:
-            return InstanceNormalization(
-                axis=channel_axis,
-                epsilon=normalization_epsilon,
-                name='instance_normalization')
-        if l_normalization in {'group_normalization',
-                               'group_norm', 'gn'}:
-            return GroupNormalization(
-                axis=channel_axis,
-                groups=normalization_group,
-                epsilon=normalization_epsilon,
-                name='group_normalization')
-        if l_normalization in {'filter_response_normalization',
-                               'filter_response_norm', 'frn'}:
-            # FilterResponseNormalization is not official implementation.
-            # Official need to input axis as spatial, not channel.
-            return FilterResponseNormalization(
-                axis=channel_axis,
-                epsilon=normalization_epsilon,
-                name='filter_response_normalization')
-    raise ValueError(f'Unsupported `normalization`: {normalization}')
+    raise ValueError(f'Unsupported `noise`: {noise}')
 
 
 def get_activation_layer(activation, activation_alpha=0.3):
@@ -181,30 +126,19 @@ def get_activation_layer(activation, activation_alpha=0.3):
         return None
     if hasattr(activation, '__call__'):
         return activation
-    if isinstance(activation, str):
-        l_activation = activation.lower()
-        if l_activation == 'relu':
-            return tf.keras.layers.ReLU(name='relu')
-        if l_activation in {'leaky_relu', 'lrelu'}:
-            return tf.keras.layers.LeakyReLU(
-                alpha=activation_alpha,
-                name='leaky_relu')
-        if l_activation in {'exp_lu', 'elu'}:
-            return tf.keras.layers.ELU(
-                alpha=activation_alpha,
-                name='elu')
-        if l_activation in {'trelu', 'tlu'}:
-            return tfa.layers.TLU()
-        if l_activation == 'tanh':
-            return tf.keras.layers.Activation('tanh')
-    raise ValueError(f'Unsupported `activation`: {activation}')
-
-
-def kwargs_as_iterable(iter_len, **kwargs):
-    for key, value in kwargs.items():
-        if not isinstance(value, str) and hasattr(value, '__len__'):
-            if len(value) == iter_len:
-                continue
-            raise ValueError(f'`len({key})` does not match `iter_len`.')
-        kwargs[key] = (value, ) * iter_len
-    return kwargs
+    if not isinstance(activation, str):
+        raise ValueError(f'Unsupported `activation`: {activation}')
+    l_activation = activation.lower()
+    if l_activation == 'relu':
+        return tf.keras.layers.ReLU(name='relu')
+    if l_activation in {'leaky_relu', 'lrelu'}:
+        return tf.keras.layers.LeakyReLU(
+            alpha=activation_alpha,
+            name='leaky_relu')
+    if l_activation in {'exp_lu', 'elu'}:
+        return tf.keras.layers.ELU(
+            alpha=activation_alpha,
+            name='elu')
+    if l_activation in {'trelu', 'tlu'}:
+        return tfa.layers.TLU()
+    return tf.keras.layers.Activation(l_activation)

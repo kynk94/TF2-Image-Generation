@@ -2,7 +2,9 @@ import tensorflow as tf
 import tensorflow_addons as tfa
 from tensorflow.python.keras.utils import conv_utils
 from tensorflow.keras.layers import BatchNormalization, LayerNormalization
+from tensorflow.keras.layers.experimental import SyncBatchNormalization
 from tensorflow_addons.layers import GroupNormalization, InstanceNormalization
+from .utils import get_layer_config
 
 
 class Normalization(tf.keras.layers.Layer):
@@ -12,8 +14,10 @@ class Normalization(tf.keras.layers.Layer):
                  group=32,
                  epsilon=1e-5,
                  data_format=None,
+                 trainable=True,
+                 name=None,
                  **kwargs):
-        super().__init__(**kwargs)
+        super().__init__(trainable=trainable, name=name, **kwargs)
         self.normalization = normalization
         self.momentum = momentum
         self.group = group
@@ -51,6 +55,13 @@ class Normalization(tf.keras.layers.Layer):
                     momentum=momentum,
                     epsilon=epsilon,
                     name='batch_normalization')
+            if l_normalization in {'sync_batch_normalization',
+                                   'sync_batch_norm', 'sync_bn'}:
+                return SyncBatchNormalization(
+                    axis=channel_axis,
+                    momentum=momentum,
+                    epsilon=epsilon,
+                    name='sync_batch_normalization')
             if l_normalization in {'layer_normalization',
                                    'layer_norm', 'ln'}:
                 return LayerNormalization(
@@ -84,6 +95,9 @@ class Normalization(tf.keras.layers.Layer):
         if self.data_format == 'channels_first':
             return 1
         return self.rank + 1
+
+    def get_config(self):
+        return get_layer_config(self.normalization)
 
 
 class FilterResponseNormalization(tfa.layers.FilterResponseNormalization):

@@ -9,8 +9,8 @@ from tensorflow.python.keras.utils.conv_utils import normalize_data_format
 from tensorflow_addons.layers import SpectralNormalization
 from .conv import Conv, TransposeConv, DecompTransConv, DownConv, UpConv
 from .conv import SubPixelConv2D
-from .utils import get_activation_layer, get_normalization_layer
-from .utils import get_layer_config
+from .normalizations import Normalization
+from .utils import get_activation_layer, get_layer_config
 
 
 class BaseBlock(tf.keras.Model):
@@ -44,10 +44,13 @@ class BaseBlock(tf.keras.Model):
         self.activation_first = activation_first
 
         # normalization layer
-        self.normalization = get_normalization_layer(self._channel_axis,
-                                                     normalization,
-                                                     norm_momentum,
-                                                     norm_group)
+        self.normalization = Normalization(
+            normalization=normalization,
+            momentum=norm_momentum,
+            group=norm_group,
+            data_format=self.data_format,
+            trainable=trainable,
+            name='normalization') if normalization else None
 
         # activation layer
         self.activation = get_activation_layer(activation, activation_alpha)

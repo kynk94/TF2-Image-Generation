@@ -1,7 +1,8 @@
 import numpy as np
 import tensorflow as tf
 from tensorflow.python.keras.layers.ops import core as core_ops
-from .utils import get_activation_layer, get_noise_layer, get_normalization_layer
+from .normalizations import Normalization
+from .utils import get_activation_layer, get_noise_layer
 from .utils import get_layer_config
 
 
@@ -137,10 +138,12 @@ class LinearBlock(tf.keras.Model):
         self.activation_first = activation_first
 
         # normalization layer
-        self.normalization = get_normalization_layer(-1,
-                                                     normalization,
-                                                     norm_momentum,
-                                                     norm_group)
+        self.normalization = Normalization(
+            normalization=normalization,
+            momentum=norm_momentum,
+            group=norm_group,
+            trainable=trainable,
+            name='normalization') if normalization else None
 
         # activation layer
         self.activation = get_activation_layer(activation, activation_alpha)

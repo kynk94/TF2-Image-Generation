@@ -10,9 +10,10 @@ from tensorflow.python.eager import context
 from tensorflow.python.keras.layers import convolutional
 from tensorflow.python.keras.utils import conv_utils
 from tensorflow.python.ops import nn_ops
+from .filters import FIRFilter
 from .ICNR_initializer import ICNR
 from .resample import Downsample, Upsample
-from .utils import get_filter_layer, get_padding_layer, get_noise_layer
+from .utils import get_noise_layer, get_padding_layer
 from .utils import get_initializer, get_layer_config, get_str_padding
 
 
@@ -118,12 +119,12 @@ class Conv(convolutional.Conv):
             pad_type=pad_type,
             constant_values=pad_constant_values,
             data_format=self.data_format)
-        self.fir = get_filter_layer(
-            filter=fir,
+        self.fir = FIRFilter(
+            kernel=fir,
             factor=fir_factor or self._fir_factor_from_stride(self.strides),
             stride=fir_stride,
             kernel_normalize=fir_normalize,
-            data_format=self.data_format)
+            data_format=self.data_format) if fir is not None else None
         self.noise = get_noise_layer(
             noise=noise,
             strength=noise_strength,
