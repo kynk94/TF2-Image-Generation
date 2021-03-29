@@ -63,7 +63,7 @@ class Padding(tf.keras.layers.Layer):
             return 'CONSTANT', 0
         raise ValueError(f'Unsupported `pad_type`: {pad_type}')
 
-    def normalize_padding(self, padding: Union[int, Iterable[int]]) -> tuple:
+    def _normalize_padding(self, padding: Union[int, Iterable[int]]) -> tuple:
         def add_batch_channel_padding(padding: tuple) -> tuple:
             padding = ((0, 0),) + padding
             if self.data_format == 'channels_first':
