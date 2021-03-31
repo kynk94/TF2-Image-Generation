@@ -13,6 +13,8 @@ class Normalization(tf.keras.layers.Layer):
                  momentum=0.99,
                  group=32,
                  epsilon=1e-5,
+                 center=True,
+                 scale=True,
                  data_format=None,
                  trainable=True,
                  name=None,
@@ -22,6 +24,8 @@ class Normalization(tf.keras.layers.Layer):
         self.momentum = momentum
         self.group = group
         self.epsilon = epsilon
+        self.center = center
+        self.scale = scale
         self.data_format = conv_utils.normalize_data_format(data_format)
 
     def build(self, input_shape):
@@ -32,7 +36,9 @@ class Normalization(tf.keras.layers.Layer):
             normalization=self.normalization,
             momentum=self.momentum,
             group=self.group,
-            epsilon=self.epsilon)
+            epsilon=self.epsilon,
+            center=self.center,
+            scale=self.scale)
         self.built = True
 
     def call(self, inputs):
@@ -43,7 +49,9 @@ class Normalization(tf.keras.layers.Layer):
                           normalization,
                           momentum=0.99,
                           group=32,
-                          epsilon=1e-5):
+                          epsilon=1e-5,
+                          center=True,
+                          scale=True):
         if hasattr(normalization, '__call__'):
             return normalization
         if isinstance(normalization, str):
@@ -54,19 +62,25 @@ class Normalization(tf.keras.layers.Layer):
                     axis=channel_axis,
                     momentum=momentum,
                     epsilon=epsilon,
+                    center=center,
+                    scale=scale,
                     name='batch_normalization')
             if l_normalization in {'sync_batch_normalization',
-                                   'sync_batch_norm', 'sync_bn'}:
+                                   'sync_batch_norm', 'sync_bn', 'sbn'}:
                 return SyncBatchNormalization(
                     axis=channel_axis,
                     momentum=momentum,
                     epsilon=epsilon,
+                    center=center,
+                    scale=scale,
                     name='sync_batch_normalization')
             if l_normalization in {'layer_normalization',
                                    'layer_norm', 'ln'}:
                 return LayerNormalization(
                     axis=channel_axis,
                     epsilon=epsilon,
+                    center=center,
+                    scale=scale,
                     name='layer_normalization')
             if l_normalization in {'instance_normalization',
                                    'instance_norm', 'in'}:
@@ -80,6 +94,8 @@ class Normalization(tf.keras.layers.Layer):
                     axis=channel_axis,
                     groups=group,
                     epsilon=epsilon,
+                    center=center,
+                    scale=scale,
                     name='group_normalization')
             if l_normalization in {'filter_response_normalization',
                                    'filter_response_norm', 'frn'}:

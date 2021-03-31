@@ -30,6 +30,16 @@ class Resample(tf.keras.layers.Layer):
         self.mode = self._check_mode(mode)
         self.data_format = conv_utils.normalize_data_format(data_format)
 
+    def build(self, input_shape):
+        input_shape = tf.TensorShape(input_shape)
+        self.rank = len(input_shape) - 2
+        self._channel_axis = self._get_channel_axis()
+        self._spatial_axes = self._get_spatial_axes()
+        assert self.size is not None, 'Resample only works with size argument.'
+        self.size = conv_utils.normalize_tuple(self.size, self.rank, 'size')
+        self._resize_op = self._get_resize_op()
+        self.built = True
+
     def call(self, inputs):
         return self._resize_op(inputs)
 
@@ -268,14 +278,14 @@ class Downsample(Resample):
                         return inputs[..., ::self.factor[0]]
                     if self.rank == 2:
                         return inputs[..., ::self.factor[0], ::self.factor[1]]
-                    elif self.rank == 3:
+                    if self.rank == 3:
                         return inputs[..., ::self.factor[0], ::self.factor[1], ::self.factor[2]]
                 elif self.data_format == 'channels_last':
                     if self.rank == 1:
                         return inputs[..., ::self.factor[0], :]
                     if self.rank == 2:
                         return inputs[..., ::self.factor[0], ::self.factor[1], :]
-                    elif self.rank == 3:
+                    if self.rank == 3:
                         return inputs[..., ::self.factor[0], ::self.factor[1], ::self.factor[2], :]
         else:
             resize_op = self._get_resize_op()

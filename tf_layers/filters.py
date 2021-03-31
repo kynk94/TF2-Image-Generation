@@ -16,8 +16,6 @@ class FIRFilter(tf.keras.layers.Layer):
                  data_format=None,
                  **kwargs):
         super().__init__(**kwargs)
-        if kernel == True:
-            kernel = None
         self.kernel = kernel
         self.factor = factor
         self.gain = gain
@@ -141,7 +139,7 @@ class FIRFilter(tf.keras.layers.Layer):
 
     def _setup_kernel(self):
         kernel = self.kernel
-        if kernel is None:
+        if kernel is True or kernel is None:
             kernel = [1] * self.factor
         elif isinstance(kernel, int):
             kernel = [kernel] * self.factor

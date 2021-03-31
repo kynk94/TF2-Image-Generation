@@ -22,13 +22,14 @@ from .conv_blocks import DecompTransConv2DBlock, DecompTransConv3DBlock
 from .conv_blocks import DownConv1DBlock, DownConv2DBlock, DownConv3DBlock
 from .conv_blocks import UpConv1DBlock, UpConv2DBlock, UpConv3DBlock
 from .conv_blocks import SubPixelConv2DBlock
+from .denormalizations import AdaIN, SPADE
 from .embedding import Embedding
 from .filters import FIRFilter
 from .linear import Linear, LinearBlock
 from .noise import GaussianNoise, UniformNoise
 from .normalizations import Normalization, FilterResponseNormalization
 from .padding import Padding1D, Padding2D, Padding3D
-from .resample import Downsample, Upsample
+from .resample import Resample, Downsample, Upsample
 from .reshape import Reshape
 from .residual_blocks import ResBlock2D, DownResBlock2D, UpResBlock2D
 from .residual_blocks import ResIdentityBlock2D

@@ -7,6 +7,6 @@ output/*
 dataset/*
 !dataset/*.py
 *.ipynb
-*.png
+*.*g
 *.gif
 *.csv
