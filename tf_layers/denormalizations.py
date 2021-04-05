@@ -118,11 +118,12 @@ class AdaIN(Denormalization):
     def call(self, inputs, external_inputs, alpha=1.0):
         if self.use_learnable_params:
             adain_params = self.linear(external_inputs)
-            gamma, beta = tf.split(adain_params, 2, self._channel_axis)
+            beta, gamma = tf.split(adain_params, 2, self._channel_axis)
         else:
-            gamma, beta = tf.nn.moments(external_inputs,
+            beta, gamma = tf.nn.moments(external_inputs,
                                         self._spatial_axes,
                                         keepdims=True)
+            gamma = tf.sqrt(gamma + self.epsilon)
         return super().call(
             inputs=inputs,
             scale=gamma,
