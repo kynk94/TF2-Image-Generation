@@ -106,7 +106,10 @@ def find_config(checkpoint):
 
 
 def check_dataset_config(config, make_txt=False):
-    data_conf = config['dataset']
+    if 'dataset' in config:
+        data_conf = config['dataset']
+    else:
+        data_conf = config
     if not make_txt and data_conf['train_data_txt'] is not None:
         if not os.path.exists(data_conf['train_data_txt']):
             raise FileNotFoundError("'train_data_txt' not found")
@@ -119,11 +122,10 @@ def check_dataset_config(config, make_txt=False):
                                   train_test_split=data_conf['train_test_split'],
                                   labeled_dir=data_conf['labeled_dir'])
 
-    dataset_config = config['dataset']
     if isinstance(txt_output, tuple):
-        dataset_config['train_data_txt'], dataset_config['test_data_txt'] = txt_output
+        data_conf['train_data_txt'], data_conf['test_data_txt'] = txt_output
     else:
-        dataset_config['train_data_txt'] = txt_output
+        data_conf['train_data_txt'] = txt_output
 
 
 def make_dataset_txt(data_dir,

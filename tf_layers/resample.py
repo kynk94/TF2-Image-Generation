@@ -35,8 +35,16 @@ class Resample(tf.keras.layers.Layer):
         self.rank = len(input_shape) - 2
         self._channel_axis = self._get_channel_axis()
         self._spatial_axes = self._get_spatial_axes()
-        assert self.size is not None, 'Resample only works with size argument.'
-        self.size = conv_utils.normalize_tuple(self.size, self.rank, 'size')
+        if self.size is None:
+            factors = conv_utils.normalize_tuple(self.factor,
+                                                 self.rank,
+                                                 'factor')
+            self.size = [int(input_shape[axis] * factor)
+                         for axis, factor in zip(self._spatial_axes, factors)]
+        else:
+            self.size = conv_utils.normalize_tuple(self.size,
+                                                   self.rank,
+                                                   'size')
         self._resize_op = self._get_resize_op()
         self.built = True
 

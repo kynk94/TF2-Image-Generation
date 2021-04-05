@@ -84,8 +84,8 @@ class Denormalization(tf.keras.layers.Layer):
 class AdaIN(Denormalization):
     def __init__(self,
                  epsilon=1e-5,
-                 data_format=None,
                  use_learnable_params=False,
+                 data_format=None,
                  trainable=True,
                  name=None,
                  **kwargs):
@@ -118,16 +118,16 @@ class AdaIN(Denormalization):
     def call(self, inputs, external_inputs, alpha=1.0):
         if self.use_learnable_params:
             adain_params = self.linear(external_inputs)
-            beta, gamma = tf.split(adain_params, 2, self._channel_axis)
+            mean, std = tf.split(adain_params, 2, self._channel_axis)
         else:
-            beta, gamma = tf.nn.moments(external_inputs,
+            mean, variance = tf.nn.moments(external_inputs,
                                         self._spatial_axes,
                                         keepdims=True)
-            gamma = tf.sqrt(gamma + self.epsilon)
+            std = tf.sqrt(variance + self.epsilon)
         return super().call(
             inputs=inputs,
-            scale=gamma,
-            offset=beta,
+            scale=std,
+            offset=mean,
             alpha=alpha)
 
 

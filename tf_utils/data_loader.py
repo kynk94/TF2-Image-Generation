@@ -39,6 +39,7 @@ def read_images(path, shape=None, channel=3):
 
 class ImageLoader:
     def __init__(self, data_txt_file, use_label=False):
+        self.data_format = tf.keras.backend.image_data_format()
         self.n_data = None
         self.n_class = None
         self.class_dict = defaultdict(ClassCounter())
@@ -73,7 +74,8 @@ class ImageLoader:
         data = tf.cast(data, tf.float32)
         if new_size is not None:
             data = tf.image.resize(data, new_size)
-        data = tf.transpose(data, perm=(2, 0, 1))
+        if self.data_format == 'channels_first':
+            data = tf.transpose(data, perm=(2, 0, 1))
         if label is None:
             return data
         label = tf.cast(label, tf.float32)
