@@ -59,7 +59,7 @@ class Denormalization(tf.keras.layers.Layer):
         outputs = normalized_inputs * scale + offset
         if alpha == 1.0:
             return outputs
-        return alpha * normalized_inputs + (1.0 - alpha) * inputs
+        return alpha * outputs + (1.0 - alpha) * inputs
 
     def _get_channel_axis(self):
         if self.data_format == 'channels_first':
