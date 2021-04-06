@@ -235,6 +235,9 @@ otherwise, run command below after modifying docker-compose.yaml
 - [x] CIFAR-10: [HomePage](https://www.cs.toronto.edu/~kriz/cifar.html)
 - [ ] CelebA: [HomePage](http://mmlab.ie.cuhk.edu.hk/projects/CelebA.html)
 - LSUN: [HomePage](https://github.com/fyu/lsun)
+- [x] WikiArt: [HomePage](https://github.com/cs-chan/ArtGAN/tree/master/WikiArt%20Dataset)  
+This dataset has broken files.  
+Should run `datasets/wikiart.py` to remove the broken files after unzipping.
 
 ## GIF Maker
 

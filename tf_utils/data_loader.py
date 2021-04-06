@@ -61,8 +61,7 @@ class ImageLoader:
                     file_path = os.path.join(data_dir, path)
                     data.append(file_path)
                     labels.append(self.class_dict[label])
-                dataset = tf.data.Dataset.from_tensor_slices(
-                    (data, labels))
+                dataset = tf.data.Dataset.from_tensor_slices((data, labels))
         self.n_data = len(data)
         self.n_class = len(self.class_dict)
         self.class_dict_pair = dict(zip(self.class_dict.values(),
