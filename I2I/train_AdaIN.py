@@ -34,18 +34,20 @@ def main():
     content_conf = dataset_conf['content']
     style_conf = dataset_conf['style']
     content_loader = ImageLoader(data_txt_file=content_conf['train_data_txt'])
-    content_dataset = content_loader.get_dataset(batch_size=conf['batch_size'],
-                                               new_size=(
-                                                   conf['input_size'],)*2,
-                                               cache=content_conf['cache'])
-    test_content = next(iter(
-        content_loader.get_dataset(batch_size=conf['test_batch_size'],
-                                   new_size=(conf['input_size'],)*2)))
+    content_dataset = content_loader.get_dataset(
+        batch_size=conf['batch_size'],
+        new_size=(conf['input_size'],)*2,
+        cache=content_conf['cache'])
     style_loader = ImageLoader(data_txt_file=style_conf['train_data_txt'])
     style_dataset = style_loader.get_dataset(batch_size=conf['batch_size'],
                                              new_size=(conf['input_size'],)*2,
                                              cache=style_conf['cache'])
-    train_dataset = tf.data.Dataset.zip((content_dataset, style_dataset)).repeat()
+    train_dataset = tf.data.Dataset.zip(
+        (content_dataset, style_dataset)).repeat()
+
+    test_content = next(iter(
+        content_loader.get_dataset(batch_size=conf['test_batch_size'],
+                                   new_size=(conf['input_size'],)*2)))
     test_style = next(iter(
         style_loader.get_dataset(batch_size=conf['test_batch_size'],
                                  new_size=(conf['input_size'],)*2)))
