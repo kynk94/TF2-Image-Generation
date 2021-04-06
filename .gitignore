@@ -4,8 +4,8 @@ __pycache__
 checkpoints
 
 output/*
-dataset/*
-!dataset/*.py
+datasets/*
+!datasets/*.py
 *.ipynb
 *.*g
 *.gif
