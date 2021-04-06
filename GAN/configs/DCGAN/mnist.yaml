@@ -27,7 +27,7 @@ checkpoint_dir: ./checkpoints
 
 # data
 dataset:
-  data_dir: ../dataset/mnist
+  data_dir: ../datasets/mnist
   train_data_txt:
   train_test_split: true
   labeled_dir: true

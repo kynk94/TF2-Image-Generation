@@ -15,7 +15,7 @@ def main():
     arg_parser.add_argument('-c', '--config', type=str,
                             default='configs/FST/coco14.yaml')
     arg_parser.add_argument('-s', '--style', type=str,
-                            default='../dataset/style_transfer/the_scream.jpg')
+                            default='../datasets/style_transfer/the_scream.jpg')
     arg_parser.add_argument('-ckpt', '--checkpoint', type=str,
                             default=None)
     args = vars(arg_parser.parse_args())

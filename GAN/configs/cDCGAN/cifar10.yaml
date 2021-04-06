@@ -28,7 +28,7 @@ checkpoint_dir: ./checkpoints
 
 # data
 dataset:
-  data_dir: ../dataset/cifar10
+  data_dir: ../datasets/cifar10
   train_data_txt:
   train_test_split: true
   labeled_dir: true

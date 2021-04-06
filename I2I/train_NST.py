@@ -27,9 +27,9 @@ def main():
     arg_parser.add_argument('-m', '--mode', type=str_to_mode,
                             default='content')
     arg_parser.add_argument('-ic', '--input_content', type=str,
-                            default='../dataset/style_transfer/content')
+                            default='../datasets/style_transfer/content')
     arg_parser.add_argument('-is', '--input_style', type=str,
-                            default='../dataset/style_transfer/style')
+                            default='../datasets/style_transfer/style')
     args = vars(arg_parser.parse_args())
 
     tf.keras.backend.set_image_data_format('channels_first')

@@ -31,13 +31,13 @@ style_image:
 # data
 dataset:
   content:
-    data_dir: ../dataset/coco14
+    data_dir: ../datasets/coco14
     train_data_txt:
     train_test_split: false
     labeled_dir: false
     cache: false
   style:
-    data_dir: ../dataset/wikiart
+    data_dir: ../datasets/wikiart
     train_data_txt:
     train_test_split: false
     labeled_dir: false
