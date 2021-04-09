@@ -91,40 +91,41 @@ Tensorflow 2 reimplementation of image generation model.
 
 ## Neural Style Transfer
 
-<table align="center">
-    <thead>
-        <tr>
-            <th align="center" width="200">5000 Step From Content</th>
-            <th align="center" width="300"><img alt="Neural Style Transfer content - 구르미 그린 달빛" src="https://user-images.githubusercontent.com/41245985/99071163-f1912000-25f4-11eb-895a-0284b529a3b9.jpg"></th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr>
-            <td align="center"><img alt="Neural Style Transfer style - Voronoi diagram" src="https://user-images.githubusercontent.com/41245985/99144145-b2bba280-26a6-11eb-8864-a9f51b71899a.png"></td>
-            <td align="center"><img alt="Neural Style Transfer result - Voronoi diagram" src="https://user-images.githubusercontent.com/41245985/99071181-fa81f180-25f4-11eb-8f56-01e2d9058ecc.png"></td>
-        </tr>
-        <tr>
-            <td align="center"><img alt="Neural Style Transfer style - Vassily Kandinsky Composition 7" src="https://user-images.githubusercontent.com/41245985/99144144-b0f1df00-26a6-11eb-95aa-8a99ea53b165.jpg"></td>
-            <td align="center"><img alt="Neural Style Transfer result - Vassily Kandinsky Composition 7" src="https://user-images.githubusercontent.com/41245985/99071287-29986300-25f5-11eb-8a79-1465274cd3f3.png"></td>
-        </tr>
-        <tr>
-            <td align="center"><img alt="Neural Style Transfer style - 게르니카" src="https://user-images.githubusercontent.com/41245985/99144146-b3eccf80-26a6-11eb-8a17-3c961468d574.jpg"></td>
-            <td align="center"><img alt="Neural Style Transfer result - 게르니카" src="https://user-images.githubusercontent.com/41245985/99071341-4e8cd600-25f5-11eb-80b1-552984358893.png"></td>
-        </tr>
-        <tr>
-            <td align="center"><img alt="Neural Style Transfer style - 론강의 별이 빛나는 밤" src="https://user-images.githubusercontent.com/41245985/99144147-b51dfc80-26a6-11eb-841d-f771ff5cc976.jpg"></td>
-            <td align="center"><img alt="Neural Style Transfer result - 론강의 별이 빛나는 밤" src="https://user-images.githubusercontent.com/41245985/99071414-6cf2d180-25f5-11eb-85d1-7ed301238280.png"></td>
-        </tr>
-        <tr>
-            <td align="center"><img alt="Neural Style Transfer style - La Promenade" src="https://user-images.githubusercontent.com/41245985/99144150-b64f2980-26a6-11eb-90bf-6d65c52c8bbb.jpg"></td>
-            <td align="center"><img alt="Neural Style Transfer result - La Promenade" src="https://user-images.githubusercontent.com/41245985/99071463-85fb8280-25f5-11eb-99d6-7d5fd089d9c7.png"></td>
-        </tr>
-    </tbody>
-</table>
-
-<p align="center">
-    <img alt="Neural Style Transfer plot" src="https://user-images.githubusercontent.com/41245985/99142043-9a428c80-2694-11eb-8c7b-b510a2fb16d1.png">
-</p>
+<details>
+    <table align="center">
+        <thead>
+            <tr>
+                <th align="center" width="200">5000 Step From Content</th>
+                <th align="center" width="300"><img alt="Neural Style Transfer content - 구르미 그린 달빛" src="https://user-images.githubusercontent.com/41245985/99071163-f1912000-25f4-11eb-895a-0284b529a3b9.jpg"></th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td align="center"><img alt="Neural Style Transfer style - Voronoi diagram" src="https://user-images.githubusercontent.com/41245985/99144145-b2bba280-26a6-11eb-8864-a9f51b71899a.png"></td>
+                <td align="center"><img alt="Neural Style Transfer result - Voronoi diagram" src="https://user-images.githubusercontent.com/41245985/99071181-fa81f180-25f4-11eb-8f56-01e2d9058ecc.png"></td>
+            </tr>
+            <tr>
+                <td align="center"><img alt="Neural Style Transfer style - Vassily Kandinsky Composition 7" src="https://user-images.githubusercontent.com/41245985/99144144-b0f1df00-26a6-11eb-95aa-8a99ea53b165.jpg"></td>
+                <td align="center"><img alt="Neural Style Transfer result - Vassily Kandinsky Composition 7" src="https://user-images.githubusercontent.com/41245985/99071287-29986300-25f5-11eb-8a79-1465274cd3f3.png"></td>
+            </tr>
+            <tr>
+                <td align="center"><img alt="Neural Style Transfer style - 게르니카" src="https://user-images.githubusercontent.com/41245985/99144146-b3eccf80-26a6-11eb-8a17-3c961468d574.jpg"></td>
+                <td align="center"><img alt="Neural Style Transfer result - 게르니카" src="https://user-images.githubusercontent.com/41245985/99071341-4e8cd600-25f5-11eb-80b1-552984358893.png"></td>
+            </tr>
+            <tr>
+                <td align="center"><img alt="Neural Style Transfer style - 론강의 별이 빛나는 밤" src="https://user-images.githubusercontent.com/41245985/99144147-b51dfc80-26a6-11eb-841d-f771ff5cc976.jpg"></td>
+                <td align="center"><img alt="Neural Style Transfer result - 론강의 별이 빛나는 밤" src="https://user-images.githubusercontent.com/41245985/99071414-6cf2d180-25f5-11eb-85d1-7ed301238280.png"></td>
+            </tr>
+            <tr>
+                <td align="center"><img alt="Neural Style Transfer style - La Promenade" src="https://user-images.githubusercontent.com/41245985/99144150-b64f2980-26a6-11eb-90bf-6d65c52c8bbb.jpg"></td>
+                <td align="center"><img alt="Neural Style Transfer result - La Promenade" src="https://user-images.githubusercontent.com/41245985/99071463-85fb8280-25f5-11eb-99d6-7d5fd089d9c7.png"></td>
+            </tr>
+        </tbody>
+    </table>
+    <p align="center">
+        <img alt="Neural Style Transfer plot" src="https://user-images.githubusercontent.com/41245985/99142043-9a428c80-2694-11eb-8c7b-b510a2fb16d1.png">
+    </p>
+</details>
 
 ---
 
@@ -164,20 +165,20 @@ Tensorflow 2 reimplementation of image generation model.
 <table>
     <tbody>
         <tr>
-            <td align="center"><img alt="AdaIN contents 0.1" src="https://lh3.googleusercontent.com/KaHChf3ggpFVyzRTCtFG8XaOMaIvYdKPCL2huoaIKpvW-EADfZpn1Tto8Xg9oCQZlIH-tEmDABXe7KfxOX4_s3BXuFfSoqT3BDHDToeLy4oyW22fenn83cR5NNA6-FoNPKZ1xkQ78Q"></td>
-            <td align="center"><img alt="AdaIN outputs 0.1" src="https://lh3.googleusercontent.com/-q4oqyEQtHz5oKOxbv_YHSW2E0gljtSvs8hpdtf4wrioBvCahV_LMFL072o1ovgs5LJUw0VDexjBfEMHUUZJhSzIOa8B2WywjCBDbzpTZvfRXjyn52pinl12-tBSxpugWL_SPfwVzQ"></td>
-            <td align="center"><img alt="AdaIN styles 0.1" src="https://lh3.googleusercontent.com/KAU5IpnHQKcCpbfm1o8ygPw_rDkWHHXSLo_jAeDz-hpuPIvB61WbUrdvnhGHdEHPjaUg-wqdorHB7W8y_iykvrflsCgyvipV08KGEQqwVSWVXPLz04Qe0t8-yDmcbk6ihd6oD6GlNw"></td>
+            <td align="center"><img alt="AdaIN contents 0.1" src="https://user-images.githubusercontent.com/41245985/114143022-96b6e700-994e-11eb-8a90-f50b9b217518.png"></td>
+            <td align="center"><img alt="AdaIN outputs 0.1" src="https://user-images.githubusercontent.com/41245985/114142864-666f4880-994e-11eb-98d0-cdd83c62d45b.gif"></td>
+            <td align="center"><img alt="AdaIN styles 0.1" src="https://user-images.githubusercontent.com/41245985/114143030-99194100-994e-11eb-9234-c47b3ab00782.png"></td>
         </tr>
         <tr>
-            <td align="center"><img alt="AdaIN contents 0.01" src="https://lh3.googleusercontent.com/zL0Qzlb9Ru-AyZSgtWWb-33V3vf9LYwS_d14yGxVF9_uO-PTExH1-3VERhD1AKMg5whk0pyo7NVk2IQ2_5CTP3y2i2fCpFNnco_FE1ZrpZwnjGFmJZzGfk9V-50QJHzjCxoMb3KeQQ"></td>
-            <td align="center"><img alt="AdaIN outputs 0.01" src="https://lh3.googleusercontent.com/l88AkjCFsmtCMbN_YTCawW3haJn927QIyodlRQ-6Mbwgsx2TrKCN5DjHQLBGreh8GuISPSsi_ANMpD_6qwbo1gbdPYI0vqZq9eQsVLGNorLfQi1__RMPxP7HYx2Pj5tB-jkQnm_cEA"></td>
-            <td align="center"><img alt="AdaIN styles 0.01" src="https://lh3.googleusercontent.com/emT7uQxEbUBw9RNh_T7LFXN8FWfVwl5OGBmAWVFCe6rEe4f_4iL08ny3TEg08RcqHIqiTExo2XP_tbyoDbDPe5r3iR_KVwRSwI32vgU2MQ9pU-87D0b3pVwZHhtT18xQVVTjknn7RQ"></td>
+            <td align="center"><img alt="AdaIN contents 0.01" src="https://user-images.githubusercontent.com/41245985/114143432-1d6bc400-994f-11eb-99ec-8d4ca880d0de.png"></td>
+            <td align="center"><img alt="AdaIN outputs 0.01" src="https://user-images.githubusercontent.com/41245985/114142869-68d1a280-994e-11eb-9e74-3c6ac55dc5f4.gif"></td>
+            <td align="center"><img alt="AdaIN styles 0.01" src="https://user-images.githubusercontent.com/41245985/114143438-1f358780-994f-11eb-9335-109da8c7de58.png"></td>
         </tr>
     </tbody>
 </table>
 
 <p align="center">
-    <img alt="AdaIN plot" src="https://lh3.googleusercontent.com/yGk7auzxeQgovVaCifRWPIVzsq4BJveAY22Hr5YQioG7sRBu6NFrfSr5C02HffauVZkWn2_CCm1LtjhSTIB0-Qw_U6iMAzRs_MKs_4ic7IV-Ee27GKLWZXGnxHd5m2TqCkH-zhgKBg=w2400">
+    <img alt="AdaIN plot" src="https://user-images.githubusercontent.com/41245985/114144498-5a848600-9950-11eb-8dcc-d634470cde04.png">
 </p>
 
 ---
