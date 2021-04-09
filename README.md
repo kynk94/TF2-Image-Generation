@@ -133,19 +133,19 @@ Tensorflow 2 reimplementation of image generation model.
 <table align="center">
     <tbody>
         <tr>
-            <td align="center" width="300"><img alt="Fast Style Transfer style - wave" src="https://user-images.githubusercontent.com/41245985/103476351-1dac6e80-4df8-11eb-826b-30508adc05d7.jpg"></td>
-            <td align="center" width="400"><img alt="Fast Style Transfer content - wave" src="https://user-images.githubusercontent.com/41245985/103476272-a1199000-4df7-11eb-9346-e97c6e6aed2f.png"></td>
-            <td align="center" width="400"><img alt="Fast Style Transfer output - wave" src="https://user-images.githubusercontent.com/41245985/103476276-a5de4400-4df7-11eb-9c4d-a4049ef03391.png"></td>
+            <td align="center" width="400"><img alt="Fast Style Transfer contents - wave" src="https://user-images.githubusercontent.com/41245985/103476272-a1199000-4df7-11eb-9346-e97c6e6aed2f.png"></td>
+            <td align="center" width="400"><img alt="Fast Style Transfer outputs - wave" src="https://user-images.githubusercontent.com/41245985/103476276-a5de4400-4df7-11eb-9c4d-a4049ef03391.png"></td>
+            <td align="center" width="300"><img alt="Fast Style Transfer styles - wave" src="https://user-images.githubusercontent.com/41245985/103476351-1dac6e80-4df8-11eb-826b-30508adc05d7.jpg"></td>
         </tr>
         <tr>
-            <td align="center"><img alt="Fast Style Transfer style - the scream" src="https://user-images.githubusercontent.com/41245985/103476350-1b4a1480-4df8-11eb-8057-25babf360e28.jpg"></td>
-            <td align="center"><img alt="Fast Style Transfer content - the scream" src="https://user-images.githubusercontent.com/41245985/103476278-a8409e00-4df7-11eb-91a6-cae157bd5dc7.png"></td>
-            <td align="center"><img alt="Fast Style Transfer output - the scream" src="https://user-images.githubusercontent.com/41245985/103476280-abd42500-4df7-11eb-9ebd-0540fcab73ee.png"></td>
+            <td align="center"><img alt="Fast Style Transfer contents - the scream" src="https://user-images.githubusercontent.com/41245985/103476278-a8409e00-4df7-11eb-91a6-cae157bd5dc7.png"></td>
+            <td align="center"><img alt="Fast Style Transfer outputs - the scream" src="https://user-images.githubusercontent.com/41245985/103476280-abd42500-4df7-11eb-9ebd-0540fcab73ee.png"></td>
+            <td align="center"><img alt="Fast Style Transfer styles - the scream" src="https://user-images.githubusercontent.com/41245985/103476350-1b4a1480-4df8-11eb-8057-25babf360e28.jpg"></td>
         </tr>
         <tr>
-            <td align="center"><img alt="Fast Style Transfer style - udnie" src="https://user-images.githubusercontent.com/41245985/103479766-47bf5a00-4e13-11eb-8d51-54c91dc57046.jpg"></td>
-            <td align="center"><img alt="Fast Style Transfer content - udnie" src="https://user-images.githubusercontent.com/41245985/103479754-2c544f00-4e13-11eb-9177-b588452c7526.png"></td>
-            <td align="center"><img alt="Fast Style Transfer output - udnie" src="https://user-images.githubusercontent.com/41245985/103479757-2e1e1280-4e13-11eb-9d05-4c8ae0482462.png"></td>
+            <td align="center"><img alt="Fast Style Transfer contents - udnie" src="https://user-images.githubusercontent.com/41245985/103479754-2c544f00-4e13-11eb-9177-b588452c7526.png"></td>
+            <td align="center"><img alt="Fast Style Transfer outputs - udnie" src="https://user-images.githubusercontent.com/41245985/103479757-2e1e1280-4e13-11eb-9d05-4c8ae0482462.png"></td>
+            <td align="center"><img alt="Fast Style Transfer styles - udnie" src="https://user-images.githubusercontent.com/41245985/103479766-47bf5a00-4e13-11eb-8d51-54c91dc57046.jpg"></td>
         </tr>
     </tbody>
 </table>
@@ -157,6 +157,28 @@ Tensorflow 2 reimplementation of image generation model.
 - Use FIR Filter in Transposed Convolution
 - Use Reflection Padding
 - Use Leaky ReLU
+
+---
+
+## AdaIN
+<table>
+    <tbody>
+        <tr>
+            <td align="center"><img alt="AdaIN contents 0.1" src="https://lh3.googleusercontent.com/KaHChf3ggpFVyzRTCtFG8XaOMaIvYdKPCL2huoaIKpvW-EADfZpn1Tto8Xg9oCQZlIH-tEmDABXe7KfxOX4_s3BXuFfSoqT3BDHDToeLy4oyW22fenn83cR5NNA6-FoNPKZ1xkQ78Q"></td>
+            <td align="center"><img alt="AdaIN outputs 0.1" src="https://lh3.googleusercontent.com/-q4oqyEQtHz5oKOxbv_YHSW2E0gljtSvs8hpdtf4wrioBvCahV_LMFL072o1ovgs5LJUw0VDexjBfEMHUUZJhSzIOa8B2WywjCBDbzpTZvfRXjyn52pinl12-tBSxpugWL_SPfwVzQ"></td>
+            <td align="center"><img alt="AdaIN styles 0.1" src="https://lh3.googleusercontent.com/KAU5IpnHQKcCpbfm1o8ygPw_rDkWHHXSLo_jAeDz-hpuPIvB61WbUrdvnhGHdEHPjaUg-wqdorHB7W8y_iykvrflsCgyvipV08KGEQqwVSWVXPLz04Qe0t8-yDmcbk6ihd6oD6GlNw"></td>
+        </tr>
+        <tr>
+            <td align="center"><img alt="AdaIN contents 0.01" src="https://lh3.googleusercontent.com/zL0Qzlb9Ru-AyZSgtWWb-33V3vf9LYwS_d14yGxVF9_uO-PTExH1-3VERhD1AKMg5whk0pyo7NVk2IQ2_5CTP3y2i2fCpFNnco_FE1ZrpZwnjGFmJZzGfk9V-50QJHzjCxoMb3KeQQ"></td>
+            <td align="center"><img alt="AdaIN outputs 0.01" src="https://lh3.googleusercontent.com/l88AkjCFsmtCMbN_YTCawW3haJn927QIyodlRQ-6Mbwgsx2TrKCN5DjHQLBGreh8GuISPSsi_ANMpD_6qwbo1gbdPYI0vqZq9eQsVLGNorLfQi1__RMPxP7HYx2Pj5tB-jkQnm_cEA"></td>
+            <td align="center"><img alt="AdaIN styles 0.01" src="https://lh3.googleusercontent.com/emT7uQxEbUBw9RNh_T7LFXN8FWfVwl5OGBmAWVFCe6rEe4f_4iL08ny3TEg08RcqHIqiTExo2XP_tbyoDbDPe5r3iR_KVwRSwI32vgU2MQ9pU-87D0b3pVwZHhtT18xQVVTjknn7RQ"></td>
+        </tr>
+    </tbody>
+</table>
+
+<p align="center">
+    <img alt="AdaIN plot" src="https://lh3.googleusercontent.com/yGk7auzxeQgovVaCifRWPIVzsq4BJveAY22Hr5YQioG7sRBu6NFrfSr5C02HffauVZkWn2_CCm1LtjhSTIB0-Qw_U6iMAzRs_MKs_4ic7IV-Ee27GKLWZXGnxHd5m2TqCkH-zhgKBg=w2400">
+</p>
 
 ---
 
@@ -180,7 +202,7 @@ Tensorflow 2 reimplementation of image generation model.
 
 - [x] Neural Style Transfer: [Paper](https://www.cv-foundation.org/openaccess/content_cvpr_2016/papers/Gatys_Image_Style_Transfer_CVPR_2016_paper.pdf)
 - [x] Fast Style Transfer: [Paper](https://arxiv.org/abs/1603.08155)
-- [ ] AdaIN
+- [x] AdaIN: [Paper](https://arxiv.org/abs/1703.06868)
 - [ ] CycleGAN
 - [ ] StarGAN
 - [ ] UNIT

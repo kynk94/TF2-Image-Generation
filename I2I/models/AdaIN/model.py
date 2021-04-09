@@ -17,6 +17,7 @@ class AdaIN(BaseModel):
         self.opt = Adam(conf['learning_rate'], conf['beta_1'])
         self.set_checkpoint(decoder=self.decoder,
                             optimizer=self.opt)
+        self.content_weight = conf['content_weight']
 
     @tf.function
     def train(self, inputs):
@@ -28,8 +29,8 @@ class AdaIN(BaseModel):
             generated_images = self.decoder(adain_outputs)
             generated_features = self.encoder(generated_images)
 
-            content_loss = self.content_loss([adain_outputs],
-                                             [generated_features[-1]]) * 0.1
+            content_loss = self.content_loss(
+                [adain_outputs], [generated_features[-1]]) * self.content_weight
             style_loss = self.style_loss(style_features, generated_features)
             loss = content_loss + style_loss
         gradient = tape.gradient(loss, self.decoder.trainable_variables)
@@ -93,16 +94,20 @@ class AdaIN(BaseModel):
     def content_loss(self, input_features, target_features):
         out = 0.0
         for i, t in zip(input_features, target_features):
-            out += tf.reduce_mean(tf.square(i - t), axis=(1, 2, 3)) 
+            out += tf.reduce_mean(tf.square(i - t), axis=(1, 2, 3))
         return tf.reduce_mean(out)
 
     def style_loss(self, input_features, target_features, epsilon=1e-5):
         out = 0.0
         for i, t in zip(input_features, target_features):
-            input_mean, input_var = tf.nn.moments(i, self.adain._spatial_axes, keepdims=True)
-            target_mean, target_var = tf.nn.moments(t, self.adain._spatial_axes, keepdims=True)
+            input_mean, input_var = tf.nn.moments(
+                i, self.adain._spatial_axes, keepdims=True)
+            target_mean, target_var = tf.nn.moments(
+                t, self.adain._spatial_axes, keepdims=True)
             input_std = tf.sqrt(input_var + epsilon)
             target_std = tf.sqrt(target_var + epsilon)
-            out += tf.reduce_mean(tf.square(input_mean - target_mean), axis=(1, 2, 3))
-            out += tf.reduce_mean(tf.square(input_std - target_std), axis=(1, 2, 3))
+            out += tf.reduce_mean(tf.square(input_mean - target_mean),
+                                  axis=(1, 2, 3))
+            out += tf.reduce_mean(tf.square(input_std - target_std),
+                                  axis=(1, 2, 3))
         return tf.reduce_mean(out)

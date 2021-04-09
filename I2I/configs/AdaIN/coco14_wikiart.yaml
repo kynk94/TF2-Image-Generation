@@ -19,6 +19,7 @@ save_step: 10000
 batch_size: 4
 learning_rate: 0.0001
 beta_1: 0.5
+content_weight: 0.1
 
 # test
 test_step: 100
@@ -26,7 +27,6 @@ test_batch_size: 9
 
 # directory
 checkpoint_dir: ./checkpoints
-style_image:
 
 # data
 dataset:
