@@ -1,11 +1,13 @@
 import numpy as np
 import tensorflow as tf
+from tensorflow.python.keras import layers as K_layers
+from tensorflow.python.keras import Model
 from .normalizations import Normalization
 from .utils import get_activation_layer, get_noise_layer
 from .utils import get_layer_config
 
 
-class Linear(tf.keras.layers.Dense):
+class Linear(K_layers.Dense):
     """
     Inherited from the official tf implementation Dense.
     (edited by https://github.com/kynk94)
@@ -129,7 +131,7 @@ class Linear(tf.keras.layers.Dense):
         return config
 
 
-class LinearBlock(tf.keras.Model):
+class LinearBlock(Model):
     """
     Linear Block.
 

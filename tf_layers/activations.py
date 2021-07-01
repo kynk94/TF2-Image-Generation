@@ -1,9 +1,9 @@
-import tensorflow as tf
 import tensorflow_addons as tfa
+from tensorflow.python.keras import layers
 from .utils import get_layer_config
 
 
-class Activation(tf.keras.layers.Activation):
+class Activation(layers.Activation):
     def __init__(self, activation, activation_alpha=0.3, **kwargs):
         super().__init__(
             activation=Activation.get_activation(activation, activation_alpha),
@@ -17,11 +17,11 @@ class Activation(tf.keras.layers.Activation):
             raise ValueError(f'Unsupported `activation`: {activation}')
         l_activation = activation.lower()
         if l_activation in {'leaky_relu', 'lrelu'}:
-            return tf.keras.layers.LeakyReLU(
+            return layers.LeakyReLU(
                 alpha=activation_alpha,
                 name='leaky_relu')
         if l_activation in {'exp_lu', 'elu'}:
-            return tf.keras.layers.ELU(
+            return layers.ELU(
                 alpha=activation_alpha,
                 name='elu')
         if l_activation in {'trelu', 'tlu'}:

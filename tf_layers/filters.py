@@ -1,11 +1,12 @@
 import functools
 import numpy as np
 import tensorflow as tf
+from tensorflow.python.keras import layers as K_layers
 from tensorflow.python.keras.utils import conv_utils
 from .padding import Padding
 
 
-class FIRFilter(tf.keras.layers.Layer):
+class FIRFilter(K_layers.Layer):
     def __init__(self,
                  kernel=None,
                  factor=2,

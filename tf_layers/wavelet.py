@@ -3,12 +3,13 @@ wavelet transform for SWAGAN (https://arxiv.org/abs/2102.06108)
 """
 import numpy as np
 import tensorflow as tf
+from tensorflow.python.keras import layers as K_layers
 from tensorflow.python.keras.utils import conv_utils
 from .filters import FIRFilter
 from .resample import Downsample, Upsample
 
 
-class HaarTransform2D(tf.keras.layers.Layer):
+class HaarTransform2D(K_layers.Layer):
     def __init__(self,
                  concat_direction='channel',
                  data_format=None,

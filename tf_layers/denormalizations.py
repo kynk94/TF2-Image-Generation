@@ -1,6 +1,7 @@
 import numpy as np
 import tensorflow as tf
-from tensorflow.python.keras.layers.core import Flatten
+from tensorflow.python.keras import layers as K_layers
+from tensorflow.python.keras import Sequential
 from tensorflow.python.keras.utils import conv_utils
 from .conv import Conv
 from .linear import Linear
@@ -10,7 +11,7 @@ from .reshape import Reshape
 from .utils import get_layer_config
 
 
-class Denormalization(tf.keras.layers.Layer):
+class Denormalization(K_layers.Layer):
     """
     Denormalization Layer
 
@@ -108,8 +109,8 @@ class AdaIN(Denormalization):
             else:
                 perm_after_reshape = (*range(2, self.rank+2), 1)
             out_dims = 2 * input_channel
-            self.linear = tf.keras.Sequential([
-                tf.keras.layers.Flatten(),
+            self.linear = Sequential([
+                K_layers.Flatten(),
                 Linear(out_dims),
                 Reshape(target_shape=(out_dims,) + (1,)*self.rank,
                         perm_after_reshape=perm_after_reshape)],

@@ -6,10 +6,11 @@ Licensed under the CC BY-NC-SA 4.0 license
 import functools
 import tensorflow as tf
 from typing import Iterable, Union
+from tensorflow.python.keras import layers as K_layers
 from tensorflow.python.keras.utils import conv_utils
 
 
-class Padding(tf.keras.layers.Layer):
+class Padding(K_layers.Layer):
     """
     Padding layer for N rank input.
     `rank` equivalent to `len(tensor.shape) - 2`

@@ -4,7 +4,7 @@ Licensed under the CC BY-NC-SA 4.0 license
 (https://creativecommons.org/licenses/by-nc-sa/4.0/).
 """
 import numpy as np
-import tensorflow as tf
+from tensorflow.python.keras import Model
 from tensorflow.python.keras.utils.conv_utils import normalize_data_format
 from tensorflow_addons.layers import SpectralNormalization
 from .conv import Conv, TransposeConv, DecompTransConv, DownConv, UpConv
@@ -13,7 +13,7 @@ from .normalizations import Normalization
 from .utils import get_activation_layer, get_layer_config
 
 
-class BaseBlock(tf.keras.Model):
+class BaseBlock(Model):
     """
     Base Block for Convolution Block.
 

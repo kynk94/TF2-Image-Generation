@@ -7,7 +7,7 @@ import functools
 import numpy as np
 import tensorflow as tf
 from tensorflow.python.eager import context
-from tensorflow.python.keras.layers import convolutional
+from tensorflow.python.keras.layers import convolutional, InputSpec
 from tensorflow.python.keras.utils import conv_utils
 from tensorflow.python.ops import nn_ops
 from .filters import FIRFilter
@@ -392,7 +392,7 @@ class TransposeConv(Conv):
                 f'number of groups. Received groups={self.groups}, but the '
                 f'input has {input_channel} channels (full input shape is '
                 f'{input_shape}).')
-        self.input_spec = tf.keras.layers.InputSpec(
+        self.input_spec = InputSpec(
             ndim=self.rank + 2, axes={self._channel_axis: input_channel})
         kernel_shape = self.kernel_size + (self.filters // self.groups,
                                            input_channel)
@@ -678,7 +678,7 @@ class DecompTransConv(Conv):
                 f'number of groups. Received groups={self.groups}, but the '
                 f'input has {input_channel} channels (full input shape is '
                 f'{input_shape}).')
-        self.input_spec = tf.keras.layers.InputSpec(
+        self.input_spec = InputSpec(
             ndim=self.rank + 2, axes={self._channel_axis: input_channel})
         kernel_shapes = []
         filters = self.filters // self.groups
@@ -1324,7 +1324,7 @@ class SubPixelConv2D(Conv2D):
         else:
             self.bias = None
         channel_axis = self._get_channel_axis()
-        self.input_spec = tf.keras.layers.InputSpec(
+        self.input_spec = InputSpec(
             min_ndim=self.rank + 2, axes={channel_axis: input_channel})
 
         # Convert Keras formats to TF native formats.

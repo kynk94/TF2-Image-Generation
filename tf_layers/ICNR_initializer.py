@@ -1,17 +1,18 @@
 import numpy as np
 import tensorflow as tf
+from tensorflow.python.keras import initializers as K_initializers
 from tensorflow.python.keras.utils.conv_utils import normalize_tuple
 from .utils import get_layer_config
 
 
-class ICNR(tf.keras.initializers.Initializer):
+class ICNR(K_initializers.Initializer):
     """ICNR Initializer for abstract N-D convolution."""
 
     def __init__(self,
                  scale=2,
                  initializer='he_normal'):
         self.scale = scale
-        self.initializer = tf.keras.initializers.get(initializer)
+        self.initializer = K_initializers.get(initializer)
 
     def __call__(self, shape, dtype=tf.float32):
         scale = normalize_tuple(self.scale, len(shape) - 2, 'scale')

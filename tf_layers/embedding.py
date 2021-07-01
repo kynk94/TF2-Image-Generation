@@ -1,9 +1,10 @@
 import numpy as np
 import tensorflow as tf
+from tensorflow.python.keras import layers as K_layers
 from tensorflow.python.distribute import sharded_variable
 
 
-class Embedding(tf.keras.layers.Embedding):
+class Embedding(K_layers.Embedding):
     """
     Inherited from the official tf implementation.
     (edited by https://github.com/kynk94)

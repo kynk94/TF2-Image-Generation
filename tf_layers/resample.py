@@ -5,10 +5,11 @@ Licensed under the CC BY-NC-SA 4.0 license
 """
 import functools
 import tensorflow as tf
+from tensorflow.python.keras import layers as K_layers
 from tensorflow.python.keras.utils import conv_utils
 
 
-class Resample(tf.keras.layers.Layer):
+class Resample(K_layers.Layer):
     def __init__(self,
                  factor=None,
                  size=None,

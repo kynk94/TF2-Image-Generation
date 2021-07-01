@@ -4,10 +4,12 @@ Licensed under the CC BY-NC-SA 4.0 license
 (https://creativecommons.org/licenses/by-nc-sa/4.0/).
 """
 import tensorflow as tf
+from tensorflow.python.keras import layers as K_layers
+from tensorflow.python.keras import backend as K
 from tensorflow.python.keras.utils import tf_utils
 
 
-class NoiseBase(tf.keras.layers.Layer):
+class NoiseBase(K_layers.Layer):
     def __init__(self,
                  strength=0.0,
                  channel_same=True,
@@ -22,7 +24,7 @@ class NoiseBase(tf.keras.layers.Layer):
     def build(self, input_shape):
         input_shape = tf.TensorShape(input_shape)
         if self.channel_same and len(input_shape) > 3:
-            if tf.keras.backend.image_data_format() == 'channels_first':
+            if K.image_data_format() == 'channels_first':
                 input_shape = [input_shape[0], 1, *input_shape[2:]]
             else:
                 input_shape = [*input_shape[:-1], 1]
@@ -39,7 +41,7 @@ class NoiseBase(tf.keras.layers.Layer):
         self._noise_op = getattr(self, '_noise_op', None)
 
     def call(self, inputs, training=None):
-        return tf.keras.backend.in_train_phase(
+        return K.in_train_phase(
             self._noise_op(inputs), inputs, training=training)
 
     @tf_utils.shape_type_conversion

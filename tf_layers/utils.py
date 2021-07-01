@@ -5,6 +5,8 @@ Licensed under the CC BY-NC-SA 4.0 license
 """
 import tensorflow as tf
 import tensorflow_addons as tfa
+from tensorflow.python.keras import initializers as K_initializers
+from tensorflow.python.keras import layers as K_layers
 from .noise import GaussianNoise, UniformNoise
 from .padding import Padding
 
@@ -46,7 +48,7 @@ def get_layer_config(layer):
 
 def get_initializer(initializer, use_weight_scaling=False, lr_multiplier=1.0):
     if not use_weight_scaling:
-        return tf.keras.initializers.get(initializer)
+        return K_initializers.get(initializer)
     stddev = 1.0 / lr_multiplier
     return tf.initializers.random_normal(0, stddev)
 
@@ -130,15 +132,15 @@ def get_activation_layer(activation, activation_alpha=0.3):
         raise ValueError(f'Unsupported `activation`: {activation}')
     l_activation = activation.lower()
     if l_activation == 'relu':
-        return tf.keras.layers.ReLU(name='relu')
+        return K_layers.ReLU(name='relu')
     if l_activation in {'leaky_relu', 'lrelu'}:
-        return tf.keras.layers.LeakyReLU(
+        return K_layers.LeakyReLU(
             alpha=activation_alpha,
             name='leaky_relu')
     if l_activation in {'exp_lu', 'elu'}:
-        return tf.keras.layers.ELU(
+        return K_layers.ELU(
             alpha=activation_alpha,
             name='elu')
     if l_activation in {'trelu', 'tlu'}:
         return tfa.layers.TLU()
-    return tf.keras.layers.Activation(l_activation)
+    return K_layers.Activation(l_activation)

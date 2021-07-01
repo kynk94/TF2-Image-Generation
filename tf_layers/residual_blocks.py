@@ -5,12 +5,14 @@ Licensed under the CC BY-NC-SA 4.0 license
 """
 import numpy as np
 import tensorflow as tf
+from tensorflow.python.keras import layers as K_layers
+from tensorflow.python.keras import Model
 from tensorflow.python.keras.utils import conv_utils, generic_utils
 from .conv_blocks import ConvBlock, DownConvBlock, UpConvBlock, TransConvBlock
 from .utils import get_activation_layer, get_layer_config, kwargs_as_iterable
 
 
-class ResidualMultiplier(tf.keras.layers.Layer):
+class ResidualMultiplier(K_layers.Layer):
     def __init__(self,
                  value=1.0,
                  trainable=True,
@@ -38,7 +40,7 @@ class ResidualMultiplier(tf.keras.layers.Layer):
         return config
 
 
-class BaseResBlock(tf.keras.Model):
+class BaseResBlock(Model):
     def __init__(self,
                  rank,
                  depth,

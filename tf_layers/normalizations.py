@@ -1,5 +1,6 @@
 import tensorflow as tf
 import tensorflow_addons as tfa
+from tensorflow.python.keras import layers as K_layers
 from tensorflow.python.keras.utils import conv_utils
 from tensorflow.keras.layers import BatchNormalization, LayerNormalization
 from tensorflow.keras.layers.experimental import SyncBatchNormalization
@@ -7,7 +8,7 @@ from tensorflow_addons.layers import GroupNormalization, InstanceNormalization
 from .utils import get_layer_config
 
 
-class Normalization(tf.keras.layers.Layer):
+class Normalization(K_layers.Layer):
     def __init__(self,
                  normalization,
                  momentum=0.99,
