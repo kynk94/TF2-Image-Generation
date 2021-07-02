@@ -1,12 +1,11 @@
 import functools
 import numpy as np
 import tensorflow as tf
-from tensorflow.python.keras import layers as K_layers
 from tensorflow.python.keras.utils import conv_utils
-from .padding import Padding
+from tensorflow.python.keras.utils.conv_utils import normalize_tuple
 
 
-class FIRFilter(K_layers.Layer):
+class FIRFilter(tf.keras.layers.Layer):
     def __init__(self,
                  kernel=None,
                  factor=2,
@@ -46,6 +45,38 @@ class FIRFilter(K_layers.Layer):
         self.input_channel = input_shape[self._channel_axis]
         strides = conv_utils.normalize_tuple(self.stride, self.rank, 'stride')
 
+        def _check_pad_params(rank, padding):
+            if isinstance(padding, int):
+                padding = ((padding,)*2,) * rank
+            elif hasattr(padding, '__len__'):
+                if len(padding) != rank:
+                    raise ValueError(f'`padding` should have {rank} elements. '
+                                     f'Found: {padding}')
+                dim_padding = []
+                for i in range(rank):
+                    dim_padding.append(normalize_tuple(padding[i], 2,
+                                                       f'{i} entry of padding'))
+                padding = tuple(dim_padding)
+            else:
+                raise ValueError(
+                    '`padding` should be either an int, '
+                    f'a tuple of {rank} ints '
+                    '(' + ', '.join(
+                        f'symmetric_dim{i}_pad'
+                        for i in range(1, rank+1)) + '), '
+                    f'or a tuple of {rank} tuples of 2 ints '
+                    '(' + ', '.join(
+                        f'(left_dim{i}_pad, right_dim{i}_pad)'
+                        for i in range(1, rank+1)) + '). '
+                    f'Found: {padding}')
+
+            padding = ((0, 0),) + padding
+            if self.data_format == 'channels_first':
+                padding = ((0, 0),) + padding
+            else:
+                padding += ((0, 0),)
+            return padding
+
         # forward padding
         if isinstance(self.padding, str) and self.padding.lower() == 'same':
             padding_dims = []
@@ -54,25 +85,22 @@ class FIRFilter(K_layers.Layer):
                 padding_dims.append((div, div + mod))
         else:
             padding_dims = self.padding
-        self._pad = Padding(rank=self.rank, padding=padding_dims,
-                            pad_type='constant', constant_values=0,
-                            data_format=self.data_format)
-        padded_dims = [input_shape[axis] + sum(self._pad.padding[axis])
+        forward_pad = _check_pad_params(self.rank, padding_dims)
+        padded_dims = [input_shape[axis] + sum(forward_pad[axis])
                        for axis in self._spatial_axes]
         output_dims = [(padded_dim - k) // stride + 1
                        for padded_dim, k, stride in zip(padded_dims,
                                                         kernel_shape,
                                                         strides)]
-        # backprop padding
+
+        # backward padding
         back_padding_dims = []
         for i, axis in enumerate(self._spatial_axes):
             k = kernel_shape[i]
-            pad = self._pad.padding[axis]
+            pad = forward_pad[axis]
             back_padding_dims.append((k - pad[0] - 1, k - pad[1] - 1))
-        self._back_pad = Padding(rank=self.rank, padding=back_padding_dims,
-                                 pad_type='constant', constant_values=0,
-                                 data_format=self.data_format)
-        back_padded_dims = [output_dim + sum(self._back_pad.padding[axis])
+        backward_pad = _check_pad_params(self.rank, back_padding_dims)
+        back_padded_dims = [output_dim + sum(backward_pad[axis])
                             for output_dim, axis in zip(output_dims, self._spatial_axes)]
         back_output_dims = [(padded_dim - k) // stride + 1
                             for padded_dim, k, stride in zip(back_padded_dims,
@@ -82,8 +110,8 @@ class FIRFilter(K_layers.Layer):
         _tf_data_format = conv_utils.convert_data_format(
             self.data_format, self.rank + 2)
         if self.data_format == 'channels_first':
-            def reshape_conv_op(inputs, new_shape, return_shape, padding, filters, name):
-                outputs = tf.pad(inputs, padding)
+            def reshape_conv_op(inputs, paddings, new_shape, return_shape, filters, name):
+                outputs = tf.pad(inputs, paddings=paddings)
                 outputs = tf.reshape(outputs, new_shape)
                 outputs = tf.nn.convolution(outputs,
                                             filters=filters,
@@ -97,8 +125,8 @@ class FIRFilter(K_layers.Layer):
             transpose_axes = (0, self._channel_axis, *range(1, self.rank+1))
             return_axes = (0, *range(2, self.rank+2), 1)
 
-            def reshape_conv_op(inputs, new_shape, return_shape, padding, filters, name):
-                outputs = tf.pad(inputs, padding)
+            def reshape_conv_op(inputs, paddings, new_shape, return_shape, filters, name):
+                outputs = tf.pad(inputs, paddings=paddings)
                 outputs = tf.transpose(outputs, transpose_axes)
                 outputs = tf.reshape(outputs, new_shape)
                 outputs = tf.transpose(outputs, return_axes)
@@ -115,14 +143,14 @@ class FIRFilter(K_layers.Layer):
 
         self._conv_op = functools.partial(
             reshape_conv_op,
-            padding=self._pad.padding,
+            paddings=forward_pad,
             new_shape=(-1, 1, *padded_dims),
             return_shape=(-1, self.input_channel, *output_dims),
             filters=kernel,
             name='fir_forward')
         self._back_conv_op = functools.partial(
             reshape_conv_op,
-            padding=self._back_pad.padding,
+            paddings=backward_pad,
             new_shape=(-1, 1, *back_padded_dims),
             return_shape=(-1, self.input_channel, *back_output_dims),
             filters=flipped_kernel,
@@ -140,7 +168,7 @@ class FIRFilter(K_layers.Layer):
 
     def _setup_kernel(self):
         kernel = self.kernel
-        if kernel is True or kernel is None:
+        if kernel is None:
             kernel = [1] * self.factor
         elif isinstance(kernel, int):
             kernel = [kernel] * self.factor

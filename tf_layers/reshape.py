@@ -21,3 +21,4 @@ class Reshape(K_layers.Reshape):
         config.update({
             'perm_after_reshape': get_layer_config(self.perm_after_reshape)
         })
+        return config
