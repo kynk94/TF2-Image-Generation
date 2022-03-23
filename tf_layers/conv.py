@@ -682,13 +682,16 @@ class DecompTransConv(Conv):
             ndim=self.rank + 2, axes={self._channel_axis: input_channel})
         kernel_shapes = []
         filters = self.filters // self.groups
+        smaller = min(filters, input_channel)
         for i in range(self.rank):
             kernel_size = [1] * self.rank
             kernel_size[i] = self.kernel_size[i]
             if i == 0:
-                shape = (*kernel_size, filters, input_channel)
+                shape = (*kernel_size, smaller, input_channel)
+            elif i == self.rank - 1:
+                shape = (*kernel_size, filters, smaller)
             else:
-                shape = (*kernel_size, filters, filters)
+                shape = (*kernel_size, smaller, smaller)
             kernel_shapes.append(shape)
 
         self.kernels = [
