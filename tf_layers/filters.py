@@ -82,7 +82,7 @@ class FIRFilter(tf.keras.layers.Layer):
             padding_dims = []
             for k in kernel_shape[:2]:
                 div, mod = divmod(k - 1, 2)
-                padding_dims.append((div, div + mod))
+                padding_dims.append((div + mod, div))
         else:
             padding_dims = self.padding
         forward_pad = _check_pad_params(self.rank, padding_dims)
