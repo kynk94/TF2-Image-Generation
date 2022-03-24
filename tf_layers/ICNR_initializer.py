@@ -1,11 +1,12 @@
 import numpy as np
 import tensorflow as tf
 from tensorflow.python.keras import initializers as K_initializers
+from tensorflow.python.keras.initializers.initializers_v2 import Initializer
 from tensorflow.python.keras.utils.conv_utils import normalize_tuple
 from .utils import get_layer_config
 
 
-class ICNR(K_initializers.Initializer):
+class ICNR(Initializer):
     """ICNR Initializer for abstract N-D convolution."""
 
     def __init__(self,

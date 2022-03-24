@@ -736,10 +736,14 @@ class DecompTransConv(Conv):
         for i in range(self.rank):
             output_shape = spatial_output_shape[:i+1] + \
                 temporal_output_shape[i+1:]
-            if self.data_format == 'channels_first':
-                output_shape = (self.filters, *output_shape)
+            if i == self.rank - 1:
+                filters = self.filters
             else:
-                output_shape = (*output_shape, self.filters)
+                filters = smaller
+            if self.data_format == 'channels_first':
+                output_shape = (filters, *output_shape)
+            else:
+                output_shape = (*output_shape, filters)
             self.spatial_output_shapes.append(output_shape)
 
         if self.rank == 1:
